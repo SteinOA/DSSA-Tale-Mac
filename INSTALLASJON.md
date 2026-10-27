@@ -15,7 +15,7 @@
 
 ## Enkel installasjon når nedlastingen er tilgjengelig
 
-1. Last ned DMG-filen fra lenken i README.
+1. Last ned DMG-filen fra lenken i README. Hvis Google viser «Last ned likevel», skyldes det at filen er for stor til Googles virussjekk. Knappen starter nedlastingen av testpakken; Google har ikke virusskannet den.
 2. Åpne DMG-filen.
 3. Dra **DSSA Tale** til **Programmer** i vinduet.
 4. Løs ut diskbildet og åpne appen fra Programmer.
