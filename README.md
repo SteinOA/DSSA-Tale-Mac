@@ -3,17 +3,17 @@
 DSSA Tale gjør norsk tale og lydfiler om til tekst lokalt på Mac-en med **NB-Whisper Large fra Nasjonalbiblioteket**. Du trenger ingen konto, API-nøkkel eller abonnement for transkribering.
 
 > **Testversjon – signert utgave er planlagt.**
-> Versjon **1.9.3 er tilgjengelig**. Modellnedlasting har fremdriftsvisning og filkontroll. Automatisk innliming er bygd om og har en norsk testknapp; den endelige prøven fra installert app med Mac-tillatelse gjenstår. Apple Developer ID-signering og notarisation mangler. Nedlasting uten konto betyr ikke at Gatekeeper godkjenner appen. Ingen dato for signert utgave er bekreftet.
+> Versjon **1.9.4 er tilgjengelig**. Appnavn og faktisk versjonsnummer vises fast nederst i sidemenyen. Modellnedlasting har fremdriftsvisning og filkontroll. Automatisk innliming er bygd om og har en norsk testknapp; den endelige prøven fra installert app med Mac-tillatelse gjenstår. Apple Developer ID-signering og notarisation mangler. Nedlasting uten konto betyr ikke at Gatekeeper godkjenner appen. Ingen dato for signert utgave er bekreftet.
 
 ## Nedlasting
 
-**[⬇ Last ned DSSA Tale 1.9.3 for Apple Silicon](https://drive.google.com/file/d/1NI0DErDFLwx0aYQK6v7aiqMD2iim0rkz/view?usp=drivesdk)** — ca. 3,6 GB.
+**[⬇ Last ned DSSA Tale 1.9.4 for Apple Silicon](https://drive.google.com/file/d/1Z9bUyCmgpWfAnj1h4x4uUJAdNLYpQSLL/view?usp=drivesdk)** — ca. 3,6 GB.
 
-Filen heter `DSSA-Tale-1.9.3-Apple-Silicon.dmg`. Alle med lenken kan laste ned uten GitHub-konto eller Google-innlogging. Google kan be om bekreftelse fordi filen er for stor til viruskontrollen. [Kontrollsum for 1.9.3](SHA256SUMS.txt).
+Filen heter `DSSA-Tale-1.9.4-Apple-Silicon.dmg`. Alle med lenken kan laste ned uten GitHub-konto eller Google-innlogging. Google kan be om bekreftelse fordi filen er for stor til viruskontrollen. [Kontrollsum for 1.9.4](SHA256SUMS.txt).
 
-Forrige testpakke er [DSSA Tale 1.9.2 for Apple Silicon](https://drive.google.com/file/d/1Yc2fbrEaWW--HwV1ppyJn7f-Wry2Vgy8/view?usp=drivesdk), ca. 3,6 GB. Den lenken er **ikke 1.9.3**, og pakken har de kjente problemene beskrevet over.
+Tidligere pakker beholdes i [Drive-mappen](https://drive.google.com/drive/folders/1V9J05FTCdjoR99HIYa_fC-wkxrPEnKVd). Velg **1.9.4** for den synlige versjonsvisningen.
 
-[Enkel installasjon og oppdatering](INSTALLASJON.md) · [Endringer i 1.9.3](RELEASE-NOTES-1.9.3.md) · [Teststatus](TESTSTATUS.txt) · [Windows-versjonen](https://github.com/SteinOA/openwhispr-nb-whisper)
+[Enkel installasjon og oppdatering](INSTALLASJON.md) · [Endringer i 1.9.4](RELEASE-NOTES-1.9.4.md) · [Teststatus](TESTSTATUS.txt) · [Windows-versjonen](https://github.com/SteinOA/openwhispr-nb-whisper)
 
 ## Dette følger med
 

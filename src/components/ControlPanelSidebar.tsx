@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Home,
   MessageSquare,
@@ -81,6 +81,14 @@ export default function ControlPanelSidebar({
   onSettingsPageChange,
 }: ControlPanelSidebarProps) {
   const { t, i18n } = useTranslation();
+  const [appVersion, setAppVersion] = useState("");
+  useEffect(() => {
+    let active = true;
+    void window.electronAPI?.getAppVersion?.().then(({ version }) => {
+      if (active) setAppVersion(version);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
   const avatarImage=localProfile ? localProfile.image : userImage;
   const [upgradeDismissed, setUpgradeDismissed] = useState(
     () => localStorage.getItem("upgradeProDismissed") === "true"
@@ -297,6 +305,9 @@ export default function ControlPanelSidebar({
 
         <div className="mx-1 h-px bg-border/10 dark:bg-white/6 my-1.5!" />
 
+        {appVersion && <p className="px-2.5 py-1 text-xs text-foreground/65 dark:text-foreground/65" aria-label={i18n.language === "nb" ? "Appversjon" : "App version"}>
+          DSSA Tale · {i18n.language === "nb" ? "versjon" : "version"} {appVersion}
+        </p>}
         <div className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md">
           {avatarImage ? (
             <img src={avatarImage} alt="" className="w-6 h-6 rounded-full shrink-0 object-cover" />
