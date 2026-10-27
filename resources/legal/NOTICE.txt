@@ -1,0 +1,62 @@
+DSSA Tale 1.9.2 – uavhengig Mac-tilpasning av OpenWhispr og SteinOA sitt NB-oppsett.
+Denne utgaven er ikke utgitt eller godkjent av OpenWhispr eller Nasjonalbiblioteket.
+
+APP OG TALEGJENKJENNING
+OpenWhispr: v1.9.2 / 313ba032534d7a7ca8c3d633d096ec3171dfcb6c, MIT.
+NB-oppsett: SteinOA/openwhispr-nb-whisper, commit 55708e7, MIT.
+DSSA-tilpasningene: MIT. Originale copyright notices er bevart.
+NB-Whisper Large: Nasjonalbiblioteket / NbAiLab, Apache License 2.0.
+Modellrevisjon: 8c6249fdeeb4dcd05e5735a4c39640607eb6e4ac.
+Begge medfølgende GGML-modellfiler er uendret. Se NB-Whisper-model-card.txt,
+model-metadata.json, MODEL-SHA256SUMS.txt og Apache-2.0.txt.
+whisper.cpp: OpenWhispr/whisper.cpp 0.0.8, MIT.
+Electron: Electron-LICENSE.txt; Chromium og innebygde komponenter: LICENSES.chromium.html.
+JavaScript-avhengigheter: dependency-licenses.json og npm-notices/.
+MediaRemoteAdapter: se MediaRemoteAdapter-LICENSE.txt.
+
+LOKAL SPRÅKMODELLMOTOR
+llama.cpp b9763, ggml authors, MIT. Se llama-cpp-MIT.txt.
+Medfølgende underkomponenter er dokumentert i llama-*-LICENSE.txt og llama-*-MIT.txt:
+cpp-httplib (MIT), nlohmann/json (MIT), miniaudio (MIT-0/Unlicense),
+stb_image (MIT/Unlicense), sheredom subprocess.h (Unlicense).
+Valgfrie Qwen-språkmodeller følger IKKE automatisk med i DMG-en. De lastes ned
+etter brukerens valg. De fire utvalgte modellkildene oppgir Apache-2.0.
+Se optional-LLM-license-metadata.json for modellkilde, versjon og attribusjon.
+Qwen3.5 GGUF-kvantiseringene er publisert av bartowski, basert på Qwen sine modeller.
+Det er ikke påstått norsk kvalitetssertifisering for disse språkmodellene.
+
+TALERSEPARASJON
+sherpa-onnx v1.13.4: Apache-2.0. Bare diariseringsmotoren og nødvendige
+ONNX Runtime-biblioteker inngår; ubrukte sherpa-TTS/ASR-biblioteker er utelatt.
+ONNX Runtime 1.27.0: MIT samt ONNXRuntime-ThirdPartyNotices.txt.
+Pyannote segmentation 3.0: MIT, Copyright (c) 2023 CNRS.
+3D-Speaker CAM++ VoxCeleb 16 kHz: Apache-2.0; Alibaba / ModelScope / 3D-Speaker.
+Silero VAD: MIT. Modellfilene er distribuert via k2-fsa/sherpa-onnx releases.
+Relevante statiske underkomponenter: kaldi-native-fbank 1.22.3 (Apache-2.0),
+kaldi-decoder 0.3.0 (Apache-2.0), simple-sentencepiece 0.7 (Apache-2.0),
+KISS FFT febd4caeed32e33ad8b2e0bb5ea77542c40f18ec (BSD-3-Clause).
+Eigen 5.0.1: hovedsakelig MPL-2.0 samt BSD/Apache/MINPACK. Alle lisensfiler og
+hele uendrede Eigen-kildearkivet følger med (eigen-5.0.1.tar.gz), slik at den
+tilhørende kildekoden kan undersøkes og bygges uten ekstern tilgang.
+
+LYDBEHANDLING
+FFmpeg 6.0: eget minimalt bygg uten GPL- eller nonfree-komponenter, LGPL 2.1+.
+FFmpeg kjøres som separat program. Full uendret kildekode og byggevalg følger med.
+ffmpeg-static sin nonfree-binær fra npm er erstattet og distribueres ikke.
+Den opprinnelige JS-wrapperen er erstattet med en selvstendig MIT-lisensiert stishim;
+se FFmpeg-path-shim-source.js. Opus 1.5.2 (BSD) er statisk lenket i FFmpeg.
+Opus-lisens, kildekode og byggekonfigurasjon følger med. FFmpeg-nettverksprotokoller
+og GPL/nonfree-flagg er ikke aktivert. Andre komponenter får ikke rettigheter
+til brukerens lyd gjennom denne lisensinformasjonen.
+
+Møte-AEC-hjelper: OpenWhispr meeting-aec-helper-v1.0.0 (MIT), med WebRTC APM
+08f235eba0c247f8929045adb090d0b0445cf8ea (BSD) og Abseil
+9ac7062b1860d895fb5a8cbf58c3e9ef8f674b5f (Apache-2.0).
+Se WebRTC-BSD.txt og Abseil-Apache.txt. Ingen proprietære AEC-modeller er lagt til.
+
+UTELATTE KOMPONENTER
+Tinfoil og @tinfoilsh/verifier (AGPL) er utelatt fra pakken.
+Skytjenester, betalingsplaner og automatisk appoppdatering er ikke funksjoner i DSSA-utgaven.
+
+Alle lisensvilkår i de vedlagte fulltekstene gjelder for respektive komponenter.
+Denne oversikten erstatter ikke de originale lisensene.

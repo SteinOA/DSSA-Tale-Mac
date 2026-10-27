@@ -1,0 +1,116 @@
+DSSA Tale – teststatus og begrensninger
+Oppdatert 27. oktober 2026
+
+LEVERANSEN
+Fil: DSSA-Tale-1.9.2-Apple-Silicon.dmg
+Størrelse: 3613320545 byte
+SHA-256: a03f817832d9c9532084e35ad16adfef8e7f660b477cf12b051d9a151f89beb3
+Dette er et testbygg. Vanlig deling uten Gatekeeper-hindringer er ikke ferdig.
+DMG-kontrollsummen er verifisert av hdiutil. Appens ad hoc-signaturintegritet er
+kontrollert med codesign --verify --deep --strict.
+
+INNHOLD OG KOMPATIBILITET
+OpenWhispr 1.9.2, upstream commit 313ba032534d7a7ca8c3d633d096ec3171dfcb6c,
+med NB-Whisper Large q5_0 og full presisjon. Begge modellene følger med.
+Full presisjon og bokmål er standard ved første oppstart. Målform og modell kan
+endres og lagres. Menyspråk er norsk bokmål eller engelsk, norsk som standard.
+Finsk er fjernet fra det pakkede språkregisteret.
+
+Kun Apple Silicon arm64. Teknisk minstekrav macOS 26.0, på grunn av medfølgende
+llama.cpp- og AEC-motorer. Faktisk testet på Apple M4, 24 GB RAM, macOS 27.0.1
+(26A434). Ingen egen macOS 26-test. Ingen Intel-app er bygget eller verifisert.
+
+BEKREFTEDE MOTOR- OG FILPRØVER
+Begge modeller ble kjørt direkte fra den tidligere leveranse-DMG-en med samme
+motorer og modellfiler som nå. Begge ga riktig norsk prøveaudio på bokmål og
+nynorsk. Apple Metal/M4 var bekreftet i loggene. Begge modellfilers SHA-256 og
+byteantall stemte mot Nasjonalbibliotekets publiserte metadata:
+q5_0: 1081140203 byte, feb5951ae694a62cfeb81fb501f6cfa8cc50d96bcddb1e4e8215f7006bac23a2
+full: 3095033483 byte, 0f2f66f22e11a7c7da3c582d8e5c89cb2c0011753ba9c7c9731e320a4ba33e76
+Modellrevisjon: 8c6249fdeeb4dcd05e5735a4c39640607eb6e4ac.
+
+En 85-sekunders lydfil ble kjørt med 28-sekunders intern oppdeling. En påvist
+NB-dekoderfeil ved enkelte segmentgrenser er rettet med betinget suppress_nst-
+retry etter kontroll av at lyden ikke er stille. Dette beviser ikke en lang
+sammenhengende mikrofonøkt eller et langt faktisk møte.
+
+En BlackHole 2ch-mikrofonprøve i installert app ga nynorsk tekst med fullmodellen.
+Byggemappen var midlertidig utilgjengelig. Appen og motorene kjørte fra Programmer.
+Nynorsk, fullmodellen og BlackHole 2ch ble beholdt etter omstart. Bokmål ble satt
+tilbake etter testen. Innstillingene er ikke slettet under senere avinstallasjon.
+
+Word-, PDF- og teksteksport er prøvd fra grensesnittet i et avsluttende testbygg.
+Filene ble lest tilbake med textutil, pypdf og UTF-8. Norske tegn ble bevart.
+Standardeksport utelot tidsstempler/talernummer. Eksportvalgene har egne tester.
+En tre-siders PDF ble dessuten rendret og visuelt kontrollert.
+Qwen2.5 1.5B har en enkel lokal norsk oppryddingsprøve. Andre LLM-er er ikke
+kvalitetsverifisert. Automatisk opprydding er av som standard.
+
+NAVIGASJONSENDRINGEN
+Fast sidemeny i vanlige hovedvinduer og egen Hjem-knapp i topplinjen.
+Lydfiler og Assistent er egne sider. Innstillinger har en kort valgside og fire
+undersider: Tale og mikrofon, Hurtigtaster, Opptak og innliming, Utseende og språk.
+Ingen sammenleggbare seksjoner i disse lokale sidene. Tekstfelt ruller internt.
+GUI-prøven bekreftet Hjem-retur, forskjellig Lydfiler-/Assistent-innhold, fast
+sidemeny og bevaring av norsk prøvetekst mellom sidene. Alle fire undersider er
+ikke systematisk gjennomgått manuelt. Den siste språkregisterendringen etter
+GUI-prøven fjerner finsk; den endrer ikke lydmotorene eller navigasjonslogikken.
+
+BYGG OG TESTER
+Siste typecheck og produksjonsrenderer: bestått.
+Siste språk-/agent-/oversettelsestester: 29 av 29 bestått.
+NB-dekodergjenoppretting/stillhet/oppdeling: 35 av 35 bestått.
+Tidligere fokuserte tester: 52 av 52. Møte-/deteksjonstester: 98 av 98.
+Siste fulle upstream-suite, kjørt før siste navigasjonsendringer: 3340 tester,
+3142 bestått, 12 feil, 185 hoppet over, 1 TODO. Den er ikke kjørt på nytt etter
+menyendringen. Feilene gjelder opprinnelige forventninger om sky-/serverpolicy,
+modellregister, locale-hash, automatisk UI-språk og oppdateringsfunksjonen.
+Hele testsuiten skal ikke omtales som bestått.
+
+UAVKLART LYD OG ANDRE BEGRENSNINGER
+Brukeren meldte senere at egen lyd ikke virket. Dette er ikke ferdig løst.
+Mac-en registrerer bare BlackHole 2ch, BlackHole 16ch og Teams-lyd som innganger,
+ingen fysisk mikrofon. En gyldig firesekunders CoreAudio-måling av BlackHole 2ch
+mottok lydsamples som alle var digital stillhet. Det viser bare at ingen lyd kom
+inn akkurat da. Mikrofonens plassering/lydkilde må avklares før lydruting endres.
+Ingen brukerlyd er lagret av diagnosen. Standardinput BH2 og output BH16 er uendret.
+
+Fysisk hurtigtast helt frem til automatisk innliming er ikke sluttverifisert.
+Teams-automatikk, ekte Teams-møte, lang møtedrift og begge møtemodusene trenger
+reell møteprøve. Teams var ikke installert ved siste sjekk. Talerseparasjon er
+ikke kvalitetsgodkjent: en offentlig prøve merket med fire talere ga tre ID-er.
+Navn fra egenpresentasjon er ikke sikker identifikasjon.
+Ren mottakerkonto, annen Mac og macOS 26 er ikke installasjonstestet.
+
+INTEGRASJONER OG LAGRING
+Talegjenkjenning skjer lokalt uten konto, API-nøkkel eller lydopplasting.
+Drive/OneDrive/Teams-filer bruker lokale eller synkroniserte Finder-mapper,
+ikke en direkte skylagrings-API-kobling. Taleopptak må eksporteres til en lokal
+lydfil; direkte biblioteksvisning er ikke levert. Kalender er valgfri lokal
+integrasjon. E-postinnboks er ikke integrert i selve appen. Synkroniseringsmapper
+kan laste opp filene brukeren uttrykkelig lagrer der. iCloud er ikke en separat
+sikkerhetskopi. Lyd lagres ikke automatisk i en skymappe.
+
+OPPDATERING OG DISTRIBUSJON
+Automatiske appoppdateringer er deaktivert. Manuell erstatning av bare appen
+bevarer data i den separate brukerprofilen OpenWhispr-NB. Det er ikke satt opp
+noen ny automatisk Mac-oppdateringskanal eller publisert GitHub-release.
+GitHub-repoet for Mac skal avklares med brukeren før eventuell publisering.
+Pakken er for stor til ett GitHub Release-vedlegg, som må være under 2 GiB.
+
+0 gyldige Developer ID-identiteter ble funnet. Notarytool-legitimasjon mangler.
+Gatekeeper avviser ad hoc-bygget. Før vanlig deling må utgiveren ha en legitim
+Developer ID-identitet, signere appen, notarisere, legge ved godkjenningsbilletten
+og teste en nedlastet kopi på en annen Mac. Ingen kjøp er gjort eller hemmeligheter
+etterspurt i chat. Gatekeeper-omgåelse inngår ikke i installasjonen.
+
+LISENSER OG KILDER
+App og NB-tilpasning: MIT. Modellvekter: Apache-2.0. FFmpeg er et separat LGPL-
+bygg uten GPL/nonfree. Lisensopplysninger, FFmpeg/Opus/Eigen-kilder og relevante
+konfigurasjoner følger med i Contents/Resources/legal og DSSA-Tale-kilder.zip.
+Ingen ny hard lisenshindring ble funnet i de kontrollerte, beholdte komponentene.
+Arbeidsgren: macos/nb-whisper-installer.
+Appkilde: 122964ff2c57380954940d432177e99d8556b58a
+Tilpasningsrepo, lokal gren: cac3d3f8034f6952931a6c51837604650125c4a5
+Windows-hovedgrenen og Windows-releasen er ikke endret eller pushet.
+

@@ -1,0 +1,30 @@
+[
+  {
+    "repo": "Qwen/Qwen2.5-1.5B-Instruct-GGUF",
+    "source": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF",
+    "revision": "91cad51170dc346986eccefdc2dd33a9da36ead9",
+    "license": "apache-2.0",
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct"
+  },
+  {
+    "repo": "bartowski/Qwen_Qwen3.5-2B-GGUF",
+    "source": "https://huggingface.co/bartowski/Qwen_Qwen3.5-2B-GGUF",
+    "revision": "7d26695454df6de5fbcce2e58681e62dae06ce43",
+    "license": "apache-2.0",
+    "base_model": "Qwen/Qwen3.5-2B"
+  },
+  {
+    "repo": "bartowski/Qwen_Qwen3.5-4B-GGUF",
+    "source": "https://huggingface.co/bartowski/Qwen_Qwen3.5-4B-GGUF",
+    "revision": "4168f45a16a1290d65a4ec0fa312ae917a4c15d6",
+    "license": "apache-2.0",
+    "base_model": "Qwen/Qwen3.5-4B"
+  },
+  {
+    "repo": "Qwen/Qwen3-8B-GGUF",
+    "source": "https://huggingface.co/Qwen/Qwen3-8B-GGUF",
+    "revision": "7c41481f57cb95916b40956ab2f0b139b296d974",
+    "license": "apache-2.0",
+    "base_model": "Qwen/Qwen3-8B"
+  }
+]
