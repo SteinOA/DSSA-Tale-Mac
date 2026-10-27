@@ -22,7 +22,7 @@ Ingen GitHub-release eller publisering er utført.
 Sluttversjonen heter DSSA Tale. Appidentitet og egen brukerprofil er no.steinoa.openwhispr.nb / OpenWhispr-NB.
 Begge Large-modeller er med; full presisjon og bokmål er standard ved første oppstart.
 Teknisk macOS-minimum er 26.0 på grunn av llama.cpp/AEC. Ingen Intel-støtte er levert.
-Kopier macos/legal/ til upstream resources/legal/ før pakking. Kildearkiver og lisenser er inkludert.
+Lisensmaterialet ligger ferdig i resources/legal/ i dette Mac-repoet. Kildearkiver og lisenser er inkludert.
 28-sekunders NB-oppdeling og betinget suppress_nst-retry hindrer manglende tale ved segmentgrenser.
 Retry utføres ikke ved stillhet; PCM RMS/peak kontrolleres før nytt forsøk.
 Godkjent moderne utseende er implementert som avgrenset NB-CSS. Ingen funksjoner er endret av designarbeidet.
@@ -32,3 +32,5 @@ Navigasjonsoppdatering: fast sidemeny i alle vanlige hovedvinduer, fast Hjem-kna
 Lydfiler og Assistent er egne sider. Innstillinger har fire separate undersider uten sammenfoldbare seksjoner.
 ControlPanel forblir montert ved navigasjon; pågående arbeid og lokal tekst beholdes.
 Audio-ruting er ikke endret. BlackHole krever en lydkilde inn til den virtuelle inngangen.
+
+Bygg Mac NB med npm run build:mac:nb etter at de medfølgende motorene og begge modellfilene er hentet til resources/bin og resources/nb-models. Bruk ikke upstreams nonfree FFmpeg. Hjelperen for Opus-bygg finnes i scripts/nb/pkg-config-opus; plasser den ved opus-local/ under ombygging. Lisensiert FFmpeg- og Opus-kilde og full configure-linje ligger i resources/legal/.

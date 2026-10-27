@@ -5,8 +5,6 @@ DSSA Tale er en lokal norsk taleapp basert på OpenWhispr, tilpasset med **NB-Wh
 > **Testversjon – signert utgave er planlagt.**
 > Lokal transkribering med begge NB-modellene er testet. Apple Developer ID-signering og notarisation mangler foreløpig, så Gatekeeper kan stoppe en nedlastet kopi. Det er ingen bekreftet dato for en signert utgave. Teams-møter, hurtigtaster og automatisk innliming er ikke sluttverifisert. Ikke legg kritiske møter eller opptak i appens hender uten egen prøve først.
 
-## Last ned
-
 ## [⬇ Last ned DSSA Tale for Mac](https://drive.google.com/file/d/1Yc2fbrEaWW--HwV1ppyJn7f-Wry2Vgy8/view?usp=drivesdk)
 
 **Apple Silicon · testversjon · ca. 3,6 GB · begge NB Large-modeller inkludert.**
@@ -22,7 +20,7 @@ at appen er godkjent av Gatekeeper; macOS kan stoppe testversjonen når den åpn
 ## Innhold
 
 - Begge NB-Whisper Large-modellene følger med DMG-en: **full presisjon** og **kvantisert q5_0**. Full presisjon er standard; q5_0 bruker mindre minne.
-- **Bokmål** er standard. **Nynorsk** kan velges, og språkvalget skal beholdes etter omstart.
+- **Bokmål** er standard. **Nynorsk** kan velges, og språkvalget beholdes etter omstart.
 - Norsk menyspråk som standard, med engelsk som alternativ, lyst/mørkt utseende og aksentfarger.
 - Valg av mikrofon, hurtigtaster, ordliste og tekstsnutter.
 - Import av lokale lydfiler og eksport til Word, PDF eller ren tekst. Talernavn og tidsstempler kan velges ved eksport.
