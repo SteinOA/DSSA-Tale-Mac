@@ -95,7 +95,8 @@ OPPDATERING OG DISTRIBUSJON
 Automatiske appoppdateringer er deaktivert. Manuell erstatning av bare appen
 bevarer data i den separate brukerprofilen OpenWhispr-NB. Det er ikke satt opp
 noen ny automatisk Mac-oppdateringskanal eller publisert GitHub-release.
-GitHub-repoet for Mac skal avklares med brukeren før eventuell publisering.
+Offentlig Mac-repo: https://github.com/SteinOA/DSSA-Tale-Mac
+Windows-repoet beholdes separat. Mac-testpakken ligger i den offentlige Drive-mappen.
 Pakken er for stor til ett GitHub Release-vedlegg, som må være under 2 GiB.
 
 0 gyldige Developer ID-identiteter ble funnet. Notarytool-legitimasjon mangler.
@@ -114,3 +115,12 @@ Appkilde: 122964ff2c57380954940d432177e99d8556b58a
 Tilpasningsrepo, lokal gren: cac3d3f8034f6952931a6c51837604650125c4a5
 Windows-hovedgrenen og Windows-releasen er ikke endret eller pushet.
 
+
+PUBLISERT TESTUTGAVE
+DMG-en er lastet opp til Google Drive i mappen brukeren oppga. Filstørrelsen er
+3613320545 byte, og Drive viser at alle med lenken har lesetilgang.
+Nedlasting: https://drive.google.com/file/d/1Yc2fbrEaWW--HwV1ppyJn7f-Wry2Vgy8/view?usp=drivesdk
+Mac-repoet er offentlig og inneholder norsk forklaring og installasjonsveiledning.
+Ingen GitHub Release er opprettet, og automatiske appoppdateringer er fremdeles av.
+En invitasjon med lenkene er sendt til mottakeren brukeren oppga.
+Apple-signering og notarisation mangler fortsatt. Dette er en testversjon.
