@@ -1647,6 +1647,25 @@ class IPCHandlers {
       return {success:true};
     });
     ipcMain.handle("nb-local-profile", () => require("./nbLocalProfile").getLocalProfile(path.join(app.getPath("userData"),"cache")));
+    ipcMain.handle("nb-paste-status", () => ({
+      ...require("./nbNativePaste").status(),
+      installed: process.execPath.startsWith("/Applications/"),
+    }));
+    ipcMain.handle("nb-test-paste", async () => {
+      try {
+        const status = require("./nbNativePaste").status();
+        if (!status.trusted || !status.canPost) {
+          return { success: false, error: "Gi DSSA Tale tilgang til Tilgjengelighet i Systeminnstillinger først." };
+        }
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await this.clipboardManager.pasteText("Dette er en innlimingstest fra DSSA Tale. Æ, ø og å. ", {
+          allowClipboardFallback: false, restoreClipboard: true,
+        });
+        return { success: true };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    });
     ipcMain.handle("nb-get-acceleration", () => process.env.NB_ACCELERATION || "metal");
     ipcMain.handle("nb-set-acceleration", async (_event, value) => {
       if(value !== "metal" && value !== "cpu") throw new Error("Invalid acceleration");
@@ -2844,6 +2863,7 @@ class IPCHandlers {
         ...options,
         webContents: event.sender,
         targetWindow,
+        expectedTargetPid: process.platform === "darwin" ? targetPid : undefined,
       });
       debugLogger.debug("[AutoLearn] Paste completed", {
         autoLearnEnabled: this._autoLearnEnabled,

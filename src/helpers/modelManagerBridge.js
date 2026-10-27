@@ -177,7 +177,17 @@ class ModelManager {
   async checkModelValid(filePath) {
     try {
       const stats = await fsPromises.stat(filePath);
-      return stats.size > MIN_FILE_SIZE;
+      if (stats.size <= MIN_FILE_SIZE) return false;
+      const model = getLocalProviders().flatMap((provider) => provider.models)
+        .find((candidate) => candidate.fileName === path.basename(filePath));
+      if (!model?.verifiedSizeBytes) return true;
+      if (stats.size !== model.verifiedSizeBytes) return false;
+      const handle = await fsPromises.open(filePath, "r");
+      try {
+        const magic = Buffer.alloc(4);
+        await handle.read(magic, 0, 4, 0);
+        return magic.toString("ascii") === "GGUF";
+      } finally { await handle.close(); }
     } catch {
       return false;
     }
@@ -282,6 +292,7 @@ class ModelManager {
 
       await sharedDownloadFile(downloadUrl, modelPath, {
         signal,
+        expectedSize: model.verifiedSizeBytes || 0,
         onProgress: hasDrafter
           ? (downloadedBytes) => emitCombined(downloadedBytes)
           : (downloadedBytes, totalBytes) => {
@@ -306,6 +317,17 @@ class ModelManager {
           "DOWNLOAD_CORRUPTED",
           { size: stats.size, minSize: MIN_FILE_SIZE }
         );
+      }
+
+      // NB's curated models use published LFS sizes and SHA-256 checksums.
+      // Never present an HTML error response or a partial GGUF as ready.
+      if (model.verifiedSizeBytes) {
+        const hash = require("crypto").createHash("sha256");
+        for await (const chunk of fs.createReadStream(modelPath)) hash.update(chunk);
+        if (!(await this.checkModelValid(modelPath)) || hash.digest("hex") !== model.sha256) {
+          await fsPromises.unlink(modelPath).catch(() => {});
+          throw new ModelError("Downloaded model failed size or SHA-256 verification", "DOWNLOAD_CORRUPTED");
+        }
       }
 
       // Drafter is opportunistic: a failure or cancel here leaves the main model

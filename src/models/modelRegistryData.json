@@ -699,41 +699,47 @@
         {
           "id": "qwen3.5-4b-q4_k_m",
           "name": "Qwen3.5 4B",
-          "size": "2.7GB",
-          "sizeBytes": 2871743520,
+          "size": "3.01GB",
+          "sizeBytes": 3013027808,
           "description": "Balanced Qwen3.5 for general use",
           "fileName": "Qwen_Qwen3.5-4B-Q4_K_M.gguf",
           "quantization": "q4_k_m",
           "contextLength": 262144,
           "hfRepo": "bartowski/Qwen_Qwen3.5-4B-GGUF",
           "supportsThinking": true,
-          "descriptionKey": "models.descriptions.local.qwen_qwen3_5_4b_q4_k_m"
+          "descriptionKey": "models.descriptions.local.qwen_qwen3_5_4b_q4_k_m",
+          "verifiedSizeBytes": 3013027808,
+          "sha256": "13c16f426047e2de38cd075bdade4a7bcbc8c774384876f677740cda65f8a983"
         },
         {
           "id": "qwen3.5-2b-q4_k_m",
           "name": "Qwen3.5 2B",
-          "size": "1.3GB",
-          "sizeBytes": 1329766560,
+          "size": "1.4GB",
+          "sizeBytes": 1396198496,
           "description": "Small Qwen3.5 for quick tasks",
           "fileName": "Qwen_Qwen3.5-2B-Q4_K_M.gguf",
           "quantization": "q4_k_m",
           "contextLength": 262144,
           "hfRepo": "bartowski/Qwen_Qwen3.5-2B-GGUF",
           "supportsThinking": true,
-          "descriptionKey": "models.descriptions.local.qwen_qwen3_5_2b_q4_k_m"
+          "descriptionKey": "models.descriptions.local.qwen_qwen3_5_2b_q4_k_m",
+          "verifiedSizeBytes": 1396198496,
+          "sha256": "57a1085840f497d764a7fc5d346922dbde961efb54cc792ea81d694fd846a1d8"
         },
         {
           "id": "qwen3-8b-q4_k_m",
           "name": "Qwen3 8B",
-          "size": "5.0GB",
-          "sizeBytes": 5402263552,
+          "size": "5.03GB",
+          "sizeBytes": 5027783488,
           "description": "Latest Qwen3 with thinking mode support",
           "fileName": "Qwen3-8B-Q4_K_M.gguf",
           "quantization": "q4_k_m",
           "contextLength": 131072,
           "hfRepo": "Qwen/Qwen3-8B-GGUF",
           "supportsThinking": true,
-          "descriptionKey": "models.descriptions.local.qwen_qwen3_8b_q4_k_m"
+          "descriptionKey": "models.descriptions.local.qwen_qwen3_8b_q4_k_m",
+          "verifiedSizeBytes": 5027783488,
+          "sha256": "d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785"
         },
         {
           "id": "qwen3-8b-q5_k_m",
@@ -790,14 +796,16 @@
         {
           "id": "qwen2.5-1.5b-instruct-q5_k_m",
           "name": "Qwen2.5 1.5B",
-          "size": "1.3GB",
-          "sizeBytes": 1395864371,
+          "size": "1.29GB",
+          "sizeBytes": 1285494304,
           "description": "Small model, good for basic tasks",
           "fileName": "qwen2.5-1.5b-instruct-q5_k_m.gguf",
           "quantization": "q5_k_m",
           "contextLength": 32768,
           "hfRepo": "Qwen/Qwen2.5-1.5B-Instruct-GGUF",
-          "descriptionKey": "models.descriptions.local.qwen_qwen2_5_1_5b_instruct_q5_k_m"
+          "descriptionKey": "models.descriptions.local.qwen_qwen2_5_1_5b_instruct_q5_k_m",
+          "verifiedSizeBytes": 1285494304,
+          "sha256": "b46661073c18e5b56a41fa320975f866a00def1ff08feef4718e013258896f8c"
         },
         {
           "id": "qwen2.5-3b-instruct-q5_k_m",

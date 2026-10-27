@@ -3656,8 +3656,8 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
         error?.message ??
         (typeof error?.toString === "function" ? error.toString() : String(error));
       this.onError?.({
-        title: "Paste Error",
-        description: `Failed to paste text. Please check accessibility permissions. ${message}`,
+        title: "Automatisk innliming mislyktes",
+        description: `Teksten er kopiert. Du kan lime inn med ⌘V. Kontroller «Tilgjengelighet og innliming» under Tale og mikrofon. ${message}`,
       });
       return false;
     }

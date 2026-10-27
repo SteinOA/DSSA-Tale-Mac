@@ -34,3 +34,12 @@ ControlPanel forblir montert ved navigasjon; pågående arbeid og lokal tekst be
 Audio-ruting er ikke endret. BlackHole krever en lydkilde inn til den virtuelle inngangen.
 
 Bygg Mac NB med npm run build:mac:nb etter at de medfølgende motorene og begge modellfilene er hentet til resources/bin og resources/nb-models. Bruk ikke upstreams nonfree FFmpeg. Hjelperen for Opus-bygg finnes i scripts/nb/pkg-config-opus; plasser den ved opus-local/ under ombygging. Lisensiert FFmpeg- og Opus-kilde og full configure-linje ligger i resources/legal/.
+
+Versjon 1.9.3 (samme upstream 1.9.2): npm run build:mac:nb kompilerer nå
+macos-native-paste.node med xcrun/clang++ og de medfølgende Node-API v8-headerne
+(Node.js v24.19.0, MIT). Ingen ekstra npm-/Python-avhengighet for mottakeren.
+Innliming bruker CGEvent fra Electron-hovedprosessen med samme Tilgjengelighet-
+tillatelse som appen; den overstyrer ikke Gatekeeper eller manglende TCC-tillit.
+Dokumentasjon: https://nodejs.org/docs/latest/api/n-api.html og
+https://developer.apple.com/documentation/applicationservices/1460720-axisprocesstrusted
+Den medfølgende Node-headerlisensen ligger i resources/legal.

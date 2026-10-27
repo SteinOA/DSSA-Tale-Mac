@@ -106,6 +106,7 @@
         "macos-audio-tap",
         "macos-globe-listener",
         "macos-fast-paste",
+        "macos-native-paste.node",
         "macos-mic-listener",
         "macos-calendar-listener",
         "macos-text-monitor",
@@ -269,7 +270,7 @@
     "include": "resources/nsis/installer.nsh"
   },
   "dmg": {
-    "title": "DSSA Tale – dra til Programmer",
+    "title": "DSSA Tale ${version} – dra til Programmer",
     "icon": "src/assets/icon.icns",
     "window": {
       "width": 540,
@@ -291,5 +292,5 @@
     "background": "resources/mac/nb-dmg-background.png"
   },
   "publish": null,
-  "artifactName": "DSSA-Tale-1.9.2-Apple-Silicon.${ext}"
+  "artifactName": "DSSA-Tale-${version}-Apple-Silicon.${ext}"
 }

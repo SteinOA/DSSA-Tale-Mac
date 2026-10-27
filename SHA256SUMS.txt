@@ -1,1 +1,1 @@
-a03f817832d9c9532084e35ad16adfef8e7f660b477cf12b051d9a151f89beb3  DSSA-Tale-1.9.2-Apple-Silicon.dmg
+23cae0790d5ae0da5871623adbf5c8bdd330794eab7653e169a2285ee743fc82  DSSA-Tale-1.9.3-Apple-Silicon.dmg

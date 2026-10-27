@@ -60,3 +60,7 @@ Skytjenester, betalingsplaner og automatisk appoppdatering er ikke funksjoner i 
 
 Alle lisensvilkår i de vedlagte fulltekstene gjelder for respektive komponenter.
 Denne oversikten erstatter ikke de originale lisensene.
+
+DSSA Tale 1.9.3: in-process macOS paste addon (MIT). The four vendored
+Node-API C headers are unmodified from Node.js v24.19.0. See
+node-api-headers-LICENSE.txt; headers/source are included in the source repo.

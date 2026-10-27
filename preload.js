@@ -147,6 +147,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Dictionary functions
   nbGetPreferences: () => ipcRenderer.invoke("nb-get-preferences"),
+  nbPasteStatus: () => ipcRenderer.invoke("nb-paste-status"),
+  nbTestPaste: () => ipcRenderer.invoke("nb-test-paste"),
   nbSetPreferences: (values) => ipcRenderer.invoke("nb-set-preferences",values),
   nbMemory: () => ipcRenderer.invoke("nb-memory"),
   nbOpenVoiceMemos: () => ipcRenderer.invoke("nb-open-voice-memos"),

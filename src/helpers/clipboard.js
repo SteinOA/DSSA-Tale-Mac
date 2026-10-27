@@ -1,4 +1,4 @@
-const { clipboard, systemPreferences } = require("electron");
+const { clipboard, systemPreferences, app } = require("electron");
 const { spawn, spawnSync } = require("child_process");
 const { killProcess } = require("../utils/process");
 const path = require("path");
@@ -905,7 +905,8 @@ class ClipboardManager {
       let pasteResult = { restoreComplete: Promise.resolve() };
 
       if (platform === "darwin") {
-        method = this.resolveFastPasteBinary() ? "cgevent" : "applescript";
+        method = app?.getName?.() === "DSSA Tale" ? "native-app"
+          : this.resolveFastPasteBinary() ? "cgevent" : "applescript";
         this.safeLog("🔍 Checking accessibility permissions for paste operation...");
         const hasPermissions = await this.checkAccessibilityPermissions(allowClipboardFallback);
 
@@ -975,6 +976,9 @@ class ClipboardManager {
   }
 
   async pasteMacOS(originalClipboard, options = {}) {
+    if (app?.getName?.() === "DSSA Tale") {
+      return this.pasteMacOSInProcess(originalClipboard, options);
+    }
     const fastPasteBinary = this.resolveFastPasteBinary();
     const useFastPaste = !!fastPasteBinary;
     const pasteDelay = options.fromStreaming ? (useFastPaste ? 15 : 50) : PASTE_DELAYS.darwin;
@@ -1019,8 +1023,8 @@ class ClipboardManager {
                 : `CGEvent paste failed (code ${code}), falling back to osascript`,
               { stderr: errorOutput.trim() }
             );
-            this.fastPasteChecked = true;
-            this.fastPastePath = null;
+            // A permission can be granted while this app is running. A failed
+            // attempt must not disable the helper for the whole app session.
             this.pasteMacOSWithOsascript(originalClipboard, options).then(resolve).catch(reject);
           } else {
             this.accessibilityCache = { value: null, expiresAt: 0 };
@@ -1066,6 +1070,8 @@ class ClipboardManager {
       ]);
 
       let hasTimedOut = false;
+      let errorOutput = "";
+      pasteProcess.stderr?.on("data", (data) => { errorOutput += data.toString(); });
 
       pasteProcess.on("close", (code) => {
         if (hasTimedOut) return;
@@ -1086,7 +1092,8 @@ class ClipboardManager {
           }
         } else {
           this.accessibilityCache = { value: null, expiresAt: 0 };
-          const errorMsg = `Paste failed (code ${code}). Text is copied to clipboard - please paste manually with Cmd+V.`;
+          const detail = errorOutput.trim();
+          const errorMsg = `Paste failed (code ${code}${detail ? `: ${detail}` : ""}). Text is copied to clipboard - please paste manually with Cmd+V.`;
           reject(new Error(errorMsg));
         }
       });
@@ -2070,25 +2077,36 @@ class ClipboardManager {
     throw err;
   }
 
+  async pasteMacOSInProcess(originalClipboard, options = {}) {
+    const native = require("./nbNativePaste");
+    await new Promise((resolve) => setTimeout(resolve, options.fromStreaming ? 25 : PASTE_DELAYS.darwin));
+    native.paste(options.expectedTargetPid || 0);
+    // Keep the new clipboard available until the receiving app handles ⌘V.
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    this.safeLog("Paste shortcut submitted by DSSA Tale main process");
+    return {
+      restoreComplete: originalClipboard == null ? Promise.resolve()
+        : this._restoreClipboardAfterDelay(originalClipboard, {
+          delayMs: RESTORE_DELAYS.darwin,
+          expectedText: options.expectedClipboardText,
+        }),
+    };
+  }
+
   async checkAccessibilityPermissions(silent = false) {
     if (process.platform !== "darwin") return true;
 
-    if (!silent) {
-      const now = Date.now();
-      if (now < this.accessibilityCache.expiresAt && this.accessibilityCache.value !== null) {
-        return this.accessibilityCache.value;
-      }
-    }
-
+    // Never cache a denial: the user can authorize the app between dictations.
     const allowed = systemPreferences.isTrustedAccessibilityClient(false);
 
     if (!silent) {
+      const previous = this.accessibilityCache;
       this.accessibilityCache = {
         value: allowed,
         expiresAt: Date.now() + ACCESSIBILITY_CHECK_TTL_MS,
       };
 
-      if (!allowed) {
+      if (!allowed && (previous.value !== false || Date.now() >= previous.expiresAt)) {
         this.showAccessibilityDialog("not allowed assistive access");
       }
     }
@@ -2097,6 +2115,19 @@ class ClipboardManager {
   }
 
   showAccessibilityDialog(testError) {
+    if (app?.getName?.() === "DSSA Tale") {
+      const { dialog } = require("electron");
+      void dialog.showMessageBox({
+        type: "info",
+        title: "Tillat automatisk innliming",
+        message: "DSSA Tale trenger Mac-tillatelse for å lime inn i andre apper.",
+        detail: "Teksten er kopiert og kan limes inn med ⌘V. Åpne Personvern og sikkerhet → Tilgjengelighet (Enhetskontroll og datatilgang på nyere macOS). Legg til DSSA Tale fra Programmer og slå på tilgangen. Hvis appen allerede står på, fjern bare DSSA Tale fra listen, legg til den installerte appen igjen og start den på nytt. Usignerte testbygg kan kreve ny tillatelse etter en oppgradering.",
+        buttons: ["Åpne Systeminnstillinger", "Fortsett med manuell innliming"],
+        defaultId: 0,
+        cancelId: 1,
+      }).then(({ response }) => { if (response === 0) this.openSystemSettings(); }).catch(() => {});
+      return;
+    }
     const isStuckPermission =
       testError.includes("not allowed assistive access") ||
       testError.includes("(-1719)") ||

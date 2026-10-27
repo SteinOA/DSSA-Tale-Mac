@@ -12,7 +12,7 @@ const modelManagerModulePath = require.resolve("../../src/helpers/modelManagerBr
 const modelDirUtilsModulePath = require.resolve("../../src/helpers/modelDirUtils.js");
 let electronHome = os.tmpdir();
 
-function loadModelManager() {
+function loadModelManager(downloadOverride) {
   delete require.cache[modelManagerModulePath];
   delete require.cache[modelDirUtilsModulePath];
 
@@ -28,6 +28,9 @@ function loadModelManager() {
       };
     }
 
+    if (request === "./downloadUtils" && downloadOverride) {
+      return {...originalLoad.call(this, request, parent, isMain), downloadFile: downloadOverride};
+    }
     return originalLoad.call(this, request, parent, isMain);
   };
 
@@ -177,4 +180,43 @@ test("cancelDownload keeps the local LLM guard until the request unwinds", async
   assert.equal(modelManager.activeDownloads.has(model.id), true);
   assert.equal(modelManager.activeRequests.has(model.id), true);
   assert.equal(modelManager.downloadProgress.has(model.id), true);
+});
+
+test("curated NB language models reject truncated files and non-GGUF content", async (t) => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "nb-model-validation-"));
+  t.after(() => fs.rm(dir, {recursive:true,force:true}));
+  const manager = loadModelManager();
+  const model = modelRegistryData.localProviders.flatMap(p=>p.models).find(m=>m.id === "qwen2.5-1.5b-instruct-q5_k_m");
+  const file = path.join(dir, model.fileName);
+  await fs.writeFile(file, "GGUF");
+  await fs.truncate(file, 2_000_000);
+  assert.equal(await manager.checkModelValid(file), false);
+  await fs.truncate(file, model.verifiedSizeBytes);
+  assert.equal(await manager.checkModelValid(file), true);
+  const handle = await fs.open(file, "r+");
+  await handle.write(Buffer.from("HTML"), 0, 4, 0);
+  await handle.close();
+  assert.equal(await manager.checkModelValid(file), false);
+});
+
+
+test("curated download verifies SHA-256 and removes corrupt final files", async (t) => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "nb-download-hash-"));
+  const model = modelRegistryData.localProviders.flatMap(p=>p.models).find(m=>m.id === "qwen2.5-1.5b-instruct-q5_k_m");
+  const saved = {...model};
+  t.after(async()=>{Object.assign(model,saved);await fs.rm(dir,{recursive:true,force:true});});
+  const bytes=Buffer.alloc(2_000_000);bytes.write("GGUF");
+  model.verifiedSizeBytes=bytes.length;model.sizeBytes=bytes.length;
+  model.sha256=require("crypto").createHash("sha256").update(bytes).digest("hex");
+  const manager=loadModelManager(async(_url,dest,options)=>{
+    assert.equal(options.expectedSize,bytes.length);
+    await fs.writeFile(dest,bytes);
+  });
+  manager.modelsDir=dir;manager._initialized=true;
+  const file=await manager.downloadModel(model.id);
+  assert.equal(await manager.checkModelValid(file),true);
+  await fs.unlink(file);
+  model.sha256="0".repeat(64);
+  await assert.rejects(manager.downloadModel(model.id),{code:"DOWNLOAD_CORRUPTED"});
+  await assert.rejects(fs.stat(file),{code:"ENOENT"});
 });

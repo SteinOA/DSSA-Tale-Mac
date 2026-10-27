@@ -9,6 +9,8 @@ export default function NBControlPanel() {
   const meetingRecording = useMeetingRecordingStore(state=>state.isRecording);
   const meetingTranscribing = useMeetingRecordingStore(state=>state.isTranscribing);
   const api = (window as any).electronAPI;
+  const [pasteStatus,setPasteStatus] = useState<any>(null);
+  const refreshPasteStatus=async()=>{try{if(api.nbPasteStatus)setPasteStatus(await api.nbPasteStatus());}catch{setPasteStatus(null);}};
   const [includeTimestamps,setIncludeTimestamps] = useState(false);
   const [includeSpeakers,setIncludeSpeakers] = useState(false);
   const ui=(value:string)=>s.uiLanguage === "en" ? (NB_ENGLISH[value] || value) : value;
@@ -24,7 +26,32 @@ export default function NBControlPanel() {
   const [panelFocus,setPanelFocus] = useState("settings");
   const openNBPanel=(section="settings")=>{setPanelFocus(["settings","files","assistant","speech","shortcuts","recording","appearance"].includes(section) ? section : "settings");setAdvanced(false);};
   const [models, setModels] = useState<any[]>([]);
-  const refreshModels = async () => setModels((await api.modelGetAll()).filter((m:any)=>["qwen2.5-1.5b-instruct-q5_k_m","qwen3.5-2b-q4_k_m","qwen3.5-4b-q4_k_m","qwen3-8b-q4_k_m"].includes(m.id)));
+  const [downloadStatus,setDownloadStatus] = useState<any>(null);
+  const refreshModels = async () => {
+    const available=(await api.modelGetAll()).filter((m:any)=>["qwen2.5-1.5b-instruct-q5_k_m","qwen3.5-2b-q4_k_m","qwen3.5-4b-q4_k_m","qwen3-8b-q4_k_m"].includes(m.id));
+    setModels(available);
+    const active=available.find((m:any)=>m.isDownloading);
+    if(active)setDownloadStatus({modelId:active.id,progress:active.downloadProgress,downloadedSize:active.downloadedSize,totalSize:active.totalSize});
+  };
+  const selectedModel=models.find(m=>m.id===s.cleanupModel);
+  const downloadError=(result:any)=>{
+    const messages:Record<string,string>={DOWNLOAD_IN_PROGRESS:"En modell lastes allerede ned. Vent til den er ferdig.",INSUFFICIENT_DISK_SPACE:"Ikke nok ledig lagringsplass. Frigjør plass og prøv igjen.",DOWNLOAD_CANCELLED:"Nedlastingen ble avbrutt. Du kan prøve igjen.",MODEL_NOT_FOUND:"Velg en språkmodell fra listen først.",NETWORK_ERROR:"Nedlastingen mislyktes. Kontroller internettforbindelsen og prøv igjen.",DOWNLOAD_FAILED:"Modellserveren svarte med en feil. Prøv igjen senere.",DOWNLOAD_CORRUPTED:"Modellfilen er ufullstendig eller skadet. Last den ned på nytt."};
+    return ui(messages[result.code] || "Nedlastingen mislyktes. Prøv igjen.")+(result.error ? " ("+result.error+")" : "");
+  };
+  const downloadSelectedModel=async()=>{
+    if(!selectedModel || selectedModel.isDownloaded || downloadStatus)return;
+    setBusy(true);setDownloadStatus({modelId:selectedModel.id,progress:0,downloadedSize:0,totalSize:selectedModel.sizeBytes});setMessage("");
+    try{const result=await api.modelDownload(selectedModel.id);if(!result.success){setMessage(downloadError(result));return;}await refreshModels();setMessage("Språkmodellen er klar.");}
+    catch(error){setMessage(downloadError({error:String(error)}));}
+    finally{setBusy(false);setDownloadStatus(null);}
+  };
+  useEffect(()=>api.onModelDownloadProgress?.((event:any)=>{
+    if(event.type==="complete"||event.type==="error"){
+      setDownloadStatus((current:any)=>current?.modelId===event.modelId?null:current);
+      void refreshModels();
+      if(event.type==="error")setMessage(downloadError(event));
+    }else setDownloadStatus(event);
+  }),[]);
   const register = async (value:string, meeting=false) => {
     const result = await (meeting ? api.registerMeetingHotkey(value) : api.updateHotkey(value));
     if(!result?.success) {setMessage("Hurtigtasten kunne ikke registreres. Velg en annen kombinasjon.");return false;}
@@ -60,6 +87,7 @@ export default function NBControlPanel() {
     s.setCleanupMode("local");
     if(!["no","nn"].includes(s.preferredLanguage))s.setPreferredLanguage("no");
     if(!localStorage.getItem("nbUiLanguageInitialized")){s.setUiLanguage("nb");localStorage.setItem("nbUiLanguageInitialized","true");}
+    void refreshPasteStatus();
     void api.nbGetPreferences().then(setPreferences);
     const refreshMemory=()=>{void api.nbMemory().then(setMemory);};refreshMemory();const memoryTimer=setInterval(refreshMemory,5000);
     void api.nbLocalProfile().then(setProfile);
@@ -72,7 +100,7 @@ export default function NBControlPanel() {
     navigator.mediaDevices.addEventListener("devicechange", refresh);
     const openNBSettings=()=>openNBPanel();window.addEventListener("nb-open-settings",openNBSettings);
     const meetingPending = api.onMeetingNoteNavigationPending?.(()=>setAdvanced(true));
-    const onFocus = () => { void refresh(); };
+    const onFocus = () => { void refresh(); void refreshPasteStatus(); };
     window.addEventListener("focus", onFocus);
     return () => {window.removeEventListener("nb-open-settings",openNBSettings);clearInterval(memoryTimer);meetingPending?.();navigator.mediaDevices.removeEventListener("devicechange", refresh);window.removeEventListener("focus", onFocus);};
   }, []);
@@ -121,6 +149,12 @@ export default function NBControlPanel() {
       <p><small>{ui("BlackHole er en virtuell lydinngang. Den hører bare lyd som sendes til den.")}</small></p>
       <button disabled={busy} onClick={testMic}>{ui("Test valgt mikrofon i 5 sekunder")}</button>
       <p><button onClick={()=>api.openMicrophoneSettings()}>{ui("Mikrofontillatelse")}</button><button onClick={()=>api.openAccessibilitySettings()}>{ui("Tilgjengelighet og innliming")}</button></p>
+      <section aria-label={ui("Automatisk innliming")}>
+        <h2>{ui(pasteStatus?.trusted && pasteStatus?.canPost && pasteStatus?.nativeAvailable ? "Automatisk innliming: klar" : "Automatisk innliming trenger Mac-tillatelse")}</h2>
+        {!(pasteStatus?.trusted && pasteStatus?.canPost && pasteStatus?.nativeAvailable) && <p>{ui("Åpne Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet (Enhetskontroll og datatilgang på macOS 27). Slå på DSSA Tale og start appen på nytt. Er den allerede på, fjern den gamle oppføringen og legg til appen fra Programmer på nytt.")}</p>}
+        <button onClick={()=>void refreshPasteStatus()}>{ui("Kontroller innliming")}</button>
+        <button disabled={busy||!pasteStatus?.trusted||!pasteStatus?.canPost||!pasteStatus?.nativeAvailable} onClick={async()=>{setBusy(true);setMessage("Klikk i et tomt dokument nå. Testteksten settes inn om 5 sekunder.");try{const result=await api.nbTestPaste();setMessage(result.success ? "Innlimingstesten er sendt. Kontroller teksten i dokumentet." : (result.error || "Innlimingstesten mislyktes."));}catch(error){setMessage(String(error));}finally{setBusy(false);void refreshPasteStatus();}}}>{ui("Test innliming om 5 sekunder")}</button>
+      </section>
       {text && <textarea aria-label={ui("Resultat av mikrofontest")} readOnly value={text} style={{width:"100%",height:70}}/>}
     </section>}
     {panelFocus === "shortcuts" && <section>
@@ -147,8 +181,10 @@ export default function NBControlPanel() {
     {panelFocus === "assistant" && <section id="nb-ai">
       <h2>{ui("Lokal språkmodell og tekstopprydding")}</h2>
       <p>{ui("Last ned én gang. Deretter behandles teksten lokalt.")}</p>
-      <select aria-label={ui("Lokal språkmodell")} value={s.cleanupModel} onChange={e=>{s.setCleanupModel(e.target.value);s.setCleanupProvider("qwen");s.setNoteFormattingMode("local");s.setNoteFormattingProvider("qwen");s.setNoteFormattingModel(e.target.value);s.setChatAgentMode("local");s.setChatAgentProvider("qwen");s.setChatAgentModel(e.target.value);s.setUseCleanupModel(false);}}><option value="">{ui("Velg språkmodell")}</option>{models.map(m=><option key={m.id} value={m.id}>{m.name} ({m.size}){m.isDownloaded?" – klar":""}</option>)}</select>
-      <button disabled={busy||!s.cleanupModel} onClick={async()=>{setBusy(true);setMessage("Laster ned språkmodellen …");try{const r=await api.modelDownload(s.cleanupModel);if(!r.success)throw new Error(r.error);await refreshModels();setMessage("Språkmodellen er klar.");}catch(e){setMessage(String(e));}finally{setBusy(false);}}}>{ui("Last ned valgt modell")}</button><br/>
+      <select aria-label={ui("Lokal språkmodell")} disabled={busy||!!downloadStatus} value={selectedModel ? s.cleanupModel : ""} onChange={e=>{s.setCleanupModel(e.target.value);s.setCleanupProvider("qwen");s.setNoteFormattingMode("local");s.setNoteFormattingProvider("qwen");s.setNoteFormattingModel(e.target.value);s.setChatAgentMode("local");s.setChatAgentProvider("qwen");s.setChatAgentModel(e.target.value);s.setUseCleanupModel(false);}}><option value="">{ui("Velg språkmodell")}</option>{models.map(m=><option key={m.id} value={m.id}>{m.name} ({m.size}){m.isDownloaded?" – klar":""}</option>)}</select>
+      <button disabled={busy||!!downloadStatus||!selectedModel||selectedModel.isDownloaded} onClick={downloadSelectedModel}>{ui(selectedModel?.isDownloaded ? "Modellen er klar" : "Last ned valgt modell")}</button><br/>
+      {downloadStatus && <div role="status"><label>{ui("Laster ned språkmodellen …")} {Math.floor(downloadStatus.progress || 0)} %<progress style={{width:"100%"}} max={100} value={downloadStatus.progress || 0}/></label><small>{((downloadStatus.downloadedSize||0)/1e9).toFixed(2)} / {((downloadStatus.totalSize||0)/1e9).toFixed(2)} GB</small></div>}
+
       <label><input type="checkbox" disabled={!models.some(m=>m.id===s.cleanupModel&&m.isDownloaded)} checked={s.useCleanupModel} onChange={e=>s.setUseCleanupModel(e.target.checked)}/>{" " + ui("Rydd diktering automatisk (av som standard)")}</label>
     </section>
     }
@@ -175,6 +211,26 @@ export default function NBControlPanel() {
 }
 
 const NB_ENGLISH: Record<string,string> = {
+"Automatisk innliming":"Automatic pasting",
+"Automatisk innliming: klar":"Automatic pasting: ready",
+"Automatisk innliming trenger Mac-tillatelse":"Automatic pasting needs Mac permission",
+"Åpne Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet (Enhetskontroll og datatilgang på macOS 27). Slå på DSSA Tale og start appen på nytt. Er den allerede på, fjern den gamle oppføringen og legg til appen fra Programmer på nytt.":"Open System Settings \u2192 Privacy & Security \u2192 Accessibility (Device Control and Data Access on macOS 27). Enable DSSA Tale and restart the app. If already enabled, remove the old entry and add the app from Applications again.",
+"Kontroller innliming":"Check pasting",
+"Test innliming om 5 sekunder":"Test pasting in 5 seconds",
+"Klikk i et tomt dokument nå. Testteksten settes inn om 5 sekunder.":"Click in an empty document now. Test text will be pasted in 5 seconds.",
+"Innlimingstesten er sendt. Kontroller teksten i dokumentet.":"Paste test sent. Check the text in your document.",
+"Innlimingstesten mislyktes.":"Paste test failed.",
+
+"Modellen er klar":"Model is ready",
+"En modell lastes allerede ned. Vent til den er ferdig.":"A model is already downloading. Wait for it to finish.",
+"Ikke nok ledig lagringsplass. Frigjør plass og prøv igjen.":"Not enough storage. Free up space and try again.",
+"Nedlastingen ble avbrutt. Du kan prøve igjen.":"Download cancelled. You can try again.",
+"Velg en språkmodell fra listen først.":"Select a language model from the list first.",
+"Nedlastingen mislyktes. Kontroller internettforbindelsen og prøv igjen.":"Download failed. Check your internet connection and try again.",
+"Modellserveren svarte med en feil. Prøv igjen senere.":"The model server returned an error. Try again later.",
+"Modellfilen er ufullstendig eller skadet. Last den ned på nytt.":"The model file is incomplete or damaged. Download it again.",
+"Nedlastingen mislyktes. Prøv igjen.":"Download failed. Try again.",
+
  "Ingen tale ble registrert. Kontroller valgt mikrofon og at den mottar lyd.":"No speech was detected. Check the selected microphone and whether it receives audio.",
  "BlackHole er en virtuell lydinngang. Den hører bare lyd som sendes til den.":"BlackHole is a virtual audio input. It only receives audio routed to it.",
  "App og modellmotorer (RSS)":"App and model engines (RSS)",

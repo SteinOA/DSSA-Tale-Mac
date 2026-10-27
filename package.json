@@ -1,6 +1,6 @@
 {
   "name": "open-whispr",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "A desktop dictation application using whisper.cpp for speech-to-text transcription",
   "main": "main.js",
   "private": true,
@@ -79,7 +79,8 @@
     "i18n:check": "node scripts/check-i18n.js",
     "preview": "cd src && vite preview",
     "clean": "node cleanup.js",
-    "build:mac:nb": "npm run build:renderer && electron-builder --config electron-builder.nb.json --mac --arm64 --publish never"
+    "compile:nb-paste": "node scripts/build-macos-native-paste.js",
+    "build:mac:nb": "npm run compile:nb-paste && npm run build:renderer && electron-builder --config electron-builder.nb.json --mac --arm64 --publish never"
   },
   "keywords": [
     "dictation",

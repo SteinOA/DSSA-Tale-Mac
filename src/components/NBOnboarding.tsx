@@ -28,7 +28,8 @@ export default function NBOnboarding({ onComplete }: { onComplete: () => void })
     <p>Mac-en må gi appen lov til å høre mikrofonen. Velg «Tillat» når macOS spør. Du kan senere velge mikrofon, også BlackHole 2ch, i appens mikrofonvalg.</p>
     <button onClick={async () => {const ok=await api.requestMicrophoneAccess();setMicrophone(Boolean(ok));if(!ok) await api.openMicrophoneSettings();}}> {microphone ? "✓ Mikrofon tillatt" : "Gi tilgang til mikrofon"}</button>
     <h2 style={{fontSize:20,marginTop:20}}>2. Tillat innliming i andre apper</h2>
-    <p>Åpne Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet. Slå på «DSSA Tale», og gå tilbake hit. Dette lar appen lime inn teksten i tekstfeltet du bruker.</p>
+    <p>Åpne Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet. På nyere macOS heter valget «Enhetskontroll og datatilgang». Legg til DSSA Tale fra Programmer og slå på tilgangen. Dette lar appen lime inn teksten i tekstfeltet du bruker.</p>
+    <p>Hvis bryteren står på og appen likevel mangler tilgang: fjern bare DSSA Tale fra listen, legg til appen fra Programmer igjen og start den på nytt. En usignert testoppdatering kan kreve ny godkjenning.</p>
     <button onClick={() => api.openAccessibilitySettings()}>{accessibility ? "✓ Tilgjengelighet tillatt" : "Åpne Tilgjengelighet"}</button>
     <p style={{marginTop:20}}>Trykk <strong>⌘ ⇧ mellomrom</strong> for å starte opptak. Snakk, og trykk igjen for å stoppe. Tekstopprydding og stemmeassistent er slått av. Denne utgaven oppdateres manuelt.</p>
     {error && <p role="alert">{error}</p>}

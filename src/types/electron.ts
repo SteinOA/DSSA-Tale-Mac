@@ -1793,6 +1793,8 @@ declare global {
       // Accessibility permission events (macOS)
       onAccessibilityMissing?: (callback: () => void) => () => void;
       checkAccessibilityTrusted?: () => Promise<boolean>;
+      nbPasteStatus: () => Promise<{ trusted: boolean; canPost: boolean; nativeAvailable: boolean; installed: boolean }>;
+      nbTestPaste: () => Promise<{ success: boolean; error?: string }>;
 
       // Gemini API key management
       getGeminiKey: () => Promise<string | null>;
