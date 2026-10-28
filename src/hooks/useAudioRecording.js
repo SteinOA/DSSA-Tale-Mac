@@ -407,7 +407,7 @@ export const useAudioRecording = (toast, options = {}) => {
           status: "error",
           message: error?.message,
         });
-        if (error?.title !== "Paste Error") {
+        if (error?.title !== "Paste Error" && !error?.preserveDictationPreview) {
           window.electronAPI?.hideDictationPreview?.();
         }
         const title = getRecordingErrorTitle(error, t);

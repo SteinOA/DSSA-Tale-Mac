@@ -2890,7 +2890,7 @@ class IPCHandlers {
           ? ((await this.selectionManager?.getWinTargetHwnd?.()) ?? null)
           : null;
 
-      await this.clipboardManager.pasteText(textToPaste, {
+      const pasteResult = await this.clipboardManager.pasteText(textToPaste, {
         ...options,
         webContents: event.sender,
         targetWindow,
@@ -2901,7 +2901,9 @@ class IPCHandlers {
         hasMonitor: !!this.textEditMonitor,
         targetPid,
       });
-      if (this.textEditMonitor && this._autoLearnEnabled) {
+      const verification = pasteResult?.verification || (process.platform === "darwin" ? "unverified" : "accepted");
+      const pasted = pasteResult?.pasted !== false && verification !== "unverified" && verification !== "unchanged";
+      if (pasted && this.textEditMonitor && this._autoLearnEnabled) {
         setTimeout(() => {
           try {
             debugLogger.debug("[AutoLearn] Starting monitoring", {
@@ -2916,8 +2918,13 @@ class IPCHandlers {
       // ClipboardManager returns `restoreComplete` so main-process callers can
       // serialize subsequent clipboard work behind its delayed restore. A
       // Promise cannot cross Electron's IPC boundary, though, and renderer
-      // callers only need to know that the paste was accepted.
-      return { success: true };
+      // Preserve the outcome without sending the non-serializable restore Promise.
+      return {
+        success: true, pasted, verification,
+        dispatched: pasteResult?.posted ?? pasteResult?.pasted !== false,
+        method: pasteResult?.method,
+        targetPid: pasteResult?.targetPid ?? targetPid,
+      };
     });
 
     ipcMain.handle("check-accessibility-permission", async (_event, silent = false) => {

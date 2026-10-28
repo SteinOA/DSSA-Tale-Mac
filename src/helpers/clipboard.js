@@ -2082,15 +2082,22 @@ class ClipboardManager {
   async pasteMacOSInProcess(originalClipboard, options = {}) {
     const native = require("./nbNativePaste");
     await new Promise((resolve) => setTimeout(resolve, options.fromStreaming ? 25 : PASTE_DELAYS.darwin));
-    native.paste(options.expectedTargetPid || 0);
+    const dispatch = native.paste(options.expectedTargetPid || 0);
     // Keep the new clipboard available until the receiving app handles ⌘V.
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    const verification = native.verify?.() || "unverified";
+    let verification = "unverified";
+    const verificationDelays = [600, 400, 600, 800];
+    for (let attempt = 0; attempt < verificationDelays.length; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, verificationDelays[attempt]));
+      verification = native.verify?.(attempt === verificationDelays.length - 1) || "unverified";
+      if (verification !== "unchanged") break;
+    }
     if (verification === "unchanged") {
       throw Object.assign(new Error("Teksten kom ikke inn i tekstfeltet. Den er beholdt i utklippstavlen; bruk ⌘V."), {code:"PASTE_NOT_CONFIRMED"});
     }
     this.safeLog("Paste shortcut submitted by DSSA Tale main process");
     return {
+      ...(dispatch && typeof dispatch === "object" ? dispatch : {}),
+      dispatched: true,
       verification,
       restoreComplete: originalClipboard == null || verification !== "verified" ? Promise.resolve()
         : this._restoreClipboardAfterDelay(originalClipboard, {

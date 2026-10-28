@@ -25,6 +25,15 @@ static void ClearCheck() {
 static napi_value Bool(napi_env env, bool value) {
   napi_value result; napi_get_boolean(env, value, &result); return result;
 }
+static napi_value Dispatched(napi_env env, const char *method, pid_t pid) {
+  napi_value result, value; napi_create_object(env, &result);
+  napi_set_named_property(env, result, "posted", Bool(env, true));
+  napi_create_string_utf8(env, method, NAPI_AUTO_LENGTH, &value);
+  napi_set_named_property(env, result, "method", value);
+  napi_create_int32(env, pid, &value);
+  napi_set_named_property(env, result, "targetPid", value);
+  return result;
+}
 static napi_value Fail(napi_env env, const char *code, const char *message) {
   napi_throw_error(env, code, message); return nullptr;
 }
@@ -71,15 +80,8 @@ static napi_value Paste(napi_env env, napi_callback_info info) {
       }
     }
     CFRelease(application);
-    // Standard macOS text fields can replace only their selected text through
-    // Accessibility. This avoids keyboard shortcut interception and never sets
-    // the entire document. Unsupported editors use the targeted shortcut below.
-    Boolean selectedTextSettable = false;
-    if (pasteField && expectedText && AXUIElementIsAttributeSettable(pasteField, kAXSelectedTextAttribute, &selectedTextSettable) == kAXErrorSuccess && selectedTextSettable) {
-      NSString *incoming = [[NSPasteboard generalPasteboard] stringForType:NSPasteboardTypeString];
-      if (incoming && AXUIElementSetAttributeValue(pasteField, kAXSelectedTextAttribute, (CFStringRef)incoming) == kAXErrorSuccess)
-        return Bool(env, true);
-    }
+    // Use the same normal paste path in every editor, including our TextEdit
+    // test. AX is read only for verification, never for replacing document text.
     CGEventSourceRef source = CGEventSourceCreate(kCGEventSourceStatePrivate);
     CGEventRef down = CGEventCreateKeyboardEvent(source, 0x09, true);
     CGEventRef up = CGEventCreateKeyboardEvent(source, 0x09, false);
@@ -89,22 +91,35 @@ static napi_value Paste(napi_env env, napi_callback_info info) {
     }
     CGEventSetFlags(down, kCGEventFlagMaskCommand);
     CGEventSetFlags(up, kCGEventFlagMaskCommand);
-    // Deliver to the captured receiving process, rather than the global session.
-    CGEventPostToPid(pid, down);
+    // Chromium routes keyboard input through the session's focused window.
+    // Posting to its browser-process PID can leave the clipboard populated but
+    // never reach the renderer's editor. Use the standard macOS session route,
+    // from this authorized app process, after checking focus again.
+    NSRunningApplication *current = [[NSWorkspace sharedWorkspace] frontmostApplication];
+    if (!current || [current processIdentifier] != pid) {
+      CFRelease(down); CFRelease(up); if (source) CFRelease(source);
+      ClearCheck();
+      return Fail(env, "TARGET_CHANGED", "Målprogrammet ble endret før innsetting. Teksten er beholdt i utklippstavlen.");
+    }
+    CGEventPost(kCGSessionEventTap, down);
     usleep(8000);
-    CGEventPostToPid(pid, up);
+    CGEventPost(kCGSessionEventTap, up);
     CFRelease(down); CFRelease(up); if (source) CFRelease(source);
-    return Bool(env, true);
+    return Dispatched(env, "session-command-v", pid);
   }
 }
 static napi_value Verify(napi_env env, napi_callback_info info) {
+  size_t argc = 1; napi_value argv[1]; bool finalCheck = true;
+  napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+  if (argc) napi_get_value_bool(env, argv[0], &finalCheck);
   @autoreleasepool {
     NSString *after = ReadText(pasteField);
     const char *state = "unverified";
     if (after && expectedText && [after isEqualToString:expectedText]) state = "verified";
     else if (after && beforeText && [after isEqualToString:beforeText]) state = "unchanged";
     napi_value result; napi_create_string_utf8(env, state, NAPI_AUTO_LENGTH, &result);
-    ClearCheck(); return result;
+    if (finalCheck || strcmp(state, "verified") == 0 || strcmp(state, "unverified") == 0) ClearCheck();
+    return result;
   }
 }
 static napi_value OpenTestDocument(napi_env env, napi_callback_info info) {

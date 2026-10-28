@@ -25,8 +25,8 @@ function paste(expectedPid = 0) {
   if (!native) throw Object.assign(new Error("Innlimingskomponenten mangler. Installer DSSA Tale på nytt fra DMG-filen."), {code:"NATIVE_PASTE_UNAVAILABLE"});
   return native.paste(expectedPid || 0);
 }
-function verify() {
-  return load()?.verify?.() || "unverified";
+function verify(finalCheck = true) {
+  return load()?.verify?.(finalCheck) || "unverified";
 }
 function openTestDocument(file) {
   const native = load();
