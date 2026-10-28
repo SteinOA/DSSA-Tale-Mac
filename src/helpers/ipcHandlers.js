@@ -778,6 +778,11 @@ class IPCHandlers {
   }
 
   _asyncMirrorWrite(note) {
+    try {
+      require("./nbConversationMirror").createDefault().write(note, this._buildSpeakerMappings(note.id));
+    } catch (error) {
+      debugLogger.warn("Local conversation file could not be updated", { noteId: note.id, error: error.message });
+    }
     if (!this._noteFilesEnabled) {
       debugLogger.debug(
         "Mirror write skipped: note files disabled",
@@ -797,6 +802,8 @@ class IPCHandlers {
   }
 
   _asyncMirrorDelete(noteId) {
+    try { require("./nbConversationMirror").createDefault().remove(noteId); }
+    catch (error) { debugLogger.warn("Local conversation file could not be removed", { noteId, error: error.message }); }
     if (!this._noteFilesEnabled) {
       debugLogger.debug("Mirror delete skipped: note files disabled", { noteId }, "note-files");
       return;
@@ -1642,11 +1649,27 @@ class IPCHandlers {
       });
       if(result.canceled || !result.filePath) return {canceled:true};
       const writer=require("./nbDocument");
-      const content=writer.exportText(text,options);
+      const content=options.preformatted === true ? text : writer.exportText(text,options);
       await fs.promises.writeFile(result.filePath,format === "docx" ? writer.createDocx(content) : format === "pdf" ? await writer.createPdf(content) : content);
       return {success:true};
     });
+    ipcMain.handle("nb-conversation-file", async (_event, id, action, options = {}) => {
+      try {
+        if (!Number.isSafeInteger(id) || id < 1 || !["text", "reveal"].includes(action)) throw new Error("Ugyldig samtalevalg.");
+        const note = this.databaseManager.getNote(id);
+        if (!note || note.deleted_at || !note.transcript) throw new Error("Samtalen har ingen transkripsjon ennå.");
+        const mirror = require("./nbConversationMirror");
+        const mappings = this._buildSpeakerMappings(id);
+        if (action === "text") return {success:true, text:mirror.text(note,mappings,{includeTimestamps:options.includeTimestamps === true,includeSpeakers:options.includeSpeakers === true})};
+        const file = mirror.createDefault().write(note,mappings);
+        if (!file) throw new Error("Samtalen har ingen transkripsjon ennå.");
+        shell.showItemInFolder(file);
+        return {success:true};
+      } catch (error) { return {success:false,error:error.message}; }
+    });
     ipcMain.handle("nb-local-profile", () => require("./nbLocalProfile").getLocalProfile(path.join(app.getPath("userData"),"cache")));
+    ipcMain.handle("nb-audio-outputs", () => require("./nbNativeAudio").listOutputs());
+    ipcMain.handle("nb-play-audio", (_event, uid, kind) => require("./nbNativeAudio").playTone(uid, kind));
     ipcMain.handle("nb-paste-status", () => ({
       ...require("./nbNativePaste").status(),
       installed: process.execPath.startsWith("/Applications/"),
@@ -1663,8 +1686,11 @@ class IPCHandlers {
         await fs.promises.writeFile(testFile, "", { flag: "wx" });
         require("./nbNativePaste").openTestDocument(testFile);
         await new Promise((resolve) => setTimeout(resolve, 1800));
+        const testTargetPid = require("./nbNativePaste").status().testTargetPid;
+        if (!(testTargetPid > 0)) throw new Error("Testdokumentet kunne ikke åpnes i Tekstredigering.");
         const result = await this.clipboardManager.pasteText("Dette er en innlimingstest fra DSSA Tale. Æ, ø og å. ", {
           allowClipboardFallback: false, restoreClipboard: true,
+          expectedTargetPid: testTargetPid,
         });
         return { success: true, verified: result.verification === "verified" };
       } catch (error) {
@@ -11121,6 +11147,8 @@ class IPCHandlers {
                     this.databaseManager.updateNote(noteId, {
                       transcript: JSON.stringify(segments),
                     });
+                    const updatedNote = this.databaseManager.getNote(noteId);
+                    if (updatedNote) this._asyncMirrorWrite(updatedNote);
                   }
                 } catch (_) {}
               }
@@ -11186,6 +11214,7 @@ class IPCHandlers {
         if (changed) {
           this.databaseManager.updateNote(noteId, { transcript: JSON.stringify(transcript) });
           const updated = this.databaseManager.getNote(noteId);
+          if (updated) this._asyncMirrorWrite(updated);
           if (updated) broadcastToWindows("note-updated", updated);
         }
 

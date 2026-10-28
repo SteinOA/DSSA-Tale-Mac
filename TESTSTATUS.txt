@@ -1,25 +1,56 @@
-DSSA Tale 1.9.6 – kildegren under arbeid, 28. oktober 2026
+DSSA Tale 1.9.6 – testbygg under sluttkontroll, 28. oktober 2026
 
 Se KRAV-OG-STATUS.md for avtalte funksjoner og mangler.
+Ny DMG pakkes; endelig fil, kontrollsum og offentlig nedlasting er ikke
+bekreftet i denne statusen. Appen er ikke erklært ferdig eller Apple-signert.
 
-Verifisert tidligere:
-- Pakket 1.9.5-kode med faktisk main.js-nettfilter lastet hele Qwen3.5 2B-filen (1 396 198 496 byte) og bestod SHA-256-kontroll. Fire kuraterte modellruter svarte med GGUF/HTTP 206. De tre andre ble ikke fullstendig lastet i denne testen.
-- Begge NB-Whisper Large-modellene i 1.9.5-DMG hadde forventet størrelse og kontrollsum.
+SISTE KILDEKONTROLL
+- 49 målrettede tester bestått.
+- Native-modulens faktiske binærfil kontrolleres ved bygging: funksjonene
+  status, paste, verify og openTestDocument skal finnes.
+- Tidligere TypeScript-typesjekk og rendererbygg bestått, med varsel om
+  store JavaScript-chunker. Ingen ny full upstream-suite hevdes her.
 
-Kontroll av siste kildegren:
-- 39/39 målrettede tester bestått: innliming/utklippstavle, lydutgang, modellnedlastingspolicy og dokumenteksport.
-- TypeScript-typesjekk bestått. Rendererbygg bestått, med varsel om store JavaScript-chunker.
-- Dette er kildekontroller, ikke erstatning for fysisk lyd og installert end-to-end-test.
+INSTALLERT APP 1.9.6
+- Automatisk testinnliming i Tekstredigering er bekreftet igjen, både i
+  appens teststatus og i selve dokumentet, med æøå og markør 1793159324615.
+  Dette bekrefter testinnliming, ikke hele tale-/hurtigtastkjeden.
+- En bokmålslydfil er transkribert med NB Large full presisjon gjennom
+  import -> notat -> lokal samtale-TXT.
+- Word-, PDF- og TXT-eksport er filvalidert. Visuell kontroll av den siste
+  eksporten og hele møteeksportflyten gjenstår.
+- Native lydtest mot Mac mini-utgangen fikk lydcallback. Dette beviser
+  ikke at brukeren hørte tonen. Ingen global lydruting er endret.
+- Modellbytte ble prøvd uten heng i Nøkkelring.
+- q5_0 og Nynorsk er observert i appen. En kontrollert nynorsk-lydprøve
+  i siste versjon er ikke fullført.
 
-Nåværende kildeendringer:
-- Native innsetting i valgt prosess, støtte for valgte tekstfelt, kontroll av resultat når mulig og beholdt utklippstavle ved feil/usikkerhet.
-- Ny test åpner et eget tomt dokument i Tekstredigering.
-- Høyttalervalg og testtone med app-lokal lagring. Ingen global lydruting endret.
-- Visuelle endringer i Hjem og førstegangsoppsett.
+TIDLIGERE VERIFISERING, IKKE NY DMG-GODKJENNING
+- Pakket 1.9.5-kode med faktisk main.js-nettfilter lastet hele Qwen3.5
+  2B-filen (1 396 198 496 byte), som bestod SHA-256-kontroll.
+- Fire kuraterte modellruter svarte med GGUF/HTTP 206. De tre andre
+  modellene ble ikke fullstendig lastet i den testen.
+- Begge NB Large-modellene i 1.9.5-DMG hadde forventet størrelse og hash.
+- Tidligere installert app beholdt innstillinger og historikk.
 
-Runtime-observasjon:
-- En tidligere 1.9.6-mellomversjon startet fra /Applications og bevarte innstillinger og historikk.
-- Tilgjengelighet ble lagt inn på nytt. Den gamle testmåten fikk ikke faktisk eksternt vindusfokus under fjernstyringen, og viste riktig feil om manglende eksternt tekstfelt. Dette er ikke en bestått innlimingstest.
-- En ny app med automatisk testdokument ble bygd, men den siste høyttalerendringen kom etter dette bygget. Ingen påstand om ferdig sluttpakke.
+KJENTE BEGRENSNINGER OG GJENSTÅENDE
+- Når en tidligere ikke-tom transkripsjon tømmes helt, kan tidligere tekst
+  bli stående i samtalens TXT-speil. Sletting av notatet har egen opprydding.
+- Hele kjeden tale -> fysisk hurtigtast -> aktivt tekstfelt i vanlige
+  programmer er ikke sluttverifisert. Testinnliming alene dekker ikke dette.
+- Brukerens faktiske lyd fra PC/Mac, valgte mikrofoner og BlackHole-signal,
+  samt hørbar høyttalertest må fortsatt bekreftes.
+- Ekte Teams-møte, automatisk oppdagelse, live-/ettertranskribering,
+  langvarig møte og kvalitet på talerfordeling er ikke sluttverifisert.
+- Kalender og SharePoint/OneDrive er ikke bekreftet ende til ende.
+  Lokale synkroniseringsmapper er ikke en full API-integrasjon.
+- Endelig DMG-installering, mottaker uten byggemappe, ny omstartskontroll
+  og offentlig sluttpakke avventes.
 
-Gjenstår: full installasjon og faktisk innliming, fysisk lyd, møte-/kontorintegrasjoner, samtaledokument, eksportflyt, signering/notarisering og offentlig sluttpakke.
+PLATTFORM OG DISTRIBUSJON
+Apple Silicon (arm64), teknisk minimum macOS 26.0. Testmaskin: M4 med
+macOS 27.0.1. Ingen Intel-pakke eller egen macOS 26-maskin er verifisert.
+Developer ID-signering og notarisation mangler; Gatekeeper kan stoppe en
+nedlastet kopi. Nytt usignert bygg kan kreve ny appspesifikk tillatelse.
+Manuell oppdatering skal beholde profilen OpenWhispr-NB. Windows-oppsettet
+beholdes separat. Ingen automatisk upstream-oppdatering er slått på.

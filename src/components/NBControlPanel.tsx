@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { saveImportedConversation } from "../utils/nbImportedConversation";
+import React, { useEffect, useState, useRef } from "react";
 import { HotkeyListInput } from "./ui/HotkeyListInput";
 import ControlPanel from "./ControlPanel";
 import { useMeetingRecordingStore, stopRecording as stopMeetingRecording } from "../stores/meetingRecordingStore";
@@ -79,7 +80,10 @@ export default function NBControlPanel() {
     try {
       const all = await navigator.mediaDevices.enumerateDevices();
       setDevices(all.filter(d=>d.kind === "audioinput"));
-      setOutputs(all.filter(d=>d.kind === "audiooutput"));
+      if (api.nbAudioOutputs) {
+        const nativeOutputs = await api.nbAudioOutputs();
+        setOutputs(nativeOutputs.map((d:any)=>({deviceId:d.uid,label:d.label,kind:"audiooutput"})));
+      } else setOutputs(all.filter(d=>d.kind === "audiooutput"));
     } catch { setMessage("Kunne ikke hente lydenheter. Prøv igjen."); }
   };
   const [message, setMessage] = useState("");
@@ -112,7 +116,8 @@ export default function NBControlPanel() {
     window.addEventListener("focus", onFocus);
     return () => {window.removeEventListener("nb-open-settings",openNBSettings);clearInterval(memoryTimer);meetingPending?.();navigator.mediaDevices.removeEventListener("devicechange", refresh);window.removeEventListener("focus", onFocus);};
   }, []);
-  const transcribe = async (buffer: ArrayBuffer) => {
+  const importBusy = useRef(false);
+  const transcribe = async (buffer: ArrayBuffer, importedFileName?: string) => {
     setBusy(true); setMessage("Transkriberer lokalt …");
     try {
       const result = await api.transcribeLocalWhisper(buffer, {model:s.whisperModel,language:s.preferredLanguage});
@@ -120,7 +125,11 @@ export default function NBControlPanel() {
         if(result.message === "No audio detected" || result.error === "No audio detected") {setMessage("Ingen tale ble registrert. Kontroller valgt mikrofon og at den mottar lyd.");return;}
         throw new Error(result.error || result.message || "Talegjenkjenningen mislyktes.");
       }
-      setText(result.text || ""); setMessage(result.text?.trim() ? "Ferdig. Ingen lyd er lastet opp." : "Ingen tale ble funnet.");
+      setText(result.text || "");
+      if(importedFileName && result.text?.trim()){
+        const saved=await saveImportedConversation(api,importedFileName,result.text);
+        setMessage(saved?.complete ? `Samtalen «${saved.title}» er lagret under Notater.` : "Teksten er lagret under Notater, men taler-/tidsdata kunne ikke lagres. Originalteksten er beholdt.");
+      }else setMessage(result.text?.trim() ? "Ferdig. Ingen lyd er lastet opp." : "Ingen tale ble funnet.");
     } catch(error) {setMessage(String(error));} finally {setBusy(false);}
   };
   const testMic = async () => {
@@ -159,7 +168,7 @@ export default function NBControlPanel() {
         {outputs.filter(d=>d.deviceId!=="default" && d.deviceId!=="communications").map(d=><option key={d.deviceId} value={d.deviceId}>{d.label || ui("Høyttaler")}</option>)}
       </select></label></p>
       {output.deviceId && !outputs.some(d=>d.deviceId===output.deviceId) && <p role="status">{ui("Valgt høyttaler er ikke tilgjengelig. Valget beholdes. Koble den til igjen, eller velg standardutgang selv.")}</p>}
-      <button disabled={busy} onClick={async()=>{setBusy(true);try{await testAudioOutput();setMessage("Testlyden er spilt på valgt utgang. Hørte du tonen?");}catch{setMessage("Kunne ikke spille på valgt utgang. Koble til høyttaleren, oppdater listen eller velg standardutgang.");}finally{setBusy(false);}}}>{ui("Test høyttaler")}</button>{" "}
+      <button disabled={busy} onClick={async()=>{setBusy(true);try{await testAudioOutput();setMessage("Testlyden er spilt på valgt utgang. Hørte du tonen?");}catch(error){setMessage(ui("Kunne ikke spille på valgt utgang. Koble til høyttaleren, oppdater listen eller velg standardutgang.")+" "+(error instanceof Error ? error.message : String(error)));}finally{setBusy(false);}}}>{ui("Test høyttaler")}</button>{" "}
       <button onClick={()=>void refreshDevices()}>{ui("Oppdater lydenheter")}</button>
       <p><small>{ui("Høyttalervalget gjelder appens testlyd og dikteringslyder. Det endrer ikke Mac-ens lydruting. Valget beholdes etter omstart.")}</small></p>
       <p style={{fontSize:13}}>{ui("Begge modeller følger med appen. Full presisjon krever mer minne. Valg av mikrofon her endrer ikke Mac-ens lydruting.")}</p>
@@ -210,9 +219,27 @@ export default function NBControlPanel() {
       <button onClick={()=>api.nbOpenVoiceMemos()}>{ui("Åpne Apple Taleopptak")}</button><button onClick={async()=>{const result=await api.nbStorageFolder();if(result.path)setPreferences({...preferences,documentFolder:result.path});}}>{ui("Velg dokumentmappe")}</button>
       <p>{ui("Velg en lokal WAV-, MP3-, M4A- eller WebM-fil. Filen behandles på Mac-en.")}</p>
       <label><input type="checkbox" checked={separateSpeakers} onChange={e=>setSeparateSpeakers(e.target.checked)}/>{" " + ui("Skill talere med lokal talermodell")}</label>
-      <input aria-label={ui("Velg lokal lydfil")} type="file" accept="audio/*,.webm" disabled={busy} onChange={async(e)=>{const f=e.target.files?.[0];if(!f)return;setSourceAudio({bytes:await f.arrayBuffer(),name:f.name});if(!separateSpeakers){await transcribe(await f.arrayBuffer());return;}
-        setBusy(true);setMessage("Analyserer talere og transkriberer lokalt …");
-        try{const path=api.getPathForFile(f);const result=await api.diarizeAudioFile(path,{nbTranscribe:true,model:s.whisperModel,language:s.preferredLanguage});if(!result.success)throw new Error(result.error);const names=new Map<string,string>();setText(result.segments.map((part:any)=>{if(!names.has(part.speaker))names.set(part.speaker,"Taler "+(names.size+1));return "["+Math.floor(part.start/60)+":"+String(Math.floor(part.start%60)).padStart(2,"0")+"] "+names.get(part.speaker)+": "+part.text;}).join("\n\n"));setMessage("Ferdig. Kontroller talerfordelingen og skriv inn navn ved behov.");}catch(e){setMessage(String(e));}finally{setBusy(false);}}}/>
+      <input aria-label={ui("Velg lokal lydfil")} type="file" accept="audio/*,.webm" disabled={busy} onChange={async(e)=>{
+        const file=e.target.files?.[0];if(!file||busy||importBusy.current)return;
+        importBusy.current=true;setBusy(true);
+        try{
+          const bytes=await file.arrayBuffer();setSourceAudio({bytes,name:file.name});
+          if(!separateSpeakers){await transcribe(bytes,file.name);return;}
+          setMessage("Analyserer talere og transkriberer lokalt …");
+          const filePath=api.getPathForFile(file);
+          const result=await api.diarizeAudioFile(filePath,{nbTranscribe:true,model:s.whisperModel,language:s.preferredLanguage});
+          if(!result.success)throw new Error(result.error);
+          const names=new Map<string,string>();
+          const importedText=result.segments.map((part:any)=>{
+            if(!names.has(part.speaker))names.set(part.speaker,"Taler "+(names.size+1));
+            const stamp=typeof part.start === "number" && Number.isFinite(part.start) ? "["+Math.floor(part.start/60)+":"+String(Math.floor(part.start%60)).padStart(2,"0")+"] " : "";
+            return stamp+(part.speaker ? names.get(part.speaker)+": " : "")+part.text;
+          }).join("\n\n");
+          setText(importedText);
+          const saved=await saveImportedConversation(api,file.name,importedText,result.segments);
+          setMessage(!saved ? "Ingen tale ble funnet." : saved.complete ? `Samtalen «${saved.title}» er lagret under Notater. Kontroller talerfordelingen der.` : "Teksten er lagret under Notater, men taler-/tidsdata kunne ikke lagres. Originalteksten er beholdt.");
+        }catch(error){setMessage(String(error));}finally{importBusy.current=false;setBusy(false);}
+      }}/>
     </section>}
     {(panelFocus === "files" || panelFocus === "assistant") && <section aria-label={ui("Tekst og eksport")}>
       <textarea aria-label={ui(panelFocus === "assistant" ? "Tekst eller spørsmål" : "Transkribert tekst")} style={{width:"100%",height:120,padding:12,border:"1px solid #8885",borderRadius:8}} value={text} onChange={(e)=>setText(e.target.value)}/>

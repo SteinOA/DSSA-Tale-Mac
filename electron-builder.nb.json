@@ -107,6 +107,7 @@
         "macos-globe-listener",
         "macos-fast-paste",
         "macos-native-paste.node",
+        "macos-native-audio.node",
         "macos-mic-listener",
         "macos-calendar-listener",
         "macos-text-monitor",

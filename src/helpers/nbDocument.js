@@ -39,7 +39,7 @@ async function createPdf(text) {
  const win=new BrowserWindow({show:false,webPreferences:{sandbox:true,nodeIntegration:false,contextIsolation:true,javascript:false}});
  try {
   const escaped=text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  await win.loadURL("data:text/html;charset=utf-8,"+encodeURIComponent('<!doctype html><html lang="nb"><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'"><style>@page{size:A4;margin:20mm}body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.5}p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 8pt}</style><body>'+escaped.split(/\r?\n/).map(line=>'<p>'+(line||'&#160;')+'</p>').join('')+'</body></html>'));
+  await win.loadURL("data:text/html;charset=utf-8,"+encodeURIComponent('<!doctype html><html lang="nb"><title>DSSA Tale – samtaledokument</title><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'"><style>@page{size:A4;margin:20mm}body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.5}p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 8pt}</style><body>'+escaped.split(/\r?\n/).map(line=>'<p>'+(line||'&#160;')+'</p>').join('')+'</body></html>'));
   return await win.webContents.printToPDF({printBackground:true,pageSize:"A4",preferCSSPageSize:true});
  } finally {win.destroy();}
 }

@@ -28,17 +28,21 @@ DSSA Tale skal være en lokal norsk Mac-app som vanlige brukere kan installere f
 - Endringer i native innliming og kontroll av mottakertekst, pluss automatisk åpning av et eget testdokument.
 - Hjem-kort og velkomstside i godkjent lys/mørk visuell retning.
 - Høyttalervalg, testtone og dikteringslyd til valgt utgang; lokal lagring og tydelig manglende-enhet-status. Eksisterende mikrofonvalg bevares.
-- Eksportmotor for docx/pdf/txt og valg om tidsstempler/talere finnes fra før. Dette beviser ikke at hele møteflyten har alle eksportvalgene koblet riktig.
+- Samtalefil per notat med atomisk lagring og eksport til Word/PDF/TXT. Import av en bokmålslydfil med full NB-modell er prøvd gjennom notat og samtale-TXT; eksportfilene er teknisk validert. Visuell kontroll av siste eksport gjenstår.
+- 49 målrettede tester bestått. Native-modulens faktiske binære eksport kontrolleres ved bygging.
+- Installert 1.9.6 har igjen satt norsk testtekst med æøå inn automatisk i Tekstredigering, bekreftet både i appen og målprogrammet (testmarkør 1793159324615). Dette var testinnliming, ikke hele kjeden fra tale via fysisk hurtigtast.
+- Native testlyd mot Mac mini-utgangen fikk lydcallback. Brukerens bekreftelse på hørbar lyd mangler. Modellbytte ble prøvd uten heng i Nøkkelring.
 
 ## Ikke sluttverifisert / gjenstår
 
-- Faktisk automatisk tekstinnsetting i vanlige apper og i denne chatten fra siste komplette installasjonspakke.
-- Ny dokumentbasert innlimingstest fra installert siste bygg.
+- Hele kjeden tale → fysisk hurtigtast → aktivt tekstfelt i vanlige apper og denne chatten. Den separate innlimingstesten i Tekstredigering er bestått, men erstatter ikke dette.
 - Fysisk hørbar test av valgt høyttaler og valgte mikrofoner, inkludert faktisk BlackHole-signal.
-- Ett rullende dokument/tekstfil per samtale og samlet møteeksport er et leveransekrav; ikke bekreftet ferdig koblet gjennom hele flyten.
+- Samtaledokument under et ekte møte, visuell eksportkontroll og alle eksportvalg gjennom møteflyten.
+- Kjent begrensning: Hvis en tidligere ikke-tom transkripsjon tømmes helt, kan den gamle samtale-TXT-filen bli liggende med tidligere tekst. Sletting av selve notatet har egen filopprydding.
+- q5_0 og Nynorsk er observert i live app, men kontrollert nynorsk-lydprøve i siste versjon er ikke fullført.
 - End-to-end Teams-opptak, automatisk oppdagelse, live/etterbehandling og talerfordeling.
 - Kalender/SharePoint-koblinger med faktisk innhenting og lagring. En knapp eller lokal synkronisert mappe er ikke bevis på en full integrasjon.
-- Samlet sluttbygg etter de nyeste høyttalerendringene, installeringsrunde, omstartskontroll og oppdatert offentlig nedlasting.
+- Ny DMG pakkes. Verifisering av den endelige DMG-en, installeringsrunde, omstartskontroll og oppdatert offentlig nedlasting gjenstår.
 - Apple Developer ID og notarisation mangler. Endret usignert bygg kan kreve ny appspesifikk Mac-tillatelse. Ingen Intel-pakke er testet.
 - Migrering fra upstream v1.9.2 til v1.10.4 er undersøkt, men ikke gjennomført.
 

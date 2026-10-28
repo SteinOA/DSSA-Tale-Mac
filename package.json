@@ -80,7 +80,8 @@
     "preview": "cd src && vite preview",
     "clean": "node cleanup.js",
     "compile:nb-paste": "node scripts/build-macos-native-paste.js",
-    "build:mac:nb": "npm run compile:nb-paste && npm run build:renderer && electron-builder --config electron-builder.nb.json --mac --arm64 --publish never"
+    "compile:nb-audio": "node scripts/build-macos-native-audio.js",
+    "build:mac:nb": "npm run compile:nb-paste && npm run compile:nb-audio && npm run build:renderer && electron-builder --config electron-builder.nb.json --mac --arm64 --publish never"
   },
   "keywords": [
     "dictation",

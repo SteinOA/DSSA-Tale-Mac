@@ -35,6 +35,7 @@ function persist(token) {
 }
 
 function get() {
+  if (app.getName?.() === "DSSA Tale") return null;
   if (cached !== null) return cached || null;
   try {
     const file = tokenFile();
@@ -64,6 +65,7 @@ function get() {
 }
 
 function set(token) {
+  if (app.getName?.() === "DSSA Tale") return {success:false,code:"LOCAL_ONLY",...state()};
   if (typeof token !== "string" || !token) return { success: false, ...state() };
   const current = get();
   if (current === token) return { success: true, ...state() };
@@ -90,6 +92,7 @@ function setIfGeneration(token, expectedGeneration) {
 }
 
 function clear() {
+  if (app.getName?.() === "DSSA Tale") return {success:true,...state()};
   cached = "";
   let success = true;
   try {

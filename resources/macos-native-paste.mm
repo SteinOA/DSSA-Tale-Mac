@@ -32,6 +32,11 @@ static napi_value Status(napi_env env, napi_callback_info info) {
   napi_value result; napi_create_object(env, &result);
   napi_set_named_property(env, result, "trusted", Bool(env, AXIsProcessTrusted()));
   napi_set_named_property(env, result, "canPost", Bool(env, CGPreflightPostEventAccess()));
+  @autoreleasepool {
+    NSRunningApplication *editor = [[NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.apple.TextEdit"] firstObject];
+    napi_value pid; napi_create_int64(env, editor ? editor.processIdentifier : 0, &pid);
+    napi_set_named_property(env, result, "testTargetPid", pid);
+  }
   return result;
 }
 static napi_value Paste(napi_env env, napi_callback_info info) {
@@ -123,6 +128,6 @@ static napi_value Init(napi_env env, napi_value exports) {
     {"verify", nullptr, Verify, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"openTestDocument", nullptr, OpenTestDocument, nullptr, nullptr, nullptr, napi_default, nullptr},
   };
-  napi_define_properties(env, exports, 2, properties); return exports;
+  napi_define_properties(env, exports, sizeof(properties) / sizeof(properties[0]), properties); return exports;
 }
 NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)

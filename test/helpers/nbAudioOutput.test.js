@@ -21,5 +21,18 @@ test("output choice persists and missing devices never silently reroute", async 
     await output.applyAudioOutput({setSinkId: async id=>calls.push(id)});
     assert.equal(calls[1], "");
     await output.applyAudioOutput({});
-  } finally { delete global.localStorage; }
+    await assert.rejects(output.audioOutputStep("resume",()=>new Promise(()=>{}),10), error=>error.name === "TimeoutError" && error.stage === "resume");
+    await assert.rejects(output.audioOutputStep("setSinkId",()=>{const error=new Error("Permission denied");error.name="NotAllowedError";throw error;}), error=>error.name === "NotAllowedError" && error.message.includes("Permission denied") && error.stage === "setSinkId");
+    output.saveAudioOutput("old-web-id","Old choice");
+    const nativeCalls=[];
+    global.window={electronAPI:{nbAudioOutputs:async()=>[],nbPlayAudioTest:async uid=>{nativeCalls.push(uid);return {success:true};},nbPlayAudioCue:async(kind,uid)=>{nativeCalls.push([kind,uid]);return {success:true};}}};
+    assert.equal(output.getAudioOutput().deviceId,"legacy-web:old-web-id");
+    await assert.rejects(output.testAudioOutput(),/Velg høyttaler på nytt/);
+    assert.equal(nativeCalls.length,0);
+    output.saveAudioOutput("BuiltInSpeakerDevice","Mac mini");
+    await output.testAudioOutput();
+    await output.playNativeAudioCue("start");
+    assert.deepEqual(nativeCalls,["BuiltInSpeakerDevice",["start","BuiltInSpeakerDevice"]]);
+    assert.equal(JSON.parse(saved.get("nbAudioOutput")).deviceId,"old-web-id");
+  } finally { delete global.localStorage; delete global.window; }
 });
