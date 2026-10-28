@@ -928,6 +928,8 @@ class ClipboardManager {
             expectedClipboardText: text,
           });
         } catch (firstError) {
+          // A posted shortcut must not be retried: a slow receiver could insert twice.
+          if (firstError.code === "PASTE_NOT_CONFIRMED") throw firstError;
           this.safeLog("⚠️ First paste attempt failed, retrying...", firstError?.message);
           clipboard.writeText(text);
           await new Promise((r) => setTimeout(r, 200));
@@ -2082,10 +2084,15 @@ class ClipboardManager {
     await new Promise((resolve) => setTimeout(resolve, options.fromStreaming ? 25 : PASTE_DELAYS.darwin));
     native.paste(options.expectedTargetPid || 0);
     // Keep the new clipboard available until the receiving app handles ⌘V.
-    await new Promise((resolve) => setTimeout(resolve, 40));
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const verification = native.verify?.() || "unverified";
+    if (verification === "unchanged") {
+      throw Object.assign(new Error("Teksten kom ikke inn i tekstfeltet. Den er beholdt i utklippstavlen; bruk ⌘V."), {code:"PASTE_NOT_CONFIRMED"});
+    }
     this.safeLog("Paste shortcut submitted by DSSA Tale main process");
     return {
-      restoreComplete: originalClipboard == null ? Promise.resolve()
+      verification,
+      restoreComplete: originalClipboard == null || verification !== "verified" ? Promise.resolve()
         : this._restoreClipboardAfterDelay(originalClipboard, {
           delayMs: RESTORE_DELAYS.darwin,
           expectedText: options.expectedClipboardText,

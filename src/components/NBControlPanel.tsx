@@ -3,6 +3,7 @@ import { HotkeyListInput } from "./ui/HotkeyListInput";
 import ControlPanel from "./ControlPanel";
 import { useMeetingRecordingStore, stopRecording as stopMeetingRecording } from "../stores/meetingRecordingStore";
 import { useSettingsStore } from "../stores/settingsStore";
+import { getAudioOutput, saveAudioOutput, testAudioOutput } from "../utils/nbAudioOutput";
 
 export default function NBControlPanel() {
   const s = useSettingsStore();
@@ -72,6 +73,15 @@ export default function NBControlPanel() {
   };
   useEffect(()=>{document.documentElement.style.setProperty("--nb-accent",accent);localStorage.setItem("nbAccent",accent);},[accent]);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [outputs, setOutputs] = useState<MediaDeviceInfo[]>([]);
+  const [output, setOutput] = useState(getAudioOutput);
+  const refreshDevices = async () => {
+    try {
+      const all = await navigator.mediaDevices.enumerateDevices();
+      setDevices(all.filter(d=>d.kind === "audioinput"));
+      setOutputs(all.filter(d=>d.kind === "audiooutput"));
+    } catch { setMessage("Kunne ikke hente lydenheter. Prøv igjen."); }
+  };
   const [message, setMessage] = useState("");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -93,9 +103,7 @@ export default function NBControlPanel() {
     void api.nbLocalProfile().then(setProfile);
     void api.nbGetAcceleration().then(setAcceleration);
     void refreshModels();
-    const refresh = async () => {
-      setDevices((await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audioinput"));
-    };
+    const refresh = refreshDevices;
     void refresh();
     navigator.mediaDevices.addEventListener("devicechange", refresh);
     const openNBSettings=()=>openNBPanel();window.addEventListener("nb-open-settings",openNBSettings);
@@ -144,7 +152,16 @@ export default function NBControlPanel() {
       <label>{ui("Målform") + " "}<select aria-label={ui("Målform")} value={s.preferredLanguage} onChange={(e)=>s.setPreferredLanguage(e.target.value)}><option value="no">{ui("Bokmål")}</option><option value="nn">{ui("Nynorsk")}</option></select></label><br/>
       <label>{ui("Modell") + " "}<select aria-label={ui("Modell")} value={s.whisperModel} onChange={(e)=>{s.setWhisperModel(e.target.value);s.setMeetingWhisperModel(e.target.value);s.setUploadWhisperModel(e.target.value);}}><option value="nb-large">{ui("NB-Whisper Large – kvantisert q5_0 (mindre minne)")}</option><option value="nb-large-full">{ui("NB-Whisper Large – full presisjon (standard)")}</option></select></label><br/>
       <label>{ui("Akselerasjon for talegjenkjenning") + " "}<select value={acceleration} disabled={busy} onChange={async e=>{const value=e.target.value;try{await api.nbSetAcceleration(value);setAcceleration(value);setMessage("Akselerasjonen endres når appen startes på nytt.");}catch(error){setMessage(String(error));}}}><option value="metal">{ui("Metal – Apple Silicon (standard)")}</option><option value="cpu">{ui("CPU – uten grafikkakselerasjon")}</option></select></label><br/>
-      <label>{ui("Mikrofon") + " "}<select aria-label={ui("Mikrofon")} value={s.microphoneSelectionMode === "specific" ? s.selectedMicDeviceId : "system"} onChange={(e)=>{const d=devices.find((d)=>d.deviceId===e.target.value);if(d){s.setSelectedMicDevice(d.deviceId,d.label);s.setMicrophoneSelectionMode("specific");}else{s.setMicrophoneSelectionMode("system");}}}><option value="system">{ui("Følg Mac-ens standardmikrofon")}</option>{devices.filter(d=>d.deviceId!=="default").map(d=><option key={d.deviceId} value={d.deviceId}>{d.label || "Mikrofon"}</option>)}</select></label>
+      <label>{ui("Mikrofon") + " "}<select aria-label={ui("Mikrofon")} value={s.microphoneSelectionMode === "specific" ? s.selectedMicDeviceId : "system"} onChange={(e)=>{const d=devices.find((d)=>d.deviceId===e.target.value);if(d){s.setSelectedMicDevice(d.deviceId,d.label);s.setMicrophoneSelectionMode("specific");}else{s.setMicrophoneSelectionMode("system");}}}><option value="system">{ui("Følg Mac-ens standardmikrofon")}</option>{s.microphoneSelectionMode === "specific" && !devices.some(d=>d.deviceId===s.selectedMicDeviceId) && <option value={s.selectedMicDeviceId}>{s.selectedMicDeviceLabel || "Valgt mikrofon"} – {ui("ikke tilkoblet")}</option>}{devices.filter(d=>d.deviceId!=="default").map(d=><option key={d.deviceId} value={d.deviceId}>{d.label || "Mikrofon"}</option>)}</select></label>
+      <p><label>{ui("Høyttaler for appens lyder")} <select aria-label={ui("Høyttaler for appens lyder")} value={output.deviceId} onChange={e=>{const device=outputs.find(d=>d.deviceId===e.target.value);const next={deviceId:e.target.value,label:device?.label || ""};saveAudioOutput(next.deviceId,next.label);setOutput(next);setMessage("");}}>
+        <option value="">{ui("Følg Mac-ens standardutgang")}</option>
+        {output.deviceId && !outputs.some(d=>d.deviceId===output.deviceId) && <option value={output.deviceId}>{output.label || ui("Valgt høyttaler")} – {ui("ikke tilkoblet")}</option>}
+        {outputs.filter(d=>d.deviceId!=="default" && d.deviceId!=="communications").map(d=><option key={d.deviceId} value={d.deviceId}>{d.label || ui("Høyttaler")}</option>)}
+      </select></label></p>
+      {output.deviceId && !outputs.some(d=>d.deviceId===output.deviceId) && <p role="status">{ui("Valgt høyttaler er ikke tilgjengelig. Valget beholdes. Koble den til igjen, eller velg standardutgang selv.")}</p>}
+      <button disabled={busy} onClick={async()=>{setBusy(true);try{await testAudioOutput();setMessage("Testlyden er spilt på valgt utgang. Hørte du tonen?");}catch{setMessage("Kunne ikke spille på valgt utgang. Koble til høyttaleren, oppdater listen eller velg standardutgang.");}finally{setBusy(false);}}}>{ui("Test høyttaler")}</button>{" "}
+      <button onClick={()=>void refreshDevices()}>{ui("Oppdater lydenheter")}</button>
+      <p><small>{ui("Høyttalervalget gjelder appens testlyd og dikteringslyder. Det endrer ikke Mac-ens lydruting. Valget beholdes etter omstart.")}</small></p>
       <p style={{fontSize:13}}>{ui("Begge modeller følger med appen. Full presisjon krever mer minne. Valg av mikrofon her endrer ikke Mac-ens lydruting.")}</p>
       <p><small>{ui("BlackHole er en virtuell lydinngang. Den hører bare lyd som sendes til den.")}</small></p>
       <button disabled={busy} onClick={testMic}>{ui("Test valgt mikrofon i 5 sekunder")}</button>
@@ -153,7 +170,7 @@ export default function NBControlPanel() {
         <h2>{ui(pasteStatus?.trusted && pasteStatus?.canPost && pasteStatus?.nativeAvailable ? "Automatisk innliming: klar" : "Automatisk innliming trenger Mac-tillatelse")}</h2>
         {!(pasteStatus?.trusted && pasteStatus?.canPost && pasteStatus?.nativeAvailable) && <p>{ui("Åpne Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet (Enhetskontroll og datatilgang på macOS 27). Slå på DSSA Tale og start appen på nytt. Er den allerede på, fjern den gamle oppføringen og legg til appen fra Programmer på nytt.")}</p>}
         <button onClick={()=>void refreshPasteStatus()}>{ui("Kontroller innliming")}</button>
-        <button disabled={busy||!pasteStatus?.trusted||!pasteStatus?.canPost||!pasteStatus?.nativeAvailable} onClick={async()=>{setBusy(true);setMessage("Klikk i et tomt dokument nå. Testteksten settes inn om 5 sekunder.");try{const result=await api.nbTestPaste();setMessage(result.success ? "Innlimingstesten er sendt. Kontroller teksten i dokumentet." : (result.error || "Innlimingstesten mislyktes."));}catch(error){setMessage(String(error));}finally{setBusy(false);void refreshPasteStatus();}}}>{ui("Test innliming om 5 sekunder")}</button>
+        <button disabled={busy||!pasteStatus?.trusted||!pasteStatus?.canPost||!pasteStatus?.nativeAvailable} onClick={async()=>{setBusy(true);setMessage("Åpner et eget testdokument i Tekstredigering og kontrollerer innlimingen …");try{const result=await api.nbTestPaste();setMessage(result.success ? (result.verified ? "Testteksten er bekreftet i dokumentet." : "Tastetrykket er sendt, men mottakeren lar ikke appen kontrollere teksten. Teksten er beholdt i utklippstavlen; bruk ⌘V hvis den ikke vises.") : (result.error || "Innlimingstesten mislyktes."));}catch(error){setMessage(String(error));}finally{setBusy(false);void refreshPasteStatus();}}}>{ui("Test i et tomt dokument")}</button>
       </section>
       {text && <textarea aria-label={ui("Resultat av mikrofontest")} readOnly value={text} style={{width:"100%",height:70}}/>}
     </section>}
@@ -211,13 +228,22 @@ export default function NBControlPanel() {
 }
 
 const NB_ENGLISH: Record<string,string> = {
+  "Høyttaler for appens lyder":"Speaker for app sounds",
+  "Følg Mac-ens standardutgang":"Use the Mac’s default output",
+  "Valgt høyttaler":"Selected speaker", "Høyttaler":"Speaker", "ikke tilkoblet":"disconnected",
+  "Test høyttaler":"Test speaker", "Oppdater lydenheter":"Refresh audio devices",
+  "Kunne ikke hente lydenheter. Prøv igjen.":"Could not list audio devices. Try again.",
+  "Valgt høyttaler er ikke tilgjengelig. Valget beholdes. Koble den til igjen, eller velg standardutgang selv.":"The selected speaker is unavailable. Your choice is retained. Reconnect it or select the default output.",
+  "Testlyden er spilt på valgt utgang. Hørte du tonen?":"The test tone was played on the selected output. Did you hear it?",
+  "Kunne ikke spille på valgt utgang. Koble til høyttaleren, oppdater listen eller velg standardutgang.":"Could not play on the selected output. Connect the speaker, refresh devices or select the default output.",
+  "Høyttalervalget gjelder appens testlyd og dikteringslyder. Det endrer ikke Mac-ens lydruting. Valget beholdes etter omstart.":"The speaker choice applies to test tones and dictation sounds. It does not change the Mac’s audio routing. Your choice persists across restarts.",
 "Automatisk innliming":"Automatic pasting",
 "Automatisk innliming: klar":"Automatic pasting: ready",
 "Automatisk innliming trenger Mac-tillatelse":"Automatic pasting needs Mac permission",
 "Åpne Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet (Enhetskontroll og datatilgang på macOS 27). Slå på DSSA Tale og start appen på nytt. Er den allerede på, fjern den gamle oppføringen og legg til appen fra Programmer på nytt.":"Open System Settings \u2192 Privacy & Security \u2192 Accessibility (Device Control and Data Access on macOS 27). Enable DSSA Tale and restart the app. If already enabled, remove the old entry and add the app from Applications again.",
 "Kontroller innliming":"Check pasting",
-"Test innliming om 5 sekunder":"Test pasting in 5 seconds",
-"Klikk i et tomt dokument nå. Testteksten settes inn om 5 sekunder.":"Click in an empty document now. Test text will be pasted in 5 seconds.",
+"Test i et tomt dokument":"Test pasting in 5 seconds",
+"Åpner et eget testdokument i Tekstredigering og kontrollerer innlimingen …":"Click in an empty document now. Test text will be pasted in 5 seconds.",
 "Innlimingstesten er sendt. Kontroller teksten i dokumentet.":"Paste test sent. Check the text in your document.",
 "Innlimingstesten mislyktes.":"Paste test failed.",
 

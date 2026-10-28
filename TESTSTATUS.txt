@@ -1,58 +1,25 @@
-DSSA TALE 1.9.4 — TESTSTATUS
+DSSA Tale 1.9.6 – kildegren under arbeid, 28. oktober 2026
 
-PAKKE
-Fil: DSSA-Tale-1.9.4-Apple-Silicon.dmg
-Nedlasting: https://drive.google.com/file/d/1Z9bUyCmgpWfAnj1h4x4uUJAdNLYpQSLL/view?usp=drivesdk
-Størrelse: 3613315470 byte
-SHA-256: 396d86f07ff06974bc6186b103acb5462360484f30805ae1bda26a5fae16e8ed
-Drive bekrefter riktig filnavn/størrelse og lesetilgang for alle med lenken. Fjernkontrollsum er
-ikke tilgjengelig gjennom Drive-tilkoblingen; SHA gjelder den opplastede lokalfilen.
+Se KRAV-OG-STATUS.md for avtalte funksjoner og mangler.
 
-ENDRING OG KONTROLL I 1.9.4
-Appnavn og faktisk versjonsnummer vises fast nederst i sidemenyen. Nummeret
-hentes fra den kjørende Electron-hovedprosessen, ikke fra nedlastingssiden.
-Typecheck og produksjonsrenderer bestått. Den pakkede appen og package.json har
-versjon 1.9.4; versjonsvisning og IPC-oppslag finnes i ferdig app.asar.
-Appens ad hoc-signatur: codesign --verify --deep --strict bestått.
-Selve DMG-en: hdiutil verify VALID.
-Ingen endringer i modellnedlasting, AI-/talemotorer eller innlimingskode etter 1.9.3.
+Verifisert tidligere:
+- Pakket 1.9.5-kode med faktisk main.js-nettfilter lastet hele Qwen3.5 2B-filen (1 396 198 496 byte) og bestod SHA-256-kontroll. Fire kuraterte modellruter svarte med GGUF/HTTP 206. De tre andre ble ikke fullstendig lastet i denne testen.
+- Begge NB-Whisper Large-modellene i 1.9.5-DMG hadde forventet størrelse og kontrollsum.
 
-VERIFISERTE PRØVER AV SAMME MOTORER I 1.9.3
-- Faktisk Electron-nedlasting av Qwen3.5 2B, 1 396 198 496 byte, SHA-256 riktig.
-- Qwen2.5 1.5B i eksisterende bruker-cache: SHA-256 riktig. En tidligere lokal
-  norsk oppryddingsprøve er bestått.
-- Qwen3.5 2B ryddet en kontrollert norsk prøvetekst lokalt med HTTP 200.
-- Begge NB-Whisper Large-modeller kjørt fra selve 1.9.3-DMG-en med Metal på M4.
-  Begge størrelser og SHA-256 riktige; begge ga bokmål og nynorsk (fire prøver).
-- 72 målrettede regresjonstester bestått, inkludert nedlastingskontroll,
-  innliming, NB-gjenoppretting og oversettelsesdekning.
-- Native innlimingsmodul lastet i Node og Electron, også fra ferdig pakket app.
-  Disse ABI-prøvene sendte ikke tastetrykk og beviser ikke Finder-appens TCC.
-4B/8B-hjelpemodellene har ikke fått full nedlastings- og inferensprøve.
-Hele nedlastingsflyten i det nye GUI-et er ikke sluttprøvd fra installert app.
+Kontroll av siste kildegren:
+- 39/39 målrettede tester bestått: innliming/utklippstavle, lydutgang, modellnedlastingspolicy og dokumenteksport.
+- TypeScript-typesjekk bestått. Rendererbygg bestått, med varsel om store JavaScript-chunker.
+- Dette er kildekontroller, ikke erstatning for fysisk lyd og installert end-to-end-test.
 
-GJENSTÅENDE BRUKERPRØVER
-Automatisk innliming er bygd om til appens egen prosess og har en norsk
-femsekunderstest. Synlig tekst i et annet program fra installert 1.9.4 gjenstår
-etter korrekt Mac-tillatelse. Ikke merk dette som sluttverifisert.
-Hele fysisk hurtigtast → diktering → innliming er heller ikke sluttprøvd.
-Ekte Teams-møter, lang møtedrift, begge møtemoduser og ren mottaker-Mac gjenstår.
-Talerskille er ikke kvalitetsgodkjent: en prøve med fire stemmer ga tre ID-er.
-BlackHole 2ch ga norsk tekst i en faktisk mikrofontest i 1.9.2. Brukerens
-høyttalerproblem er uavklart. Lydruting er ikke endret.
-Historisk full upstream-suite: 3340 totalt, 3142 pass, 12 feil, 185 skip, 1 TODO.
-Den er ikke kjørt på nytt og er ikke helgrønn. Se 1.9.3-historikken i Git.
+Nåværende kildeendringer:
+- Native innsetting i valgt prosess, støtte for valgte tekstfelt, kontroll av resultat når mulig og beholdt utklippstavle ved feil/usikkerhet.
+- Ny test åpner et eget tomt dokument i Tekstredigering.
+- Høyttalervalg og testtone med app-lokal lagring. Ingen global lydruting endret.
+- Visuelle endringer i Hjem og førstegangsoppsett.
 
-PLATTFORM, SIGNERING OG DATA
-Apple Silicon arm64, teknisk minimum macOS 26.0. Faktisk M4/24 GB/macOS 27.0.1.
-Ingen Intel-pakke eller separat macOS 26-/annen Mac-verifisering.
-0 tilgjengelige Developer ID-identiteter ved siste kontroll; notarisation mangler.
-Gatekeeper kan stoppe nedlasting. Nytt usignert bygg kan kreve ny lokal app- og
-Tilgjengelighet-godkjenning. Se INSTALLASJON.md. Ingen global sikkerhet omgås.
-Begge NB Large-modeller følger med. Full presisjon og Bokmål er standard for nye
-brukere; Nynorsk og q5_0 kan velges. Eksisterende profil beholdes ved app-erstatning.
-Automatisk opprydding er av som standard. Ingen konto/API-nøkkel/abonnement.
-Ingen automatisk appoppdatering. Ingen GitHub Release publisert.
-Brukerprofil: ~/Library/Application Support/OpenWhispr-NB
-Windows-repoet er separat og uendret. Finder-/synkmapper er ikke egne sky-API-er.
-App MIT, NB-vekter Apache-2.0, eget FFmpeg LGPL-2.1+. Notiser/kilder følger appen.
+Runtime-observasjon:
+- En tidligere 1.9.6-mellomversjon startet fra /Applications og bevarte innstillinger og historikk.
+- Tilgjengelighet ble lagt inn på nytt. Den gamle testmåten fikk ikke faktisk eksternt vindusfokus under fjernstyringen, og viste riktig feil om manglende eksternt tekstfelt. Dette er ikke en bestått innlimingstest.
+- En ny app med automatisk testdokument ble bygd, men den siste høyttalerendringen kom etter dette bygget. Ingen påstand om ferdig sluttpakke.
+
+Gjenstår: full installasjon og faktisk innliming, fysisk lyd, møte-/kontorintegrasjoner, samtaledokument, eksportflyt, signering/notarisering og offentlig sluttpakke.

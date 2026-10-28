@@ -119,7 +119,10 @@ function downloadAttempt(url, tempPath, options) {
       signal.onAbort = onAbort;
     }
 
-    request = net.request({ url, method: "GET" });
+    const modelSession = require("./nbModelDownloadSession").getModelDownloadSession(url);
+    request = net.request({ url, method: "GET", ...(modelSession ? {
+      session: modelSession, credentials: "omit", useSessionCookies: false,
+    } : {}) });
     for (const [name, value] of Object.entries(headers)) {
       request.setHeader(name, value);
     }

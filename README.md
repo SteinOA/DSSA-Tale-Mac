@@ -1,48 +1,34 @@
 # DSSA Tale for Mac
 
-DSSA Tale gjør norsk tale og lydfiler om til tekst lokalt på Mac-en med **NB-Whisper Large fra Nasjonalbiblioteket**. Du trenger ingen konto, API-nøkkel eller abonnement for transkribering.
+Lokal norsk tale til tekst for Apple Silicon, med NB-Whisper Large fra Nasjonalbiblioteket. Uavhengig tilpasning av OpenWhispr.
 
-> **Testversjon – signert utgave er planlagt.**
-> Versjon **1.9.4 er tilgjengelig**. Appnavn og faktisk versjonsnummer vises fast nederst i sidemenyen. Modellnedlasting har fremdriftsvisning og filkontroll. Automatisk innliming er bygd om og har en norsk testknapp; den endelige prøven fra installert app med Mac-tillatelse gjenstår. Apple Developer ID-signering og notarisation mangler. Nedlasting uten konto betyr ikke at Gatekeeper godkjenner appen. Ingen dato for signert utgave er bekreftet.
+> **Utviklingsstatus: 1.9.6 er under arbeid.** Kildeendringene er tilgjengelige på denne grenen. Den er ikke en ferdig sluttverifisert installasjonsutgave. Innliming, lydvalg og møte-/kontorintegrasjoner må ikke tolkes som ferdig testet bare fordi knapper eller innstillinger finnes.
+
+## Hva som inngår
+
+- Bokmål som standard, med valg av nynorsk og lagrede språkinnstillinger.
+- NB-Whisper Large i full presisjon (standard) og q5_0. Modellene pakkes med Mac-utgaven; de store binærfilene ligger ikke i Git.
+- Lokal transkribering, Metal/CPU, ingen nødvendig konto eller betalt plan.
+- Valgfri lokal tekstopprydding, av som standard.
+- Synlig sidemeny, Hjem-knapp og visuell retning fra det godkjente Canva-designet.
+- Mikrofonvalg, app-lokalt høyttalervalg, testtone og lagring av enhetsvalg.
+
+## Pågående rettelser
+
+1. Modellnedlasting: egen begrenset sesjon for de fire valgte modellfilene; resten av appens nettfilter beholdes. Full Qwen3.5 2B-nedlasting og kontrollsum er testet med pakket 1.9.5-kode og det faktiske nettfilteret.
+2. Innliming: prosessrettet innsetting, kontroll av mottakertekst når tilgjengelig, og bevart utklippstavle ved usikkert resultat. Ny test åpner et eget dokument i Tekstredigering. Endelig test fra sluttpakken gjenstår.
+3. Utseende: ny Hjem-visning og et kortere, sammenhengende førstegangsoppsett.
+
+[Full krav- og statusoversikt](KRAV-OG-STATUS.md) · [Teststatus](TESTSTATUS.txt) · [Byggenotater](BUILD-NOTES.txt)
 
 ## Nedlasting
 
-**[⬇ Last ned DSSA Tale 1.9.4 for Apple Silicon](https://drive.google.com/file/d/1Z9bUyCmgpWfAnj1h4x4uUJAdNLYpQSLL/view?usp=drivesdk)** — ca. 3,6 GB.
+Det er foreløpig ingen publisert, sluttverifisert 1.9.6-pakke. Tidligere usignerte testpakker finnes i [den avtalte Drive-mappen](https://drive.google.com/drive/folders/1V9J05FTCdjoR99HIYa_fC-wkxrPEnKVd). **1.9.4 har kjent feil med nedlasting av AI-hjelpemodeller.** Ingen GitHub-release publiseres i denne arbeidsrunden.
 
-Filen heter `DSSA-Tale-1.9.4-Apple-Silicon.dmg`. Alle med lenken kan laste ned uten GitHub-konto eller Google-innlogging. Google kan be om bekreftelse fordi filen er for stor til viruskontrollen. [Kontrollsum for 1.9.4](SHA256SUMS.txt).
+Pakkene mangler Apple Developer ID-signering og notarisation. Nedlasting uten innlogging betyr ikke at Gatekeeper godkjenner appen. Intel-støtte er ikke verifisert.
 
-Tidligere pakker beholdes i [Drive-mappen](https://drive.google.com/drive/folders/1V9J05FTCdjoR99HIYa_fC-wkxrPEnKVd). Velg **1.9.4** for den synlige versjonsvisningen.
+## Utgangspunkt og lisenser
 
-[Enkel installasjon og oppdatering](INSTALLASJON.md) · [Endringer i 1.9.4](RELEASE-NOTES-1.9.4.md) · [Teststatus](TESTSTATUS.txt) · [Windows-versjonen](https://github.com/SteinOA/openwhispr-nb-whisper)
+Koden bygger fortsatt på OpenWhispr v1.9.2. [OpenWhispr v1.10.4](https://github.com/OpenWhispr/openwhispr/releases/tag/v1.10.4) er hentet og sammenlignet; denne grenen er **ikke** allerede migrert til 1.10.4. [Windows-oppsettet](https://github.com/SteinOA/openwhispr-nb-whisper) er separat og endres ikke.
 
-## Dette følger med
-
-- Begge NB-Whisper **Large**-modellene: full presisjon som standard, og kvantisert q5_0 som bruker mindre minne. Ingen manuell modellinstallasjon for disse to.
-- Bokmål som standard og Nynorsk som alternativ. Språkvalget beholdes etter omstart.
-- Norske menyer med engelsk som alternativ, lyst/mørkt utseende og aksentfarger.
-- Mikrofonvalg, hurtigtaster, ordliste og tekstsnutter.
-- Import av lydfiler og eksport til Word, PDF eller ren tekst. Talernavn og tidsstempler er valgfrie.
-- Valgfri lokal språkmodell for tekstopprydding og notatformatering. Disse lastes ned separat og krever nett ved nedlasting. Opprydding er av som standard.
-- Manuell appoppdatering med separat datamappe. Ingen automatiske oppdateringer som erstatter NB-tilpasningen.
-
-Talegjenkjenningen skjer lokalt. Filer du selv lagrer i iCloud Drive, OneDrive eller Google Drive, kan synkroniseres av tjenesten. Dette er mapper i Finder, ikke direkte sky-API-integrasjoner. Apple Taleopptak støttes gjennom eksporterte lydfiler; appen leser ikke hele Taleopptak-biblioteket direkte.
-
-Teams-møter, fysisk hurtigtast med automatisk innliming og lyd fra brukerens PC/Mac er ikke ferdig verifisert. Prøv egne opptak før du bruker appen til viktige møter.
-
-## Mac-støtte
-
-| Område | Status |
-|---|---|
-| Prosessor | Apple Silicon, arm64. Ingen Intel-utgave. |
-| Teknisk minstekrav | macOS 26.0 på grunn av medfølgende kjøremotorer. |
-| Testmaskin | Apple M4, 24 GB RAM, macOS 27.0.1. |
-| macOS 26 og andre Mac-er | Ikke installasjonstestet på egne maskiner. |
-| Akselerasjon | Apple Metal testet med begge NB-modellene fra 1.9.3-DMG. |
-
-## Kilde og lisenser
-
-Tilpasningen bygger på [OpenWhispr v1.9.2](https://github.com/OpenWhispr/openwhispr) og [SteinOAs NB-Whisper-oppsett](https://github.com/SteinOA/openwhispr-nb-whisper). Mac-utgavens versjonsnummer 1.9.3 er eget; Windows-oppsettet beholdes separat.
-
-Appen og tilpasningene bruker MIT-lisens. [NB-Whisper-modellene](https://huggingface.co/NbAiLab/nb-whisper-large) bruker Apache-2.0. Medfølgende FFmpeg er et eget LGPL-2.1+-bygg uten GPL/nonfree-komponenter. Påkrevde lisensopplysninger, attribusjoner og relevante kildearkiver følger i `Contents/Resources/legal` og kildeleveransen. Se [bygge- og lisensnotater](BUILD-NOTES.txt).
-
-DSSA Tale er ikke utgitt eller godkjent av OpenWhispr eller Nasjonalbiblioteket. Modellvekter og ferdige binærfiler ligger ikke i Git-repoet. Upstreams arbeidsflyter er bevart under `.github/upstream-workflows-disabled` og kjører ikke automatisk her.
+Se LICENSE og resources/legal for lisensopplysninger. Modellkilder og kontroller skal bevares i bygge- og leveransedokumentasjonen.

@@ -1657,11 +1657,16 @@ class IPCHandlers {
         if (!status.trusted || !status.canPost) {
           return { success: false, error: "Gi DSSA Tale tilgang til Tilgjengelighet i Systeminnstillinger først." };
         }
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-        await this.clipboardManager.pasteText("Dette er en innlimingstest fra DSSA Tale. Æ, ø og å. ", {
+        const testFolder = path.join(app.getPath("userData"), "paste-tests");
+        await fs.promises.mkdir(testFolder, { recursive: true });
+        const testFile = path.join(testFolder, `DSSA-innlimingstest-${Date.now()}.txt`);
+        await fs.promises.writeFile(testFile, "", { flag: "wx" });
+        require("./nbNativePaste").openTestDocument(testFile);
+        await new Promise((resolve) => setTimeout(resolve, 1800));
+        const result = await this.clipboardManager.pasteText("Dette er en innlimingstest fra DSSA Tale. Æ, ø og å. ", {
           allowClipboardFallback: false, restoreClipboard: true,
         });
-        return { success: true };
+        return { success: true, verified: result.verification === "verified" };
       } catch (error) {
         return { success: false, error: error.message };
       }

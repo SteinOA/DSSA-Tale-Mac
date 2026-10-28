@@ -43,3 +43,5 @@ tillatelse som appen; den overstyrer ikke Gatekeeper eller manglende TCC-tillit.
 Dokumentasjon: https://nodejs.org/docs/latest/api/n-api.html og
 https://developer.apple.com/documentation/applicationservices/1460720-axisprocesstrusted
 Den medfølgende Node-headerlisensen ligger i resources/legal.
+
+1.9.6 kildearbeid: native innliming, automatisk testdokument, Canva-uttrykk og app-lokalt høyttalervalg. Siste samlede sluttpakke og end-to-end-verifisering gjenstår. Upstream v1.10.4 er sammenlignet, ikke migrert.

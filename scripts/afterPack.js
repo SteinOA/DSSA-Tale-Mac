@@ -282,4 +282,13 @@ exports.default = async function (context) {
   verifyMeetingAecHelper(context);
   verifyUnpackedBinaries(context);
   registerMacResourceBinariesForSigning(context);
+  if (context.electronPlatformName === "darwin") {
+    // Finder/iCloud may attach these to copied bundles. They invalidate signing;
+    // strip only this packaging metadata from the generated app, never quarantine
+    // or security attributes and never source files or an installed application.
+    const generatedApp = path.dirname(resolveResourcesDir(context));
+    for (const attribute of ["com.apple.FinderInfo", "com.apple.ResourceFork"]) {
+      execFileSync("/usr/bin/xattr", ["-dr", attribute, path.dirname(generatedApp)]);
+    }
+  }
 };

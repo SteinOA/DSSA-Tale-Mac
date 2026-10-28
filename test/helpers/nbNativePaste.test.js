@@ -5,12 +5,12 @@ const file = require.resolve("../../src/helpers/clipboard");
 const originalLoad = Module._load;
 const originalExitListeners = new Set(process.listeners("exit"));
 
-function setup({ trusted = true, failure = null } = {}) {
+function setup({ trusted = true, failure = null, verification = "verified" } = {}) {
   const state = { trusted, failure, text: "Previous clipboard", posted: [], spawns: 0 };
   const native = { paste(pid) {
     if (state.failure) throw Object.assign(new Error(state.failure), { code: state.failure });
     state.posted.push(pid); return true;
-  } };
+  }, verify() { return verification; } };
   Module._load = function(request, parent, isMain) {
     if (request === "electron") return {
       app: { getName: () => "DSSA Tale" },
@@ -67,4 +67,19 @@ test("clipboard restore is scheduled only after native paste accepted the shortc
   };
   const result = await manager.pasteMacOS({text:"Previous clipboard"});
   await result.restoreComplete; assert.equal(restored, true);
+});
+test("unchanged receiving field reports failure and keeps text without a duplicate retry", async () => {
+  const {state, manager} = setup({verification:"unchanged"});
+  manager._saveClipboard = () => ({text:"Old clipboard"});
+  manager._restoreClipboardAfterDelay = () => { throw new Error("Must retain dictated text"); };
+  await assert.rejects(manager._pasteText("Behold teksten", {restoreClipboard:true}), {code:"PASTE_NOT_CONFIRMED"});
+  assert.equal(state.text, "Behold teksten");
+  assert.equal(state.posted.length, 1);
+});
+test("a receiver without readable Accessibility text retains the new clipboard", async () => {
+  const {manager} = setup({verification:"unverified"});
+  manager._restoreClipboardAfterDelay = () => { throw new Error("Must retain dictated text"); };
+  const result = await manager.pasteMacOS({text:"Old clipboard"});
+  assert.equal(result.verification, "unverified");
+  await result.restoreComplete;
 });

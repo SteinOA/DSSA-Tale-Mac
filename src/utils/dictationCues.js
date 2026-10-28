@@ -1,5 +1,6 @@
 import logger from "./logger";
 import { getSettings } from "../stores/settingsStore";
+import { applyAudioOutput } from "./nbAudioOutput";
 
 const START_NOTES = [523.25, 659.25];
 const STOP_NOTES = [587.33, 440];
@@ -34,6 +35,8 @@ export const resumeContextIfNeeded = async () => {
     if (!context) {
       return null;
     }
+
+    await applyAudioOutput(context);
 
     if (context.state === "suspended") {
       await context.resume();

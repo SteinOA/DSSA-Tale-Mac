@@ -25,4 +25,12 @@ function paste(expectedPid = 0) {
   if (!native) throw Object.assign(new Error("Innlimingskomponenten mangler. Installer DSSA Tale på nytt fra DMG-filen."), {code:"NATIVE_PASTE_UNAVAILABLE"});
   return native.paste(expectedPid || 0);
 }
-module.exports = { status, paste };
+function verify() {
+  return load()?.verify?.() || "unverified";
+}
+function openTestDocument(file) {
+  const native = load();
+  if (!native?.openTestDocument) throw new Error("Testkomponenten mangler.");
+  return native.openTestDocument(file);
+}
+module.exports = { status, paste, verify, openTestDocument };
