@@ -7,8 +7,9 @@ begge NB Large-modellene og begge norske språkvalg. Dette betyr ikke at
 alle avtalte funksjoner er sluttgodkjent. Ferdig 1.9.7-DMG er kontrollert.
 Appen er kopiert fra den endelige DMG-en til Programmer og startet derfra.
 Installert 1.9.7 viser riktig versjon og bevarer brukerens valg. Resultater
-fra 1.9.6 er særskilt merket. Ny innlimingstillatelse og flere praktiske
-prøver gjenstår; appen skal fortsatt omtales som testversjon.
+fra 1.9.6 er særskilt merket. Fornyet innlimingstillatelse er nå gitt og
+innliming/mikrofon er prøvd på nytt. Fysisk hurtigtast og flere møteprøver
+gjenstår; appen skal fortsatt omtales som testversjon.
 
 AUTOMATISKE TESTER – KILDEGREN 1.9.7
 Full npm-testkjøring, inkludert .test.ts:
@@ -47,6 +48,11 @@ DOKUMENTER OG INNLIMING
   med lesbar norsk tekst uten synlig klipping. TXT er kontrollert som UTF-8.
 - Automatisk innliming av testtekst med æøå i Tekstredigering er bekreftet
   i installert 1.9.6, både i appens test og i mottakerdokumentet.
+- Etter brukerens lokale godkjenning ble DSSA Tale lagt til på nytt i
+  Enhetskontroll og datatilgang, slått på og startet på nytt. Installert
+  1.9.7 satte testteksten med æøå inn automatisk i et nytt dokument i
+  Tekstredigering. Appens tilbakekontroll og mottakerens tekstfelt bekreftet
+  samme tekst. Bestått (testmarkør 1793189422832).
 - Dette er ikke en full bekreftelse av tale -> fysisk hurtigtast -> aktiv
   markør i alle programmer. Den fysiske hurtigtastprøven venter brukersvar.
 
@@ -110,13 +116,16 @@ med to personer og bedre samordning av sammenhengende tekst og talertider
 må testes før denne funksjonen godkjennes for vanlige møter.
 
 MIKROFONPRØVE I 1.9.7
-Kontrollert lyd ble sendt eksplisitt til BlackHole 2ch via en separat
-AudioQueue uten endring av systemstandarder. Avspillingen fullførte.
-Appens femsekunders mikrofonprøve ble stående på opptaksmeldingen mens
-macOS-godkjenning var uavklart; resultatet er ikke bestått. Appen ble
-avsluttet for å avbryte den ventende prøven, slik at en eventuell senere
-godkjenning ikke starter denne testen uventet. Årsaken er ikke endelig
-fastslått, og faktisk mikrofonopptak må prøves igjen etter lokal godkjenning.
+Etter den lokale Mac-godkjenningen ble prøven gjentatt. Kontrollert norsk
+lyd ble sendt eksplisitt til BlackHole 2ch via en separat AudioQueue uten
+endring av systemstandarder. Appens femsekunders mikrofonopptak fullførte
+og transkriberte den mottatte delen: «Og folk fra alle andre regioner.»
+UI viste «Ferdig. Ingen lyd er lastet opp.» Dette bekrefter innkommende
+lyd fra valgt BlackHole-enhet gjennom appens opptak og lokale motor.
+Det bekrefter ikke at hele brukerens eksterne PC-/mikrofonkjede er riktig
+rutet, eller at Mac mini-høyttaleren er fysisk hørbar. En tidligere prøve
+som ble stående før Mac-godkjenningen, er erstattet av denne vellykkede
+prøven; det er ikke slått fast at tillatelsen alene var årsaken til ventingen.
 
 RETTELSER I 1.9.7
 Arbeidet omfatter gammel samtale-TXT når transkripsjon tømmes, import med
@@ -155,12 +164,12 @@ Homebrew-/byggefolder-dylib. Den detaljerte dylib-gjennomgangen gjaldt
 mottaker-Mac er fortsatt ikke prøvd.
 
 TILLATELSER OG LAGRING
-Den nye 1.9.7-signaturen trenger fornyet Tilgjengelighet-tillatelse. En
-gammel oppføring var slått på, men var ikke gyldig for den nye signaturen.
-Ved forsøk på å fjerne gammel oppføring viste macOS lokal passorddialog.
-Arbeidet venter brukerens egen handling; ingen passord er lest. Derfor er
-innliming i ny 1.9.7 ikke merket bestått på grunnlag av 1.9.6-testen.
-Kalender-/systemlydspørsmål venter svar; ingen bredere tilgang er gitt.
+Brukeren godkjente de nødvendige lokale Apple-autentiseringsvinduene.
+DSSA Tale fra /Applications ble lagt til på nytt; bryteren står på.
+Etter appomstart bekreftet installert 1.9.7 gyldig innlimingstillatelse,
+og faktisk automatisk innliming bestod. Ingen passord ble lest eller
+skrevet av agenten. Kalender-/systemlydspørsmål venter fortsatt svar;
+ingen bredere tilgang er gitt på grunnlag av passordgodkjenningen alene.
 
 Filvelgeren viste: «Kan ikke fullføre synkronisering av iCloud Drive.
 Reparer rettigheter ...». Synkronisering eller sikkerhetskopi i Apples
@@ -180,8 +189,9 @@ byggehjelper for Opus finnes i Mac-kilderepoet. Gjennomgangen er ikke en
 juridisk garanti. Versjonsomtalen i lisensoversikten bør holdes oppdatert.
 
 FØR HELE LEVERANSEN KAN KALLES FERDIG
-Pakkeintegritet og modellprøver er gjennomført. Fullfør nødvendig lokal
-Tilgjengelighet-godkjenning, ny innlimingsprøve, fysiske lyd-/snarveiprøver,
+Pakkeintegritet og modellprøver er gjennomført. Lokal Tilgjengelighet-
+godkjenning, innlimingsprøve og valgt BlackHole-mikrofonprøve er nå bestått.
+Fullfør fysiske lyd-/snarveiprøver,
 relevante møte-/integrasjonsprøver og kontroll på ren mottaker-Mac. Oppgi fortsatt
 uprøvde områder presist. Vanlig Gatekeeper-godkjent distribusjon krever
 Developer ID-signering, notarisation og ny kontroll av sluttpakken.
@@ -189,8 +199,8 @@ Developer ID-signering, notarisation og ny kontroll av sluttpakken.
 SAMLET VURDERING
 1.9.7 er en fungerende lokal testpakke for lydimport og transkripsjon,
 med vesentlig bedre kontroll av modellnedlasting, samtalefiler og eksport.
-Den er ikke ferdig godkjent for vanlig utrulling: ny innliming må prøves
-etter Mac-godkjenning, mikrofon-/hurtigtastkjeden og ekte møter må prøves,
+Den er ikke ferdig godkjent for vanlig utrulling: ny innliming og BlackHole-mikrofonprøve består, men fysisk hurtigtast,
+brukerens komplette lydkjede og ekte møter må fortsatt prøves,
 talerseparasjon og LLM-formatering krever manuell vurdering, og Apple-
 signering/notarisering mangler. Appens eksisterende tillatelser skal ikke
 omgås for å få en grønn rapport.

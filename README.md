@@ -2,7 +2,7 @@
 
 Lokal norsk tale til tekst for Apple Silicon med NB-Whisper Large fra Nasjonalbiblioteket. Uavhengig tilpasning av OpenWhispr.
 
-> **1.9.7 er en usignert testversjon.** Lokal lydimport og modellkjøring er prøvd. Ny innlimingstillatelse, fysiske mikrofon-/snarveiprøver og møte-/kontorintegrasjoner er ikke sluttgodkjent. Talerseparasjon har påviste svakheter og må kontrolleres manuelt.
+> **1.9.7 er en usignert testversjon.** Lokal lydimport og modellkjøring er prøvd. Fornyet innlimingstillatelse, faktisk innliming i Tekstredigering og valgt BlackHole-mikrofon er prøvd. Fysisk snarvei og møte-/kontorintegrasjoner er ikke sluttgodkjent. Talerseparasjon har påviste svakheter og må kontrolleres manuelt.
 
 ## Last ned og installer
 

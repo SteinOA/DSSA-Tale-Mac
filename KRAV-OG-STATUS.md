@@ -34,8 +34,8 @@ DSSA Tale skal være en lokal norsk Mac-app som vanlige brukere kan installere f
 
 ## Ikke godkjent som ferdig produkt
 
-- Ny 1.9.7-innlimingstillatelse trenger lokal macOS-godkjenning. Verifisert testinnliming i 1.9.6 er ikke merket som ny 1.9.7-test. Fysisk hurtigtast og tale til markør på tvers av programmer gjenstår.
-- Kontrollert BlackHole-avspilling fullførte, men mikrofonprøven i appen ble stående på opptaksmeldingen mens lokal godkjenning var uavklart. Appen ble avsluttet for å avbryte prøven. Hørbar høyttalertest og faktisk mikrofonstrøm må prøves på nytt.
+- Fornyet 1.9.7-innlimingstillatelse er godkjent lokalt, og automatisk testinnliming i Tekstredigering er bestått i 1.9.7. Fysisk hurtigtast og tale til markør på tvers av programmer gjenstår.
+- Kontrollert BlackHole-avspilling og appens faktiske femsekunders mikrofonopptak med lokal transkripsjon er nå bestått. Hørbar høyttalertest og brukerens komplette eksterne lydkjede gjenstår.
 - Taleranalyse fullførte på en kontrollert fil med to stemmer, men fant feil antall og ga dårlig oppdeling. Manuell vurdering kreves. Ingen sikker personidentifikasjon loves.
 - Ekte Teams-møte, automatisk oppdagelse, live/etterbehandling, ny kalender-/systemlydtilgang og kontorkoblinger er ikke ferdig verifisert. SharePoint-API og e-postlesing finnes ikke; Finder-synkmapper er ikke slike integrasjoner.
 - iCloud Drive viste et rettighets-/synkroniseringsvarsel. Apple-sikkerhetskopi er ikke bekreftet.
