@@ -16,6 +16,9 @@ export function importedConversation(fileName: string, text: string, parts?: Imp
       }
       return segment;
     }) : text.trim() ? [{id:"import-0",text:text.trim(),source:"system"}] : [];
+  // Some engines return usable plain text with an empty/blank segments array.
+  // Preserve that result instead of silently treating the import as empty.
+  if (!segments.length && text.trim()) segments.push({id:"import-0",text:text.trim(),source:"system"});
   return {title,segments,content:segments.map(part=>part.text).join("\n\n"),transcript:JSON.stringify(segments)};
 }
 

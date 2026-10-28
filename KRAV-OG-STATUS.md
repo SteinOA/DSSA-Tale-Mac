@@ -22,30 +22,26 @@ DSSA Tale skal være en lokal norsk Mac-app som vanlige brukere kan installere f
 - Lyd beholdes lokalt som standard; ingen automatisk opplasting. Skytjenester brukes bare etter brukerens valg.
 - Bevar Tailscale, RustDesk, Deskflow og eksisterende lydruting. Ingen kjøp eller forespørsel om hemmeligheter i chat.
 
-## Implementert i denne kildegrenen
+## Verifisert og rettet i 1.9.7
 
-- Begrenset modellnedlastingssesjon uten brukercookies, med uendret standard nettfilter.
-- Endringer i native innliming og kontroll av mottakertekst, pluss automatisk åpning av et eget testdokument.
-- Hjem-kort og velkomstside i godkjent lys/mørk visuell retning.
-- Høyttalervalg, testtone og dikteringslyd til valgt utgang; lokal lagring og tydelig manglende-enhet-status. Eksisterende mikrofonvalg bevares.
-- Samtalefil per notat med atomisk lagring og eksport til Word/PDF/TXT. Import av en bokmålslydfil med full NB-modell er prøvd gjennom notat og samtale-TXT; eksportfilene er teknisk validert. Visuell kontroll av siste eksport gjenstår.
-- 49 målrettede tester bestått. Native-modulens faktiske binære eksport kontrolleres ved bygging.
-- Installert 1.9.6 har igjen satt norsk testtekst med æøå inn automatisk i Tekstredigering, bekreftet både i appen og målprogrammet (testmarkør 1793159324615). Dette var testinnliming, ikke hele kjeden fra tale via fysisk hurtigtast.
-- Native testlyd mot Mac mini-utgangen fikk lydcallback. Brukerens bekreftelse på hørbar lyd mangler. Modellbytte ble prøvd uten heng i Nøkkelring.
+- Slutt-DMG bygget, kontrollert, installert og startet fra Programmer. Begge NB-modeller og native moduler kontrolleres mot installert app.
+- Full testkjøring: 3368 tester, 3182 bestått, 0 feil, 185 hoppet over og 1 todo. Disse erstatter ikke fysiske tester.
+- Begge NB-modeller × bokmål/nynorsk transkribert med pakket motor og Metal. I installert 1.9.7: M4A/full/bokmål og hele 85,5 sekunders MP3/q5/nynorsk importert og lagret.
+- Fire valgfrie LLM-filer SHA256-kontrollert og kjørt lokalt. 2B/4B/8B faktisk lastet ned i appen. Fremdriftsvisningens to-arguments IPC-feil rettet med regresjonstest.
+- Word/PDF/TXT kontrollert; Word og PDF rendret og visuelt vurdert.
+- Rettet foreldet samtale-TXT etter tømming, tekstimport med tom segmentliste, talernummerering, modellvalg på tvers av førstegangsoppsett og kalendertilgangens feilstatus. Automatisk upstream-oppdateringskode er erstattet av lokal stub.
+- Nynorsk/q5 og mikrofon/høyttaler beholdt etter installasjon og omstart; brukerens bokmål/full og opprinnelige LLM-/oppryddingsvalg gjenopprettet etter testen.
 
-## Ikke sluttverifisert / gjenstår
+## Ikke godkjent som ferdig produkt
 
-- Hele kjeden tale → fysisk hurtigtast → aktivt tekstfelt i vanlige apper og denne chatten. Den separate innlimingstesten i Tekstredigering er bestått, men erstatter ikke dette.
-- Fysisk hørbar test av valgt høyttaler og valgte mikrofoner, inkludert faktisk BlackHole-signal.
-- Samtaledokument under et ekte møte, visuell eksportkontroll og alle eksportvalg gjennom møteflyten.
-- Kjent begrensning: Hvis en tidligere ikke-tom transkripsjon tømmes helt, kan den gamle samtale-TXT-filen bli liggende med tidligere tekst. Sletting av selve notatet har egen filopprydding.
-- q5_0 og Nynorsk er observert i live app, men kontrollert nynorsk-lydprøve i siste versjon er ikke fullført.
-- End-to-end Teams-opptak, automatisk oppdagelse, live/etterbehandling og talerfordeling.
-- Kalender/SharePoint-koblinger med faktisk innhenting og lagring. En knapp eller lokal synkronisert mappe er ikke bevis på en full integrasjon.
-- Ny DMG pakkes. Verifisering av den endelige DMG-en, installeringsrunde, omstartskontroll og oppdatert offentlig nedlasting gjenstår.
-- Apple Developer ID og notarisation mangler. Endret usignert bygg kan kreve ny appspesifikk Mac-tillatelse. Ingen Intel-pakke er testet.
-- Migrering fra upstream v1.9.2 til v1.10.4 er undersøkt, men ikke gjennomført.
+- Ny 1.9.7-innlimingstillatelse trenger lokal macOS-godkjenning. Verifisert testinnliming i 1.9.6 er ikke merket som ny 1.9.7-test. Fysisk hurtigtast og tale til markør på tvers av programmer gjenstår.
+- Kontrollert BlackHole-avspilling fullførte, men mikrofonprøven i appen ble stående på opptaksmeldingen mens lokal godkjenning var uavklart. Appen ble avsluttet for å avbryte prøven. Hørbar høyttalertest og faktisk mikrofonstrøm må prøves på nytt.
+- Taleranalyse fullførte på en kontrollert fil med to stemmer, men fant feil antall og ga dårlig oppdeling. Manuell vurdering kreves. Ingen sikker personidentifikasjon loves.
+- Ekte Teams-møte, automatisk oppdagelse, live/etterbehandling, ny kalender-/systemlydtilgang og kontorkoblinger er ikke ferdig verifisert. SharePoint-API og e-postlesing finnes ikke; Finder-synkmapper er ikke slike integrasjoner.
+- iCloud Drive viste et rettighets-/synkroniseringsvarsel. Apple-sikkerhetskopi er ikke bekreftet.
+- Developer ID/notarisering mangler. ARM64, teknisk macOS 26+, faktisk M4/macOS 27.0.1. Intel og egen macOS 26-maskin er ikke testet. Ren mottaker-Mac gjenstår.
+- Koden bygger fortsatt på OpenWhispr 1.9.2; migrering til 1.10.4 er ikke gjennomført. Enkelte avanserte tekster er engelske.
 
-## Ferdigkriterier
+- CPU-motorprøve bestått (14,79 s for 12 s q5_0/Bokmål). Lokal assistent svarte korrekt på kontrollspørsmål. Den minste modellens notatformatering la til en uriktig opplysning i prøven; manuell faktakontroll kreves.
 
-Test DMG-installert app uavhengig av byggemappe, begge NB-modellene, bokmål/nynorsk, markørinnsetting, snarveier, lydvalg, møteopptak, import/eksport og omstart. Lever DMG, SHA-256, kort norsk installasjonstekst og ærlig testmatrise. Verifiser lisenser og publiser kun godkjente leveranser. Ingen GitHub-release ennå.
+Se [full test og vurdering](FULL-TEST-OG-VURDERING-1.9.7.txt) for bevis, avgrensninger og pakkekontroll. Ingen GitHub-release er publisert.

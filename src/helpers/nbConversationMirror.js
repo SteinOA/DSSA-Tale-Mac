@@ -21,8 +21,9 @@ function text(note, mappings = {}, options = {}) {
     let prefix = "";
     if (options.includeTimestamps && typeof s.timestamp === "number" && Number.isFinite(s.timestamp)) prefix += `[${stamp(s.timestamp)}] `;
     if (options.includeSpeakers) {
-      const number = /^speaker_(\d+)$/.exec(s.speaker || "");
-      const name = (s.speakerName && !s.speakerIsPlaceholder ? s.speakerName : null) || mappings[s.speaker] || (number ? `Taler ${Number(number[1])+1}` : speakerLabels.get(s.speaker) || (s.source === "mic" ? "Du" : "Ukjent taler"));
+      // Model IDs are opaque: speaker_7 may be the first speaker in this import.
+      // Number all unidentified IDs by occurrence, including mixed ID formats.
+      const name = (s.speakerName && !s.speakerIsPlaceholder ? s.speakerName : null) || mappings[s.speaker] || speakerLabels.get(s.speaker) || (s.source === "mic" ? "Du" : "Ukjent taler");
       prefix += String(name).replace(/[\r\n]/g," ") + ": ";
     }
     return prefix + s.text;
@@ -37,9 +38,15 @@ class ConversationMirror {
   }
   write(note, mappings = {}) {
     const target = this.file(note.id);
-    if (!note.transcript) return null;
+    if (!note.transcript) {
+      this.remove(note.id);
+      return null;
+    }
     const body = text(note,mappings,{includeTimestamps:true,includeSpeakers:true});
-    if (!JSON.parse(note.transcript).some(s=>typeof s.text === "string" && s.text.trim())) return null;
+    if (!JSON.parse(note.transcript).some(s=>typeof s.text === "string" && s.text.trim())) {
+      this.remove(note.id);
+      return null;
+    }
     fs.mkdirSync(this.root,{recursive:true,mode:0o700});
     const temporary = target + ".tmp";
     // Synchronous writes + atomic rename prevent older async snapshots winning.

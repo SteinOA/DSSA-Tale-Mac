@@ -1,6 +1,6 @@
 {
   "name": "open-whispr",
-  "version": "1.9.6",
+  "version": "1.9.7",
   "description": "A desktop dictation application using whisper.cpp for speech-to-text transcription",
   "main": "main.js",
   "private": true,
@@ -73,7 +73,7 @@
     "format": "npm run format:js",
     "format:check": "eslint . && cd src && eslint . && prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "lint": "eslint . && cd src && eslint .",
-    "test": "node --import tsx --test \"test/**/*.test.js\"",
+    "test": "node --import tsx --test \"test/**/*.test.js\" \"test/**/*.test.ts\"",
     "typecheck": "cd src && tsc --noEmit",
     "quality-check": "npm run format:check && npm run typecheck",
     "i18n:check": "node scripts/check-i18n.js",

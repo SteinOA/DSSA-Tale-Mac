@@ -1,0 +1,24 @@
+DSSA Tale 1.9.7 – testutgave for Apple Silicon
+
+Krav: Mac med Apple Silicon (M-serien), macOS 26 eller nyere. Denne utgaven er testet på Mac mini M4 med 24 GB og macOS 27.0.1. Intel er ikke støttet av denne pakken. Andre Mac-er og macOS 26 er ikke praktisk verifisert.
+
+1. Åpne DSSA-Tale-1.9.7-Apple-Silicon.dmg.
+2. Dra det blå DSSA Tale-ikonet til Applications-mappen til høyre. Applications betyr Programmer. Vent til kopieringen er ferdig. Hvis Finder spør om å erstatte en eldre DSSA Tale, avslutt den gamle appen og velg Erstatt.
+3. Åpne DSSA Tale fra Programmer, ikke fra installasjonsvinduet.
+4. Løs ut disken «DSSA Tale 1.9.7 – dra til Programmer» etter installasjon. Dette er en montert installasjonsdisk, ikke en ekstra installert app.
+
+Viktig om Apple-advarselen:
+Dette er en testutgave uten Developer ID-signering og Apple-notarisering. Apple har derfor ikke kontrollert pakken på denne måten. Vanlig oppstart uten Gatekeeper-varsel er ikke klar. Installer bare hvis du stoler på kilden. Etter et blokkert åpningsforsøk kan du selv gå til Systeminnstillinger → Personvern og sikkerhet → Åpne likevel og bekrefte lokalt. Ikke slå av Gatekeeper generelt. En ferdig signert utgave krever gyldig Developer ID, signering av appen og notarisation av pakken.
+
+Første bruk:
+Gi mikrofontillatelse. For automatisk tekstinnsetting må DSSA Tale i Programmer få tilgang under Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet (navnet kan variere med macOS). En ny usignert testutgave kan kreve at den gamle oppføringen fjernes og den nye appen legges til igjen.
+
+I Innstillinger → Tale og mikrofon velger du mikrofon og høyttaler. BlackHole krever at lyd allerede sendes til den virtuelle inngangen. Appen endrer ikke Mac-ens lydruting. Knappen «Test i et tomt dokument» kontrollerer automatisk innliming i Tekstredigering.
+
+Standard er bokmål, NB-Whisper Large i full presisjon og Metal. Nynorsk og kvantisert q5_0 kan velges. Begge talegjenkjenningsmodellene er inkludert. Ingen Terminal, Homebrew, Python, konto eller API-nøkkel trengs for lokal talegjenkjenning. Valgene lagres. Valgfrie hjelpespråkmodeller må lastes ned separat; tekstopprydding er avslått som standard ved ny installasjon.
+
+Snarvei: ⌘ + ⇧ + mellomrom. Velg opptaksmåte under Hurtigtaster: «Hold inne for å snakke» krever at tastene holdes inne, mens start/stopp-modus bruker ett trykk for start og ett for stopp. Hurtigtaster kan endres i appen. Sett markøren i tekstfeltet du vil skrive i. Ord og tekst beholdes i utklippstavlen hvis automatisk innsetting feiler.
+
+Denne utgaven har ingen automatisk upstream-oppdatering. Ved senere manuell oppdatering erstatter du bare appen i Programmer; ikke slett brukermappen med innstillinger og notater.
+
+Les FULL-TEST-OG-VURDERING-1.9.7.txt før du tar i bruk møtefunksjoner og integrasjoner. Dette er en testpakke, ikke en ferdig verifisert allfunksjonsutgave.

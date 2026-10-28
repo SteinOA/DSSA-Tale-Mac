@@ -1,3 +1,4 @@
+import { nbModelDownloadProgress } from "../utils/nbModelDownloadProgress";
 import { saveImportedConversation } from "../utils/nbImportedConversation";
 import React, { useEffect, useState, useRef } from "react";
 import { HotkeyListInput } from "./ui/HotkeyListInput";
@@ -47,7 +48,9 @@ export default function NBControlPanel() {
     catch(error){setMessage(downloadError({error:String(error)}));}
     finally{setBusy(false);setDownloadStatus(null);}
   };
-  useEffect(()=>api.onModelDownloadProgress?.((event:any)=>{
+  useEffect(()=>api.onModelDownloadProgress?.((ipcEvent:unknown,payload:unknown)=>{
+    const event=nbModelDownloadProgress(ipcEvent,payload);
+    if(!event)return;
     if(event.type==="complete"||event.type==="error"){
       setDownloadStatus((current:any)=>current?.modelId===event.modelId?null:current);
       void refreshModels();

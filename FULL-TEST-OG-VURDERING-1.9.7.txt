@@ -1,0 +1,196 @@
+DSSA TALE 1.9.7 – FULL TEST OG VURDERING
+Oppdatert 28. oktober 2026. Sluttrapport for gjennomførte tester av testpakken.
+
+STATUS
+Kildegrenens testserie består. Lokal transkribering er konkret prøvd med
+begge NB Large-modellene og begge norske språkvalg. Dette betyr ikke at
+alle avtalte funksjoner er sluttgodkjent. Ferdig 1.9.7-DMG er kontrollert.
+Appen er kopiert fra den endelige DMG-en til Programmer og startet derfra.
+Installert 1.9.7 viser riktig versjon og bevarer brukerens valg. Resultater
+fra 1.9.6 er særskilt merket. Ny innlimingstillatelse og flere praktiske
+prøver gjenstår; appen skal fortsatt omtales som testversjon.
+
+AUTOMATISKE TESTER – KILDEGREN 1.9.7
+Full npm-testkjøring, inkludert .test.ts:
+3368 tester totalt; 3182 bestått; 0 feilet; 185 hoppet over; 1 todo.
+Avbrutte tester: 0. Resultatet gjelder siste kjøring etter fremdriftsrettingen.
+De hoppede testene og todo er ikke beståtte tester. En grønn testkjøring
+beviser ikke lyd, tillatelser eller integrasjoner på en mottakers Mac.
+Bevis: work/full-audit-tests-final-1.9.7.log.
+
+BEGGE MODELLER OG NORSKE SPRÅK – PAKKET 1.9.6
+Faktisk pakket kjøremotor og modeller på Apple M4, med Metal, brukte samme
+kontrollerte norske lydprøve på omtrent 12 sekunder:
+
+Modell                         Språk       Målt tid
+NB Large q5_0                  Bokmål      2,03 s
+NB Large q5_0                  Nynorsk     2,00 s
+NB Large full presisjon        Bokmål      2,90 s
+NB Large full presisjon        Nynorsk     2,52 s
+
+Alle fire ga norsk transkripsjon. Nynorsk-resultatene inneholder blant
+annet «frå», «nordlendingar» og «regionar». Tidene gjelder denne korte
+prøven på denne maskinen, ikke en ytelsesgaranti eller generell måling
+av transkripsjonskvalitet. Bevis: work/audit-model-matrix.json og
+work/audit-model-*.log.
+
+CPU-ALTERNATIV – PAKKET 1.9.7
+q5_0/Bokmål transkriberte den samme 12-sekunders prøven uten GPU på
+14,79 sekunder. Motorloggen bekrefter --no-gpu. Dette er motorprøve, ikke
+en egen test av UI-bryteren. Sammenligningen mot Metal gjelder kun denne
+maskinen og prøven. Bevis: work/audit-model-cpu.json.
+
+DOKUMENTER OG INNLIMING
+- Norsk lydimport med full modell/Bokmål er prøvd gjennom notat og lokal
+  samtale-TXT i installert 1.9.6.
+- Word og PDF er nå også rendret og visuelt kontrollert: begge er én side,
+  med lesbar norsk tekst uten synlig klipping. TXT er kontrollert som UTF-8.
+- Automatisk innliming av testtekst med æøå i Tekstredigering er bekreftet
+  i installert 1.9.6, både i appens test og i mottakerdokumentet.
+- Dette er ikke en full bekreftelse av tale -> fysisk hurtigtast -> aktiv
+  markør i alle programmer. Den fysiske hurtigtastprøven venter brukersvar.
+
+VALGFRIE LOKALE SPRÅKMODELLER
+- Qwen 2.5 1.5B: lokal inferens i appen bestått.
+- Qwen 3.5 2B: faktisk nedlasting gjennom grensesnittet og lokal inferens
+  i appen bestått.
+- Qwen 3.5 4B: nedlasting gjennom grensesnittet og lokal oppryddingsinferens
+  bestått. Norsk tekst ble ryddet til tre setninger med tegnsetting.
+- Qwen 3 8B: nedlasting gjennom grensesnittet og lokal oppryddingsinferens
+  bestått. Appen viste omtrent 7,4 GB RSS under prøven. Dette er observert
+  prosessminne, ikke et garantert minstekrav for alle oppgaver.
+Alle fire modellenes SHA-256 er kontrollert mot modellregisteret og stemmer.
+Bevis: work/audit-llm-integrity.json.
+Dette bekrefter teknisk kjøring, ikke en bred norsk kvalitetsvurdering.
+Opprydding er valgfri. Lyd kan transkriberes uten noen av disse modellene.
+
+ASSISTENT OG NOTATFORMATERING – INSTALLERT 1.9.7
+Qwen2.5 1.5B svarte «4» på kontrollspørsmålet om to pluss to. Teknisk
+assistentflyt er dermed prøvd. Ved formatering av et kontrollert møtenotat
+beholdt modellen hovedpunktene, men la til «i klassroomen», som ikke stod
+i inngangen. Notatformatering er derfor ikke godkjent som faktabevarende
+uten menneskelig kontroll. Dette er én påvist kvalitetsfeil i én kort
+prøve, ikke en full norsk modellrangering. UI-teksten ber brukeren
+kontrollere resultatet. Automatisk opprydding på en ny installasjon er av.
+
+LYD, MØTER OG INTEGRASJONER
+- Native lydtest mot Mac mini-utgang fikk callback. Brukerens bekreftelse
+  på at tonen var hørbar mangler fortsatt.
+- Modellbytte er prøvd uten heng i Nøkkelring.
+- Ny kalender-/systemlydtilgang og fysisk hurtigtastprøve venter svar.
+- Brukerens faktiske PC/Mac-lydkjede, ekte Teams-møte, automatisk møtestart,
+  live-/ettertranskribering og talerfordeling er ikke sluttverifisert.
+- Kalender, SharePoint/OneDrive og andre kontorkoblinger er ikke erklært
+  ferdig integrert. Lokale synkroniseringsmapper er ikke API-integrasjoner.
+- Ingen global lydruting endres som del av disse testene.
+
+LYDFORMATER – PAKKET DEKODER OG GUI-IMPORT I INSTALLERT 1.9.7
+- En M4A-fil laget fra den kontrollerte WAV-prøven ble dekodet av pakket
+  FFmpeg til 12 sekunder PCM uten feil.
+- De første 12 sekundene av king.mp3, NB-modellkortets offentlige eksempel,
+  ble dekodet av pakket FFmpeg uten feil.
+- M4A er deretter importert gjennom grensesnittet: 12 sekunder, full NB
+  Large og Bokmål, med transkripsjon lagret som eget notat. Bestått.
+- Hele king.mp3 på omtrent 85,5 sekunder er importert gjennom grensesnittet
+  med q5_0 og Nynorsk. Transkripsjonen ble lagret i eget king-notat, og
+  siste fraser ble bekreftet. Bestått.
+
+TALERSEPARASJON – KONTROLLERT PRØVE I 1.9.7
+En fil med én norsk mannlig eksempelstemme, en pause og Apples engelske
+Samantha-stemme ble behandlet lokalt, transkribert og lagret som egen
+samtale med tidsstempler og talermerker. Kjeden fullførte; ingen backend-
+heng ble reprodusert. Automatisk modell fant tre talere selv om testen
+inneholdt to, og delte den norske stemmen feil. Tvunget to talere i en
+separat motortest løste ikke feilfordelingen. De korte ASR-klippene ga
+også fragmenter og upålitelig tekst. Testen er ikke en norsk flerstemmig
+kvalitetsstandard; den dokumenterer en konkret svakhet på denne prøven.
+Talerseparasjon må omtales som utprøving og kontrolleres manuelt. Den kan
+ikke brukes som sikker identifikasjon av personer. En god norsk samtale
+med to personer og bedre samordning av sammenhengende tekst og talertider
+må testes før denne funksjonen godkjennes for vanlige møter.
+
+MIKROFONPRØVE I 1.9.7
+Kontrollert lyd ble sendt eksplisitt til BlackHole 2ch via en separat
+AudioQueue uten endring av systemstandarder. Avspillingen fullførte.
+Appens femsekunders mikrofonprøve ble stående på opptaksmeldingen mens
+macOS-godkjenning var uavklart; resultatet er ikke bestått. Appen ble
+avsluttet for å avbryte den ventende prøven, slik at en eventuell senere
+godkjenning ikke starter denne testen uventet. Årsaken er ikke endelig
+fastslått, og faktisk mikrofonopptak må prøves igjen etter lokal godkjenning.
+
+RETTELSER I 1.9.7
+Arbeidet omfatter gammel samtale-TXT når transkripsjon tømmes, import med
+tekst men tom segmentliste, talermerking, modellvalg i førstegangsoppsett,
+feilstatus for kalender og lokal oppdateringsstub. En konkret feil der
+modellnedlastingens IPC-fremdrift ble sendt med to argumenter, er rettet.
+To regresjonstester mot selve preload-laget består. Sluttappen og DMG-en
+er bygget. Automatiske tester og praktiske prøver over dokumenterer ulike
+deler av endringene; ikke alle rettingene har en egen full GUI-prøve.
+
+PAKKE, MASKINSTØTTE OG LOKAL BRUK
+Apple Silicon (arm64). Teknisk minimum macOS 26.0. Faktiske tester på
+Apple M4, macOS 27.0.1. Ingen Intel-pakke eller egen macOS 26-maskin testet.
+Begge NB Large-modeller følger med; full presisjon og Bokmål er standard
+på nye installasjoner. Nynorsk, q5_0, BlackHole 2ch og Mac mini-utgang ble beholdt etter
+installasjon fra slutt-DMG og ny oppstart. Testvalgene er deretter satt
+tilbake til brukerens bokmål og full presisjon. Qwen2.5 1.5B og tidligere
+aktivert automatisk opprydding er gjenopprettet; nye installasjoner har
+fortsatt opprydding avslått. Den lagrede hold-inn-modusen er bevart.
+Transkribering er lokal uten nødvendig konto, API-nøkkel eller abonnement.
+Valgfrie språkmodeller krever nett for nedlasting. Appoppdatering er manuell.
+
+FERDIG 1.9.7-PAKKE
+Fil: DSSA-Tale-1.9.7-Apple-Silicon.dmg
+Størrelse: 3 613 314 150 byte
+SHA-256: 79f6df7238e120dd79df08d0ba26d90ecdedf5c9b344ac1d1872848ee50da47f
+hdiutil verify, skrivebeskyttet montering og codesign-integritetskontroll
+bestått. Appkode, begge native moduler og begge NB-modeller i DMG-en
+samsvarer med installert app. Bevis: work/1.9.7-package-identity.json.
+
+Den tidligere revisjonen av 1.9.6-DMG bestod også diskimage- og modellkontroll.
+Pakket appkode, native moduler og modeller var identiske med installert
+app. Gjennomgang av 71 Mach-O-filer fant ingen nødvendig ekstern
+Homebrew-/byggefolder-dylib. Den detaljerte dylib-gjennomgangen gjaldt
+1.9.6; ny pakkeidentitet for 1.9.7 er dokumentert separat over. Ren
+mottaker-Mac er fortsatt ikke prøvd.
+
+TILLATELSER OG LAGRING
+Den nye 1.9.7-signaturen trenger fornyet Tilgjengelighet-tillatelse. En
+gammel oppføring var slått på, men var ikke gyldig for den nye signaturen.
+Ved forsøk på å fjerne gammel oppføring viste macOS lokal passorddialog.
+Arbeidet venter brukerens egen handling; ingen passord er lest. Derfor er
+innliming i ny 1.9.7 ikke merket bestått på grunnlag av 1.9.6-testen.
+Kalender-/systemlydspørsmål venter svar; ingen bredere tilgang er gitt.
+
+Filvelgeren viste: «Kan ikke fullføre synkronisering av iCloud Drive.
+Reparer rettigheter ...». Synkronisering eller sikkerhetskopi i Apples
+system er dermed ikke bekreftet. Ingen rettigheter eller iCloud-innstillinger
+er endret. Lokal lagring er ikke bevis på fungerende iCloud-sikkerhetskopi.
+
+SIGNERING OG LISENSER
+Apple Developer ID og notarisation mangler. Ad hoc-signaturen på 1.9.6
+bestod integritetskontroll, men Gatekeeper avviste pakken. Ingen gyldig
+signeringsidentitet eller staplet ticket ble funnet. 1.9.7 må fortsatt
+merkes testversjon; en signert utgave er planlagt uten bekreftet dato.
+
+Medfølgende lisensmateriale er kontrollert for MIT-app/tilpasning,
+Apache-2.0 NB-modeller og LGPL-2.1+ FFmpeg samt underkomponenter.
+FFmpeg-, Opus- og Eigen-kildearkivene i 1.9.6-pakken er lesbare. Relevant
+byggehjelper for Opus finnes i Mac-kilderepoet. Gjennomgangen er ikke en
+juridisk garanti. Versjonsomtalen i lisensoversikten bør holdes oppdatert.
+
+FØR HELE LEVERANSEN KAN KALLES FERDIG
+Pakkeintegritet og modellprøver er gjennomført. Fullfør nødvendig lokal
+Tilgjengelighet-godkjenning, ny innlimingsprøve, fysiske lyd-/snarveiprøver,
+relevante møte-/integrasjonsprøver og kontroll på ren mottaker-Mac. Oppgi fortsatt
+uprøvde områder presist. Vanlig Gatekeeper-godkjent distribusjon krever
+Developer ID-signering, notarisation og ny kontroll av sluttpakken.
+
+SAMLET VURDERING
+1.9.7 er en fungerende lokal testpakke for lydimport og transkripsjon,
+med vesentlig bedre kontroll av modellnedlasting, samtalefiler og eksport.
+Den er ikke ferdig godkjent for vanlig utrulling: ny innliming må prøves
+etter Mac-godkjenning, mikrofon-/hurtigtastkjeden og ekte møter må prøves,
+talerseparasjon og LLM-formatering krever manuell vurdering, og Apple-
+signering/notarisering mangler. Appens eksisterende tillatelser skal ikke
+omgås for å få en grønn rapport.

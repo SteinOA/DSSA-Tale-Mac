@@ -10,6 +10,18 @@ test("plain import preserves words without inventing speakers or times",()=>{
  assert.equal(segment.text,"Hei, dette er bokmål.\nNeste linje.");
  assert.equal(segment.timestamp,undefined);assert.equal(segment.speaker,undefined);
 });
+test("plain transcription survives empty or blank segment metadata",async()=>{
+ for(const parts of [[],[{text:"  "}]]) {
+   const conversation=importedConversation("opptak.m4a","Bevar disse ordene.",parts);
+   assert.equal(conversation.content,"Bevar disse ordene.");
+   assert.equal(conversation.segments.length,1);
+   assert.equal(conversation.segments[0].timestamp,undefined);
+   let saved="";
+   const api={saveNote:async(_title:string,content:string)=>{saved=content;return {success:true,note:{id:12}};},updateNote:async()=>({success:true})};
+   assert.equal((await saveImportedConversation(api,"opptak.m4a","Bevar disse ordene.",parts))?.complete,true);
+   assert.equal(saved,"Bevar disse ordene.");
+ }
+});
 test("diarized import preserves real offsets and speaker IDs across serialization",()=>{
  const note=importedConversation("samtale.mp3","",[{start:12.25,end:15.5,speaker:"speaker_7",text:"Eg heiter Kari."},{start:18,end:19,speaker:"speaker_2",text:"Hei."},{start:21,speaker:"speaker_7",text:"Takk."}]);
  const segments=parseTranscriptSegments(note.transcript);
