@@ -26,6 +26,7 @@ const managedPolicy = {
 test("runtime settings use managed fallbacks without overwriting raw preferences", async (t) => {
   const browser = installBrowserGlobals(t, {
     initialStorage: {
+      nbEditionInitialized: "true",
       transcriptionMode: "providers",
       useLocalWhisper: "false",
       cloudTranscriptionMode: "byok",
@@ -96,6 +97,7 @@ test("managed transcription fallback binds known providers to their canonical en
   const customEndpoint = "https://custom.example.invalid/v1";
   installBrowserGlobals(t, {
     initialStorage: {
+      nbEditionInitialized: "true",
       transcriptionMode: "providers",
       cloudTranscriptionProvider: "custom",
       cloudTranscriptionModel: "custom-model",
@@ -154,6 +156,7 @@ test("automatic Custom fallbacks never inherit another provider's endpoint", asy
   const unrelatedEndpoint = "https://unrelated.example.invalid/v1";
   installBrowserGlobals(t, {
     initialStorage: {
+      nbEditionInitialized: "true",
       transcriptionMode: "providers",
       cloudTranscriptionProvider: "openai",
       cloudTranscriptionBaseUrl: unrelatedEndpoint,
@@ -203,6 +206,7 @@ test("automatic Custom fallbacks never inherit another provider's endpoint", asy
 test("Note Recording never inherits an unsupported self-hosted policy fallback", async (t) => {
   installBrowserGlobals(t, {
     initialStorage: {
+      nbEditionInitialized: "true",
       _providerSettingsMigrated: "1",
       uploadTranscriptionMigrated: "true",
       transcriptionMode: "self-hosted",
@@ -239,7 +243,8 @@ test("Note Recording never inherits an unsupported self-hosted policy fallback",
 
 test("a managed screen-context denial forces the effective setting off without touching the preference", async (t) => {
   const browser = installBrowserGlobals(t, {
-    initialStorage: { voiceAgentScreenContext: "true" },
+    initialStorage: {
+      nbEditionInitialized: "true", voiceAgentScreenContext: "true" },
   });
   const vite = await createRendererServer(t, {
     cachePrefix: "openwhispr-policy-screen-context-test-",
@@ -273,4 +278,25 @@ test("a managed screen-context denial forces the effective setting off without t
 
   usePolicyStore.setState({ status: "unmanaged", managed: false, policy: null });
   assert.equal(getSettings().voiceAgentScreenContext, true);
+});
+
+
+test("NB default-session policy blocks cloud requests regardless of preserved preferences", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const vm = require("node:vm");
+  const source = fs.readFileSync(path.join(__dirname,"../../main.js"),"utf8");
+  const start = source.indexOf("  session.defaultSession.webRequest.onBeforeRequest(");
+  const end = source.indexOf("  applyOpenWhisprOriginHeader",start);
+  assert(start >= 0 && end > start);
+  let filter;
+  vm.runInNewContext(source.slice(start,end), {URL, session:{defaultSession:{webRequest:{onBeforeRequest(fn){filter=fn;}}}}});
+  for(const url of ["https://api.openai.com/v1/audio/transcriptions","https://api.groq.com/openai/v1/audio/transcriptions","https://example.com/self-hosted","wss://api.openai.com/v1/realtime"]){
+    let cancelled;
+    filter({url},result=>{cancelled=result.cancel;});
+    assert.equal(cancelled,true,url);
+  }
+  let localCancelled;
+  filter({url:"http://127.0.0.1:8080/completion"},result=>{localCancelled=result.cancel;});
+  assert.equal(localCancelled,false,"local model runtime remains available");
 });

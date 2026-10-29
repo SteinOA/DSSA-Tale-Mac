@@ -9,17 +9,32 @@ export default function NBIntegrations() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   useEffect(() => {
-    void api.acalGetConnectionStatus().then((r: any) => setConnected(!!r?.connected)).catch(() => {});
+    const refresh = () => {void api.acalGetConnectionStatus().then((r: any) => setConnected(!!r?.connected)).catch(() => {});};
+    refresh();
+    window.addEventListener("focus", refresh);
+    const unsubscribe=api.onAcalConnectionChanged?.(refresh);
+    return ()=>{window.removeEventListener("focus",refresh);unsubscribe?.();};
   }, []);
   const toggleCalendar = async () => {
     setBusy(true);
     try {
       if (connected) {
-        await api.acalDisconnect(); setConnected(false);
+        const result=await api.acalDisconnect();
+        if(result?.success === false)throw new Error(result.error || tr("Kunne ikke koble fra kalenderen.","Could not disconnect the calendar."));
+        setConnected(false);
       } else {
         const result = await api.acalConnect();
-        if (result?.success === false) throw new Error(result.error || tr("Kalendertilgang ble ikke gitt.", "Calendar access was not granted."));
+        if (result?.success === false) {
+          const reasons: Record<string,string>={
+            "helper-missing":tr("Kalenderkomponenten mangler i appen. Installer appen på nytt.","The app's calendar component is missing. Reinstall the app."),
+            "unsupported":tr("Apple Kalender støttes bare på Mac.","Apple Calendar is only supported on Mac."),
+            "snapshot-failed":tr("Kalenderne kunne ikke leses. Prøv igjen.","Could not read calendars. Try again."),
+            "denied":tr("Gi DSSA Tale kalendertilgang i Systeminnstillinger → Personvern og sikkerhet → Kalendere.","Allow DSSA Tale access in System Settings → Privacy & Security → Calendars."),
+          };
+          throw new Error(result.error || reasons[result.reason] || tr("Kalendertilgang ble ikke gitt.", "Calendar access was not granted."));
+        }
         const status = await api.acalGetConnectionStatus(); setConnected(!!status?.connected);
+        if(!status?.connected){setMessage(tr("Ingen kalendere ble funnet. Legg til en kalender i Apple Kalender og prøv igjen.","No calendars were found. Add a calendar in Apple Calendar and try again."));return;}
       }
       setMessage(tr("Kalenderstatus oppdatert.", "Calendar status updated."));
     } catch (error) { setMessage(String(error)); } finally { setBusy(false); }

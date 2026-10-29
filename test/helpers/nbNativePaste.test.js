@@ -5,12 +5,12 @@ const file = require.resolve("../../src/helpers/clipboard");
 const originalLoad = Module._load;
 const originalExitListeners = new Set(process.listeners("exit"));
 
-function setup({ trusted = true, failure = null } = {}) {
+function setup({ trusted = true, failure = null, verification = "verified" } = {}) {
   const state = { trusted, failure, text: "Previous clipboard", posted: [], spawns: 0 };
   const native = { paste(pid) {
     if (state.failure) throw Object.assign(new Error(state.failure), { code: state.failure });
-    state.posted.push(pid); return true;
-  } };
+    state.posted.push(pid); return {posted:true,method:"session-command-v",targetPid:pid};
+  }, verify() { return Array.isArray(verification) ? verification.shift() || "verified" : verification; } };
   Module._load = function(request, parent, isMain) {
     if (request === "electron") return {
       app: { getName: () => "DSSA Tale" },
@@ -39,8 +39,12 @@ test.afterEach(() => {
 
 test("DSSA Tale posts through its own process, forwards captured target and avoids helpers", async () => {
   const {state, manager} = setup();
-  await manager.pasteMacOS(null, { expectedTargetPid: 4321 });
+  const result=await manager.pasteMacOS(null, { expectedTargetPid: 4321 });
   assert.deepEqual(state.posted, [4321]); assert.equal(state.spawns, 0);
+  assert.equal(result.method,"session-command-v");
+  assert.equal(result.targetPid,4321);
+  assert.equal(result.dispatched,true);
+  assert.equal(result.verification,"verified");
 });
 test("a new Accessibility grant is rechecked without waiting for the old denial cache", async () => {
   const {state, manager} = setup({trusted:false});
@@ -67,4 +71,26 @@ test("clipboard restore is scheduled only after native paste accepted the shortc
   };
   const result = await manager.pasteMacOS({text:"Previous clipboard"});
   await result.restoreComplete; assert.equal(restored, true);
+});
+test("unchanged receiving field reports failure and keeps text without a duplicate retry", async () => {
+  const {state, manager} = setup({verification:"unchanged"});
+  manager._saveClipboard = () => ({text:"Old clipboard"});
+  manager._restoreClipboardAfterDelay = () => { throw new Error("Must retain dictated text"); };
+  await assert.rejects(manager._pasteText("Behold teksten", {restoreClipboard:true}), {code:"PASTE_NOT_CONFIRMED"});
+  assert.equal(state.text, "Behold teksten");
+  assert.equal(state.posted.length, 1);
+});
+test("a receiver without readable Accessibility text retains the new clipboard", async () => {
+  const {manager} = setup({verification:"unverified"});
+  manager._restoreClipboardAfterDelay = () => { throw new Error("Must retain dictated text"); };
+  const result = await manager.pasteMacOS({text:"Old clipboard"});
+  assert.equal(result.verification, "unverified");
+  await result.restoreComplete;
+});
+
+test("a slower editor can confirm the single paste after its first unchanged AX snapshot", async () => {
+  const {state, manager} = setup({verification:["unchanged","verified"]});
+  const result = await manager.pasteMacOS(null, {expectedTargetPid:4321});
+  assert.equal(result.verification,"verified");
+  assert.deepEqual(state.posted,[4321],"Wait for the receiver without sending duplicate text");
 });

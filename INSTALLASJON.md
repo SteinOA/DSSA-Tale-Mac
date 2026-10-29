@@ -1,3 +1,5 @@
+> Arbeidsgrenen gjelder kildearbeid mot 1.9.6. Ingen ferdig sluttverifisert 1.9.6-nedlasting er publisert. Instruksjonene nedenfor gjelder tidligere testpakke. Se KRAV-OG-STATUS.md.
+
 # Installere DSSA Tale på Mac
 
 > **Testversjon – signert utgave er planlagt.**

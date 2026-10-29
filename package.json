@@ -1,6 +1,6 @@
 {
   "name": "open-whispr",
-  "version": "1.9.4",
+  "version": "1.9.10",
   "description": "A desktop dictation application using whisper.cpp for speech-to-text transcription",
   "main": "main.js",
   "private": true,
@@ -73,14 +73,15 @@
     "format": "npm run format:js",
     "format:check": "eslint . && cd src && eslint . && prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "lint": "eslint . && cd src && eslint .",
-    "test": "node --import tsx --test \"test/**/*.test.js\"",
+    "test": "node --import tsx --test \"test/**/*.test.js\" \"test/**/*.test.ts\"",
     "typecheck": "cd src && tsc --noEmit",
     "quality-check": "npm run format:check && npm run typecheck",
     "i18n:check": "node scripts/check-i18n.js",
     "preview": "cd src && vite preview",
     "clean": "node cleanup.js",
     "compile:nb-paste": "node scripts/build-macos-native-paste.js",
-    "build:mac:nb": "npm run compile:nb-paste && npm run build:renderer && electron-builder --config electron-builder.nb.json --mac --arm64 --publish never"
+    "compile:nb-audio": "node scripts/build-macos-native-audio.js",
+    "build:mac:nb": "npm run compile:nb-paste && npm run compile:nb-audio && npm run build:renderer && electron-builder --config electron-builder.nb.json --mac --arm64 --publish never"
   },
   "keywords": [
     "dictation",

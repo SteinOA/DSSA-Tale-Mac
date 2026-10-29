@@ -3649,13 +3649,34 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
 
   async safePaste(text, options = {}) {
     try {
-      await window.electronAPI.pasteText(text, options);
+      const result = await window.electronAPI.pasteText(text, options);
+      // A posted shortcut is not a confirmed insertion. Some Chromium editors
+      // do not expose their text through AX at all: keep that outcome in the
+      // log, without interrupting successful dictation with a warning card.
+      if (result?.success === true && result.dispatched === true && result.verification === "unverified") {
+        logger.debug("Paste dispatched; receiver does not expose verification", {}, "audio");
+        return true;
+      }
+      if (result?.success !== true || result.pasted === false || ["unverified", "unchanged"].includes(result.verification)) {
+        const unverified = result?.verification === "unverified" && result?.dispatched !== false;
+        this.onError?.({
+          code: unverified ? "PASTE_UNVERIFIED" : "PASTE_NOT_APPLIED",
+          title: unverified ? "Innlimingen kunne ikke bekreftes" : "Teksten må limes inn manuelt",
+          description: unverified
+            ? "Innlimingstasten er sendt, men appen kan ikke bekrefte at teksten kom inn. Kontroller tekstfeltet før du eventuelt bruker ⌘V. Teksten er beholdt i utklippstavlen."
+            : "Teksten er beholdt i utklippstavlen. Klikk i ønsket tekstfelt og bruk ⌘V.",
+          variant: "default",
+          preserveDictationPreview: true,
+        });
+        return false;
+      }
       return true;
     } catch (error) {
       const message =
         error?.message ??
         (typeof error?.toString === "function" ? error.toString() : String(error));
       this.onError?.({
+        preserveDictationPreview: true,
         title: "Automatisk innliming mislyktes",
         description: `Teksten er kopiert. Du kan lime inn med ⌘V. Kontroller «Tilgjengelighet og innliming» under Tale og mikrofon. ${message}`,
       });

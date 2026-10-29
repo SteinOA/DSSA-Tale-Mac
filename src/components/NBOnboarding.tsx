@@ -18,22 +18,22 @@ export default function NBOnboarding({ onComplete }: { onComplete: () => void })
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);
-  return <main style={{height:"100vh",overflowY:"auto",padding:24,maxWidth:650,margin:"auto",fontFamily:"system-ui",lineHeight:1.5}}>
-    <h1 style={{fontSize:28,fontWeight:700}}>Velkommen til DSSA Tale</h1>
+  return <main className="nb-app-shell nb-onboarding"><div className="nb-onboarding-inner"><header><span className="nb-brand-mark">DSSA Tale</span>
+    <h1>Velkommen til DSSA Tale</h1>
     <p>Snakk norsk – få teksten der markøren står. Talegjenkjenningen kjører på denne Mac-en. Du trenger ingen konto, nøkkel eller abonnement.</p>
-    <p>Begge NB-Whisper Large-modellene fra Nasjonalbiblioteket følger med. Ingen modellnedlasting er nødvendig.</p>
+    </header><section className="nb-setup-card"><h2>Velg hvordan du vil skrive</h2><p>Begge NB-Whisper Large-modellene følger med.</p>
     <label>Målform <select value={settings.preferredLanguage} onChange={(e) => settings.setPreferredLanguage(e.target.value)}><option value="no">Bokmål</option><option value="nn">Nynorsk</option></select></label>
-    <br/><label>Modell <select value={settings.whisperModel} onChange={(e) => settings.setWhisperModel(e.target.value)}><option value="nb-large">Kvantisert q5_0 – mindre minne</option><option value="nb-large-full">Full presisjon – standard</option></select></label>
-    <h2 style={{fontSize:20,marginTop:20}}>1. Tillat mikrofon</h2>
-    <p>Mac-en må gi appen lov til å høre mikrofonen. Velg «Tillat» når macOS spør. Du kan senere velge mikrofon, også BlackHole 2ch, i appens mikrofonvalg.</p>
+    <br/><label>Modell <select value={settings.whisperModel} onChange={(e) => {settings.setWhisperModel(e.target.value);settings.setMeetingWhisperModel(e.target.value);settings.setUploadWhisperModel(e.target.value);}}><option value="nb-large">Kvantisert q5_0 – mindre minne</option><option value="nb-large-full">Full presisjon – standard</option></select></label>
+    </section><div className="nb-permission-grid"><section className="nb-setup-card"><h2>1. Mikrofon</h2>
+    <p>Velg «Tillat» når Mac-en spør. Mikrofon, også BlackHole 2ch, kan velges senere i innstillingene.</p>
     <button onClick={async () => {const ok=await api.requestMicrophoneAccess();setMicrophone(Boolean(ok));if(!ok) await api.openMicrophoneSettings();}}> {microphone ? "✓ Mikrofon tillatt" : "Gi tilgang til mikrofon"}</button>
-    <h2 style={{fontSize:20,marginTop:20}}>2. Tillat innliming i andre apper</h2>
+    </section><section className="nb-setup-card"><h2>2. Innliming i andre apper</h2>
     <p>Åpne Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet. På nyere macOS heter valget «Enhetskontroll og datatilgang». Legg til DSSA Tale fra Programmer og slå på tilgangen. Dette lar appen lime inn teksten i tekstfeltet du bruker.</p>
-    <p>Hvis bryteren står på og appen likevel mangler tilgang: fjern bare DSSA Tale fra listen, legg til appen fra Programmer igjen og start den på nytt. En usignert testoppdatering kan kreve ny godkjenning.</p>
+    {!accessibility && <p className="nb-setup-hint">Allerede slått på? Fjern den gamle DSSA Tale-oppføringen, legg til appen fra Programmer igjen og start på nytt.</p>}
     <button onClick={() => api.openAccessibilitySettings()}>{accessibility ? "✓ Tilgjengelighet tillatt" : "Åpne Tilgjengelighet"}</button>
-    <p style={{marginTop:20}}>Trykk <strong>⌘ ⇧ mellomrom</strong> for å starte opptak. Snakk, og trykk igjen for å stoppe. Tekstopprydding og stemmeassistent er slått av. Denne utgaven oppdateres manuelt.</p>
+    </section></div><footer><p>Start og stopp med <kbd className="nb-shortcut">{settings.dictationKey || "⌘ ⇧ mellomrom"}</kbd>. Tekstopprydding er av som standard.</p>
     {error && <p role="alert">{error}</p>}
-    <button style={{marginTop:12,padding:"10px 24px",background:"#176448",color:"white",borderRadius:8}} onClick={async () => {
+    <button className="nb-primary-pill" onClick={async () => {
       const trusted=await api.checkAccessibilityTrusted();
       if(!microphone || !trusted) {setError("Gi begge tillatelsene før du fortsetter. Hvis macOS ber deg avslutte appen, åpner du den igjen fra Programmer.");return;}
       await api.updateHotkey(settings.dictationKey || "Command+Shift+Space");
@@ -44,7 +44,7 @@ export default function NBOnboarding({ onComplete }: { onComplete: () => void })
       localStorage.setItem("authenticationSkipped","true");
       localStorage.setItem("skipAuth","true");
       onComplete();
-    }}>Start diktering</button>
+    }}>Åpne DSSA Tale</button>
     <p style={{fontSize:12,marginTop:18}}>Uavhengig tilpasning av OpenWhispr 1.9.2. Ikke et offisielt produkt fra OpenWhispr eller Nasjonalbiblioteket. Lisensene ligger i appens Resources/legal-mappe.</p>
-  </main>;
+  </footer></div></main>;
 }

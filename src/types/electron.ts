@@ -1794,7 +1794,7 @@ declare global {
       onAccessibilityMissing?: (callback: () => void) => () => void;
       checkAccessibilityTrusted?: () => Promise<boolean>;
       nbPasteStatus: () => Promise<{ trusted: boolean; canPost: boolean; nativeAvailable: boolean; installed: boolean }>;
-      nbTestPaste: () => Promise<{ success: boolean; error?: string }>;
+      nbTestPaste: () => Promise<{ success: boolean; verified?: boolean; error?: string }>;
 
       // Gemini API key management
       getGeminiKey: () => Promise<string | null>;

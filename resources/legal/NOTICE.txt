@@ -1,4 +1,4 @@
-DSSA Tale 1.9.2 – uavhengig Mac-tilpasning av OpenWhispr og SteinOA sitt NB-oppsett.
+DSSA Tale 1.9.10 – uavhengig Mac-tilpasning av OpenWhispr og SteinOA sitt NB-oppsett.
 Denne utgaven er ikke utgitt eller godkjent av OpenWhispr eller Nasjonalbiblioteket.
 
 APP OG TALEGJENKJENNING
@@ -64,3 +64,5 @@ Denne oversikten erstatter ikke de originale lisensene.
 DSSA Tale 1.9.3: in-process macOS paste addon (MIT). The four vendored
 Node-API C headers are unmodified from Node.js v24.19.0. See
 node-api-headers-LICENSE.txt; headers/source are included in the source repo.
+
+DSSA Tale 1.9.7: native innliming og appspesifikk CoreAudio-avspilling er MIT-lisensierte DSSA-tilpasninger. Kilder: resources/macos-native-paste.mm og resources/macos-native-audio.mm i Mac-repoet. Se node-api-headers-LICENSE.txt for uendrede Node-API-headere. Oppdateringsmotoren er fjernet fra den lokale kjørekjeden.

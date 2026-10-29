@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { nbModelDownloadProgress } from "../utils/nbModelDownloadProgress";
+import { saveImportedConversation } from "../utils/nbImportedConversation";
+import React, { useEffect, useState, useRef } from "react";
 import { HotkeyListInput } from "./ui/HotkeyListInput";
 import ControlPanel from "./ControlPanel";
 import { useMeetingRecordingStore, stopRecording as stopMeetingRecording } from "../stores/meetingRecordingStore";
 import { useSettingsStore } from "../stores/settingsStore";
+import { getAudioOutput, saveAudioOutput, testAudioOutput } from "../utils/nbAudioOutput";
 
 export default function NBControlPanel() {
   const s = useSettingsStore();
@@ -45,7 +48,9 @@ export default function NBControlPanel() {
     catch(error){setMessage(downloadError({error:String(error)}));}
     finally{setBusy(false);setDownloadStatus(null);}
   };
-  useEffect(()=>api.onModelDownloadProgress?.((event:any)=>{
+  useEffect(()=>api.onModelDownloadProgress?.((ipcEvent:unknown,payload:unknown)=>{
+    const event=nbModelDownloadProgress(ipcEvent,payload);
+    if(!event)return;
     if(event.type==="complete"||event.type==="error"){
       setDownloadStatus((current:any)=>current?.modelId===event.modelId?null:current);
       void refreshModels();
@@ -72,6 +77,18 @@ export default function NBControlPanel() {
   };
   useEffect(()=>{document.documentElement.style.setProperty("--nb-accent",accent);localStorage.setItem("nbAccent",accent);},[accent]);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [outputs, setOutputs] = useState<MediaDeviceInfo[]>([]);
+  const [output, setOutput] = useState(getAudioOutput);
+  const refreshDevices = async () => {
+    try {
+      const all = await navigator.mediaDevices.enumerateDevices();
+      setDevices(all.filter(d=>d.kind === "audioinput"));
+      if (api.nbAudioOutputs) {
+        const nativeOutputs = await api.nbAudioOutputs();
+        setOutputs(nativeOutputs.map((d:any)=>({deviceId:d.uid,label:d.label,kind:"audiooutput"})));
+      } else setOutputs(all.filter(d=>d.kind === "audiooutput"));
+    } catch { setMessage("Kunne ikke hente lydenheter. Prøv igjen."); }
+  };
   const [message, setMessage] = useState("");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -89,13 +106,11 @@ export default function NBControlPanel() {
     if(!localStorage.getItem("nbUiLanguageInitialized")){s.setUiLanguage("nb");localStorage.setItem("nbUiLanguageInitialized","true");}
     void refreshPasteStatus();
     void api.nbGetPreferences().then(setPreferences);
-    const refreshMemory=()=>{void api.nbMemory().then(setMemory);};refreshMemory();const memoryTimer=setInterval(refreshMemory,5000);
+    const refreshMemory=()=>{void api.nbMemory().then(setMemory).catch(()=>setMemory(null));};refreshMemory();const memoryTimer=setInterval(refreshMemory,5000);
     void api.nbLocalProfile().then(setProfile);
     void api.nbGetAcceleration().then(setAcceleration);
     void refreshModels();
-    const refresh = async () => {
-      setDevices((await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audioinput"));
-    };
+    const refresh = refreshDevices;
     void refresh();
     navigator.mediaDevices.addEventListener("devicechange", refresh);
     const openNBSettings=()=>openNBPanel();window.addEventListener("nb-open-settings",openNBSettings);
@@ -104,7 +119,8 @@ export default function NBControlPanel() {
     window.addEventListener("focus", onFocus);
     return () => {window.removeEventListener("nb-open-settings",openNBSettings);clearInterval(memoryTimer);meetingPending?.();navigator.mediaDevices.removeEventListener("devicechange", refresh);window.removeEventListener("focus", onFocus);};
   }, []);
-  const transcribe = async (buffer: ArrayBuffer) => {
+  const importBusy = useRef(false);
+  const transcribe = async (buffer: ArrayBuffer, importedFileName?: string) => {
     setBusy(true); setMessage("Transkriberer lokalt …");
     try {
       const result = await api.transcribeLocalWhisper(buffer, {model:s.whisperModel,language:s.preferredLanguage});
@@ -112,7 +128,11 @@ export default function NBControlPanel() {
         if(result.message === "No audio detected" || result.error === "No audio detected") {setMessage("Ingen tale ble registrert. Kontroller valgt mikrofon og at den mottar lyd.");return;}
         throw new Error(result.error || result.message || "Talegjenkjenningen mislyktes.");
       }
-      setText(result.text || ""); setMessage(result.text?.trim() ? "Ferdig. Ingen lyd er lastet opp." : "Ingen tale ble funnet.");
+      setText(result.text || "");
+      if(importedFileName && result.text?.trim()){
+        const saved=await saveImportedConversation(api,importedFileName,result.text);
+        setMessage(saved?.complete ? `Samtalen «${saved.title}» er lagret under Notater.` : "Teksten er lagret under Notater, men taler-/tidsdata kunne ikke lagres. Originalteksten er beholdt.");
+      }else setMessage(result.text?.trim() ? "Ferdig. Ingen lyd er lastet opp." : "Ingen tale ble funnet.");
     } catch(error) {setMessage(String(error));} finally {setBusy(false);}
   };
   const testMic = async () => {
@@ -144,7 +164,16 @@ export default function NBControlPanel() {
       <label>{ui("Målform") + " "}<select aria-label={ui("Målform")} value={s.preferredLanguage} onChange={(e)=>s.setPreferredLanguage(e.target.value)}><option value="no">{ui("Bokmål")}</option><option value="nn">{ui("Nynorsk")}</option></select></label><br/>
       <label>{ui("Modell") + " "}<select aria-label={ui("Modell")} value={s.whisperModel} onChange={(e)=>{s.setWhisperModel(e.target.value);s.setMeetingWhisperModel(e.target.value);s.setUploadWhisperModel(e.target.value);}}><option value="nb-large">{ui("NB-Whisper Large – kvantisert q5_0 (mindre minne)")}</option><option value="nb-large-full">{ui("NB-Whisper Large – full presisjon (standard)")}</option></select></label><br/>
       <label>{ui("Akselerasjon for talegjenkjenning") + " "}<select value={acceleration} disabled={busy} onChange={async e=>{const value=e.target.value;try{await api.nbSetAcceleration(value);setAcceleration(value);setMessage("Akselerasjonen endres når appen startes på nytt.");}catch(error){setMessage(String(error));}}}><option value="metal">{ui("Metal – Apple Silicon (standard)")}</option><option value="cpu">{ui("CPU – uten grafikkakselerasjon")}</option></select></label><br/>
-      <label>{ui("Mikrofon") + " "}<select aria-label={ui("Mikrofon")} value={s.microphoneSelectionMode === "specific" ? s.selectedMicDeviceId : "system"} onChange={(e)=>{const d=devices.find((d)=>d.deviceId===e.target.value);if(d){s.setSelectedMicDevice(d.deviceId,d.label);s.setMicrophoneSelectionMode("specific");}else{s.setMicrophoneSelectionMode("system");}}}><option value="system">{ui("Følg Mac-ens standardmikrofon")}</option>{devices.filter(d=>d.deviceId!=="default").map(d=><option key={d.deviceId} value={d.deviceId}>{d.label || "Mikrofon"}</option>)}</select></label>
+      <label>{ui("Mikrofon") + " "}<select aria-label={ui("Mikrofon")} value={s.microphoneSelectionMode === "specific" ? s.selectedMicDeviceId : "system"} onChange={(e)=>{const d=devices.find((d)=>d.deviceId===e.target.value);if(d){s.setSelectedMicDevice(d.deviceId,d.label);s.setMicrophoneSelectionMode("specific");}else{s.setMicrophoneSelectionMode("system");}}}><option value="system">{ui("Følg Mac-ens standardmikrofon")}</option>{s.microphoneSelectionMode === "specific" && !devices.some(d=>d.deviceId===s.selectedMicDeviceId) && <option value={s.selectedMicDeviceId}>{s.selectedMicDeviceLabel || "Valgt mikrofon"} – {ui("ikke tilkoblet")}</option>}{devices.filter(d=>d.deviceId!=="default").map(d=><option key={d.deviceId} value={d.deviceId}>{d.label || "Mikrofon"}</option>)}</select></label>
+      <p><label>{ui("Høyttaler for appens lyder")} <select aria-label={ui("Høyttaler for appens lyder")} value={output.deviceId} onChange={e=>{const device=outputs.find(d=>d.deviceId===e.target.value);const next={deviceId:e.target.value,label:device?.label || ""};saveAudioOutput(next.deviceId,next.label);setOutput(next);setMessage("");}}>
+        <option value="">{ui("Følg Mac-ens standardutgang")}</option>
+        {output.deviceId && !outputs.some(d=>d.deviceId===output.deviceId) && <option value={output.deviceId}>{output.label || ui("Valgt høyttaler")} – {ui("ikke tilkoblet")}</option>}
+        {outputs.filter(d=>d.deviceId!=="default" && d.deviceId!=="communications").map(d=><option key={d.deviceId} value={d.deviceId}>{d.label || ui("Høyttaler")}</option>)}
+      </select></label></p>
+      {output.deviceId && !outputs.some(d=>d.deviceId===output.deviceId) && <p role="status">{ui("Valgt høyttaler er ikke tilgjengelig. Valget beholdes. Koble den til igjen, eller velg standardutgang selv.")}</p>}
+      <button disabled={busy} onClick={async()=>{setBusy(true);try{await testAudioOutput();setMessage("Testlyden er spilt på valgt utgang. Hørte du tonen?");}catch(error){setMessage(ui("Kunne ikke spille på valgt utgang. Koble til høyttaleren, oppdater listen eller velg standardutgang.")+" "+(error instanceof Error ? error.message : String(error)));}finally{setBusy(false);}}}>{ui("Test høyttaler")}</button>{" "}
+      <button onClick={()=>void refreshDevices()}>{ui("Oppdater lydenheter")}</button>
+      <p><small>{ui("Høyttalervalget gjelder appens testlyd og dikteringslyder. Det endrer ikke Mac-ens lydruting. Valget beholdes etter omstart.")}</small></p>
       <p style={{fontSize:13}}>{ui("Begge modeller følger med appen. Full presisjon krever mer minne. Valg av mikrofon her endrer ikke Mac-ens lydruting.")}</p>
       <p><small>{ui("BlackHole er en virtuell lydinngang. Den hører bare lyd som sendes til den.")}</small></p>
       <button disabled={busy} onClick={testMic}>{ui("Test valgt mikrofon i 5 sekunder")}</button>
@@ -153,7 +182,7 @@ export default function NBControlPanel() {
         <h2>{ui(pasteStatus?.trusted && pasteStatus?.canPost && pasteStatus?.nativeAvailable ? "Automatisk innliming: klar" : "Automatisk innliming trenger Mac-tillatelse")}</h2>
         {!(pasteStatus?.trusted && pasteStatus?.canPost && pasteStatus?.nativeAvailable) && <p>{ui("Åpne Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet (Enhetskontroll og datatilgang på macOS 27). Slå på DSSA Tale og start appen på nytt. Er den allerede på, fjern den gamle oppføringen og legg til appen fra Programmer på nytt.")}</p>}
         <button onClick={()=>void refreshPasteStatus()}>{ui("Kontroller innliming")}</button>
-        <button disabled={busy||!pasteStatus?.trusted||!pasteStatus?.canPost||!pasteStatus?.nativeAvailable} onClick={async()=>{setBusy(true);setMessage("Klikk i et tomt dokument nå. Testteksten settes inn om 5 sekunder.");try{const result=await api.nbTestPaste();setMessage(result.success ? "Innlimingstesten er sendt. Kontroller teksten i dokumentet." : (result.error || "Innlimingstesten mislyktes."));}catch(error){setMessage(String(error));}finally{setBusy(false);void refreshPasteStatus();}}}>{ui("Test innliming om 5 sekunder")}</button>
+        <button disabled={busy||!pasteStatus?.trusted||!pasteStatus?.canPost||!pasteStatus?.nativeAvailable} onClick={async()=>{setBusy(true);setMessage("Åpner et eget testdokument i Tekstredigering og kontrollerer innlimingen …");try{const result=await api.nbTestPaste();setMessage(result.success ? (result.verified ? "Testteksten er bekreftet i dokumentet." : "Tastetrykket er sendt, men mottakeren lar ikke appen kontrollere teksten. Teksten er beholdt i utklippstavlen; bruk ⌘V hvis den ikke vises.") : (result.error || "Innlimingstesten mislyktes."));}catch(error){setMessage(String(error));}finally{setBusy(false);void refreshPasteStatus();}}}>{ui("Test i et tomt dokument")}</button>
       </section>
       {text && <textarea aria-label={ui("Resultat av mikrofontest")} readOnly value={text} style={{width:"100%",height:70}}/>}
     </section>}
@@ -193,9 +222,27 @@ export default function NBControlPanel() {
       <button onClick={()=>api.nbOpenVoiceMemos()}>{ui("Åpne Apple Taleopptak")}</button><button onClick={async()=>{const result=await api.nbStorageFolder();if(result.path)setPreferences({...preferences,documentFolder:result.path});}}>{ui("Velg dokumentmappe")}</button>
       <p>{ui("Velg en lokal WAV-, MP3-, M4A- eller WebM-fil. Filen behandles på Mac-en.")}</p>
       <label><input type="checkbox" checked={separateSpeakers} onChange={e=>setSeparateSpeakers(e.target.checked)}/>{" " + ui("Skill talere med lokal talermodell")}</label>
-      <input aria-label={ui("Velg lokal lydfil")} type="file" accept="audio/*,.webm" disabled={busy} onChange={async(e)=>{const f=e.target.files?.[0];if(!f)return;setSourceAudio({bytes:await f.arrayBuffer(),name:f.name});if(!separateSpeakers){await transcribe(await f.arrayBuffer());return;}
-        setBusy(true);setMessage("Analyserer talere og transkriberer lokalt …");
-        try{const path=api.getPathForFile(f);const result=await api.diarizeAudioFile(path,{nbTranscribe:true,model:s.whisperModel,language:s.preferredLanguage});if(!result.success)throw new Error(result.error);const names=new Map<string,string>();setText(result.segments.map((part:any)=>{if(!names.has(part.speaker))names.set(part.speaker,"Taler "+(names.size+1));return "["+Math.floor(part.start/60)+":"+String(Math.floor(part.start%60)).padStart(2,"0")+"] "+names.get(part.speaker)+": "+part.text;}).join("\n\n"));setMessage("Ferdig. Kontroller talerfordelingen og skriv inn navn ved behov.");}catch(e){setMessage(String(e));}finally{setBusy(false);}}}/>
+      <input aria-label={ui("Velg lokal lydfil")} type="file" accept="audio/*,.webm" disabled={busy} onChange={async(e)=>{
+        const file=e.target.files?.[0];if(!file||busy||importBusy.current)return;
+        importBusy.current=true;setBusy(true);
+        try{
+          const bytes=await file.arrayBuffer();setSourceAudio({bytes,name:file.name});
+          if(!separateSpeakers){await transcribe(bytes,file.name);return;}
+          setMessage("Analyserer talere og transkriberer lokalt …");
+          const filePath=api.getPathForFile(file);
+          const result=await api.diarizeAudioFile(filePath,{nbTranscribe:true,model:s.whisperModel,language:s.preferredLanguage});
+          if(!result.success)throw new Error(result.error);
+          const names=new Map<string,string>();
+          const importedText=result.segments.map((part:any)=>{
+            if(!names.has(part.speaker))names.set(part.speaker,"Taler "+(names.size+1));
+            const stamp=typeof part.start === "number" && Number.isFinite(part.start) ? "["+Math.floor(part.start/60)+":"+String(Math.floor(part.start%60)).padStart(2,"0")+"] " : "";
+            return stamp+(part.speaker ? names.get(part.speaker)+": " : "")+part.text;
+          }).join("\n\n");
+          setText(importedText);
+          const saved=await saveImportedConversation(api,file.name,importedText,result.segments);
+          setMessage(!saved ? "Ingen tale ble funnet." : saved.complete ? `Samtalen «${saved.title}» er lagret under Notater. Kontroller talerfordelingen der.` : "Teksten er lagret under Notater, men taler-/tidsdata kunne ikke lagres. Originalteksten er beholdt.");
+        }catch(error){setMessage(String(error));}finally{importBusy.current=false;setBusy(false);}
+      }}/>
     </section>}
     {(panelFocus === "files" || panelFocus === "assistant") && <section aria-label={ui("Tekst og eksport")}>
       <textarea aria-label={ui(panelFocus === "assistant" ? "Tekst eller spørsmål" : "Transkribert tekst")} style={{width:"100%",height:120,padding:12,border:"1px solid #8885",borderRadius:8}} value={text} onChange={(e)=>setText(e.target.value)}/>
@@ -207,17 +254,49 @@ export default function NBControlPanel() {
       <p>{(["cleanup","notes","assistant"] as const).map((task,i)=><button key={task} disabled={busy||!text||!models.some(m=>m.id===s.cleanupModel&&m.isDownloaded)} onClick={()=>runAI(task)}>{ui(["Rydd teksten","Formater notat","Spør lokal assistent"][i])}</button>)}</p>
     </section>}
   </div>;
-  return <ControlPanel nbSettings={openNBPanel} nbProfile={profile} nbContent={advanced ? undefined : content} nbSection={advanced ? undefined : panelFocus} nbOnNavigate={()=>setAdvanced(true)}/>;
+  const system=memory?.system;
+  const percent=(value:unknown)=>typeof value === "number" && Number.isFinite(value) ? `${Math.round(value)} %` : "—";
+  const gib=(value:unknown)=>typeof value === "number" && Number.isFinite(value) ? `${(value/2**30).toFixed(1)} GB` : "—";
+  const pressure=system?.pressure === "normal" ? "Normalt" : system?.pressure === "warning" ? "Høyt" : system?.pressure === "critical" ? "Kritisk" : "Ukjent";
+  const status=<footer aria-label={ui("Systemstatus")} style={{flexShrink:0,display:"flex",flexWrap:"wrap",gap:"6px 18px",padding:"7px 16px",borderTop:"1px solid var(--color-border)",background:"var(--color-surface-1)",color:"var(--color-muted-foreground)",fontSize:12,fontVariantNumeric:"tabular-nums"}}>
+    <span title={ui("Samlet CPU-belastning siden forrige måling")}>CPU {percent(system?.cpuPercent)}</span>
+    <span title={ui("Apple GPU deler minnet med systemet. — betyr at måling ikke er tilgjengelig.")}>GPU {percent(system?.gpuPercent)}</span>
+    <span title={ui("Aktive minnesider, minne reservert av macOS og komprimert minne. CPU og GPU deler RAM.")}>{ui("RAM aktiv")} {gib(system?.ramBytes)} / {gib(system?.totalBytes)}</span>
+    <span>{ui("Bytteminne")} {gib(system?.swapBytes)}</span>
+    <span>{ui("Minnepress")}: {ui(pressure)}</span>
+  </footer>;
+  return <ControlPanel nbStatus={status} nbSettings={openNBPanel} nbProfile={profile} nbContent={advanced ? undefined : content} nbSection={advanced ? undefined : panelFocus} nbOnNavigate={()=>setAdvanced(true)}/>;
 }
 
 const NB_ENGLISH: Record<string,string> = {
+ "Systemstatus":"System status",
+ "Samlet CPU-belastning siden forrige måling":"Overall CPU load since the previous sample",
+ "Apple GPU deler minnet med systemet. — betyr at måling ikke er tilgjengelig.":"Apple GPU shares system memory. — means the metric is unavailable.",
+ "Aktive minnesider, minne reservert av macOS og komprimert minne. CPU og GPU deler RAM.":"Active pages, memory reserved by macOS and compressed memory. CPU and GPU share RAM.",
+ "RAM aktiv":"Active RAM",
+ "Minnepress":"Memory pressure",
+ "Bytteminne":"Swap",
+ "Normalt":"Normal",
+ "Høyt":"Warning",
+ "Kritisk":"Critical",
+ "Ukjent":"Unknown",
+
+  "Høyttaler for appens lyder":"Speaker for app sounds",
+  "Følg Mac-ens standardutgang":"Use the Mac’s default output",
+  "Valgt høyttaler":"Selected speaker", "Høyttaler":"Speaker", "ikke tilkoblet":"disconnected",
+  "Test høyttaler":"Test speaker", "Oppdater lydenheter":"Refresh audio devices",
+  "Kunne ikke hente lydenheter. Prøv igjen.":"Could not list audio devices. Try again.",
+  "Valgt høyttaler er ikke tilgjengelig. Valget beholdes. Koble den til igjen, eller velg standardutgang selv.":"The selected speaker is unavailable. Your choice is retained. Reconnect it or select the default output.",
+  "Testlyden er spilt på valgt utgang. Hørte du tonen?":"The test tone was played on the selected output. Did you hear it?",
+  "Kunne ikke spille på valgt utgang. Koble til høyttaleren, oppdater listen eller velg standardutgang.":"Could not play on the selected output. Connect the speaker, refresh devices or select the default output.",
+  "Høyttalervalget gjelder appens testlyd og dikteringslyder. Det endrer ikke Mac-ens lydruting. Valget beholdes etter omstart.":"The speaker choice applies to test tones and dictation sounds. It does not change the Mac’s audio routing. Your choice persists across restarts.",
 "Automatisk innliming":"Automatic pasting",
 "Automatisk innliming: klar":"Automatic pasting: ready",
 "Automatisk innliming trenger Mac-tillatelse":"Automatic pasting needs Mac permission",
 "Åpne Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet (Enhetskontroll og datatilgang på macOS 27). Slå på DSSA Tale og start appen på nytt. Er den allerede på, fjern den gamle oppføringen og legg til appen fra Programmer på nytt.":"Open System Settings \u2192 Privacy & Security \u2192 Accessibility (Device Control and Data Access on macOS 27). Enable DSSA Tale and restart the app. If already enabled, remove the old entry and add the app from Applications again.",
 "Kontroller innliming":"Check pasting",
-"Test innliming om 5 sekunder":"Test pasting in 5 seconds",
-"Klikk i et tomt dokument nå. Testteksten settes inn om 5 sekunder.":"Click in an empty document now. Test text will be pasted in 5 seconds.",
+"Test i et tomt dokument":"Test pasting in 5 seconds",
+"Åpner et eget testdokument i Tekstredigering og kontrollerer innlimingen …":"Click in an empty document now. Test text will be pasted in 5 seconds.",
 "Innlimingstesten er sendt. Kontroller teksten i dokumentet.":"Paste test sent. Check the text in your document.",
 "Innlimingstesten mislyktes.":"Paste test failed.",
 

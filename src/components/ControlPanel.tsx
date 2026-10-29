@@ -13,6 +13,7 @@ import {
   PanelLeftOpen,
   PanelLeftClose,
   Home,
+  Mic,
 } from "lucide-react";
 import UpgradePrompt from "./UpgradePrompt";
 import PostMigrationOnboarding from "./PostMigrationOnboarding";
@@ -113,14 +114,15 @@ interface ControlPanelProps {
   nbSettings?: (section?: string) => void;
   nbProfile?: {name:string;image?:string|null}|null;
   nbContent?: React.ReactNode;
+  nbStatus?: React.ReactNode;
   nbSection?: string;
   nbOnNavigate?: () => void;
   /** Open the settings modal at this section on mount (e.g. after onboarding). */
   initialSettingsSection?: string;
 }
 
-export default function ControlPanel({ initialSettingsSection, nbSettings, nbProfile, nbContent, nbSection, nbOnNavigate }: ControlPanelProps = {}) {
-  const { t } = useTranslation();
+export default function ControlPanel({ initialSettingsSection, nbSettings, nbProfile, nbContent, nbStatus, nbSection, nbOnNavigate }: ControlPanelProps = {}) {
+  const { t, i18n } = useTranslation();
   const history = useTranscriptions();
   const [isLoading, setIsLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(!!initialSettingsSection);
@@ -1198,6 +1200,15 @@ export default function ControlPanel({ initialSettingsSection, nbSettings, nbPro
                   </div>
                 </div>
               )}
+            {activeView === "home" && nbSettings && <section className="nb-home-welcome">
+              <header><h1>{t("sidebar.home")}</h1><p>{i18n.language === "en" ? "Your voice. Your words. On your Mac." : "Din stemme. Dine ord. På din Mac."}</p></header>
+              <div className="nb-dictation-card">
+                <button className="nb-primary-pill" onClick={()=>void window.electronAPI.showDictationPanel()}><Mic size={20}/>{i18n.language === "en" ? "Open dictation" : "Åpne diktering"}</button>
+                <p>{i18n.language === "en" ? "Place the cursor in a text field. Start and stop with" : "Plasser markøren i et tekstfelt. Start og stopp med"}</p>
+                <kbd className="nb-shortcut">{hotkey}</kbd>
+                <span className="nb-local-caption">{i18n.language === "en" ? "NB-Whisper · Local on this Mac" : "NB-Whisper · Lokalt på denne Mac-en"}</span>
+              </div>
+            </section>}
             {activeView === "home" && (
               <HistoryView
                 history={history}
@@ -1301,6 +1312,7 @@ export default function ControlPanel({ initialSettingsSection, nbSettings, nbPro
           </div>
         )}
       </div>
+      {nbStatus}
       <BackgroundActionToastListener />
       <SpaceSyncToastListener />
     </div>

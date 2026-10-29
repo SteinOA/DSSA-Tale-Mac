@@ -778,6 +778,11 @@ class IPCHandlers {
   }
 
   _asyncMirrorWrite(note) {
+    try {
+      require("./nbConversationMirror").createDefault().write(note, this._buildSpeakerMappings(note.id));
+    } catch (error) {
+      debugLogger.warn("Local conversation file could not be updated", { noteId: note.id, error: error.message });
+    }
     if (!this._noteFilesEnabled) {
       debugLogger.debug(
         "Mirror write skipped: note files disabled",
@@ -797,6 +802,8 @@ class IPCHandlers {
   }
 
   _asyncMirrorDelete(noteId) {
+    try { require("./nbConversationMirror").createDefault().remove(noteId); }
+    catch (error) { debugLogger.warn("Local conversation file could not be removed", { noteId, error: error.message }); }
     if (!this._noteFilesEnabled) {
       debugLogger.debug("Mirror delete skipped: note files disabled", { noteId }, "note-files");
       return;
@@ -1619,7 +1626,7 @@ class IPCHandlers {
         while(changed){changed=false;for(const [pid,parent] of rows)if(family.has(parent)&&!family.has(pid)){family.add(pid);changed=true;}}
         rss=rows.filter(([pid])=>family.has(pid)).reduce((sum,row)=>sum+row[2]*1024,0);
       } catch {}
-      return {total:os.totalmem(),free:os.freemem(),rss};
+      return {total:os.totalmem(),free:os.freemem(),rss,system:await require("./nbSystemMetrics").sampleSystemMetrics()};
     });
     ipcMain.handle("nb-open-voice-memos", () => shell.openPath("/System/Applications/VoiceMemos.app"));
     ipcMain.handle("nb-storage-folder", async (event) => {
@@ -1642,26 +1649,54 @@ class IPCHandlers {
       });
       if(result.canceled || !result.filePath) return {canceled:true};
       const writer=require("./nbDocument");
-      const content=writer.exportText(text,options);
+      const content=options.preformatted === true ? text : writer.exportText(text,options);
       await fs.promises.writeFile(result.filePath,format === "docx" ? writer.createDocx(content) : format === "pdf" ? await writer.createPdf(content) : content);
       return {success:true};
     });
+    ipcMain.handle("nb-conversation-file", async (_event, id, action, options = {}) => {
+      try {
+        if (!Number.isSafeInteger(id) || id < 1 || !["text", "reveal"].includes(action)) throw new Error("Ugyldig samtalevalg.");
+        const note = this.databaseManager.getNote(id);
+        if (!note || note.deleted_at || !note.transcript) throw new Error("Samtalen har ingen transkripsjon ennå.");
+        const mirror = require("./nbConversationMirror");
+        const mappings = this._buildSpeakerMappings(id);
+        if (action === "text") return {success:true, text:mirror.text(note,mappings,{includeTimestamps:options.includeTimestamps === true,includeSpeakers:options.includeSpeakers === true})};
+        const file = mirror.createDefault().write(note,mappings);
+        if (!file) throw new Error("Samtalen har ingen transkripsjon ennå.");
+        shell.showItemInFolder(file);
+        return {success:true};
+      } catch (error) { return {success:false,error:error.message}; }
+    });
     ipcMain.handle("nb-local-profile", () => require("./nbLocalProfile").getLocalProfile(path.join(app.getPath("userData"),"cache")));
-    ipcMain.handle("nb-paste-status", () => ({
+    ipcMain.handle("nb-audio-outputs", () => require("./nbNativeAudio").listOutputs());
+    ipcMain.handle("nb-play-audio", (_event, uid, kind) => require("./nbNativeAudio").playTone(uid, kind));
+    ipcMain.handle("nb-paste-status", async () => ({
       ...require("./nbNativePaste").status(),
       installed: process.execPath.startsWith("/Applications/"),
+      lastPasteOutcome: this._nbLastPasteOutcome || null,
+      timings: await require("./nbDictationDiagnostics").readTiming(app.getPath("userData")),
     }));
-    ipcMain.handle("nb-test-paste", async () => {
+    ipcMain.handle("nb-test-paste", async (_event, repetitions = 1) => {
       try {
         const status = require("./nbNativePaste").status();
         if (!status.trusted || !status.canPost) {
           return { success: false, error: "Gi DSSA Tale tilgang til Tilgjengelighet i Systeminnstillinger først." };
         }
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-        await this.clipboardManager.pasteText("Dette er en innlimingstest fra DSSA Tale. Æ, ø og å. ", {
+        const testFolder = path.join(app.getPath("userData"), "paste-tests");
+        await fs.promises.mkdir(testFolder, { recursive: true });
+        const testFile = path.join(testFolder, `DSSA-innlimingstest-${Date.now()}.txt`);
+        await fs.promises.writeFile(testFile, "", { flag: "wx" });
+        require("./nbNativePaste").openTestDocument(testFile);
+        await new Promise((resolve) => setTimeout(resolve, 1800));
+        const testTargetPid = require("./nbNativePaste").status().testTargetPid;
+        if (!(testTargetPid > 0)) throw new Error("Testdokumentet kunne ikke åpnes i Tekstredigering.");
+        const count = Number.isInteger(repetitions) ? Math.max(1, Math.min(repetitions, 1000)) : 1;
+        const testText = "Dette er en innlimingstest fra DSSA Tale. Æ, ø og å. ".repeat(count);
+        const result = await this.clipboardManager.pasteText(testText, {
           allowClipboardFallback: false, restoreClipboard: true,
+          expectedTargetPid: testTargetPid,
         });
-        return { success: true };
+        return { success: true, verified: result.verification === "verified", textLength: testText.length, dispatchMs: result.dispatchMs };
       } catch (error) {
         return { success: false, error: error.message };
       }
@@ -2823,6 +2858,7 @@ class IPCHandlers {
         return { success: true };
       }
 
+      const pasteRequestedAt = Date.now();
       const mainWindow = this.windowManager?.mainWindow;
       const targetPid = this.textEditMonitor?.lastTargetPid || null;
 
@@ -2830,7 +2866,7 @@ class IPCHandlers {
       // focus hand-off for Chromium apps like Claude desktop and Brave (#668).
       let activated = false;
       if (process.platform === "darwin" && this.textEditMonitor) {
-        activated = await this.textEditMonitor.activateTargetPid();
+        activated = await require("./nbNativePaste").activateTarget(targetPid);
       }
 
       if (!activated && mainWindow && !mainWindow.isDestroyed() && mainWindow.isFocused()) {
@@ -2859,18 +2895,28 @@ class IPCHandlers {
           ? ((await this.selectionManager?.getWinTargetHwnd?.()) ?? null)
           : null;
 
-      await this.clipboardManager.pasteText(textToPaste, {
+      const activationMs = Date.now() - pasteRequestedAt;
+      let pasteResult;
+      try {
+      pasteResult = await this.clipboardManager.pasteText(textToPaste, {
         ...options,
         webContents: event.sender,
         targetWindow,
         expectedTargetPid: process.platform === "darwin" ? targetPid : undefined,
       });
+      } catch (error) {
+        this._nbLastPasteOutcome = { at: new Date().toISOString(), code: error.code || "PASTE_FAILED", textLength: textToPaste.length, activationMs, totalMs: Date.now() - pasteRequestedAt };
+        throw error;
+      }
+      this._nbLastPasteOutcome = { at: new Date().toISOString(), verification: pasteResult?.verification, posted: pasteResult?.posted, textLength: textToPaste.length, activationMs, dispatchMs: pasteResult?.dispatchMs, totalMs: Date.now() - pasteRequestedAt };
       debugLogger.debug("[AutoLearn] Paste completed", {
         autoLearnEnabled: this._autoLearnEnabled,
         hasMonitor: !!this.textEditMonitor,
         targetPid,
       });
-      if (this.textEditMonitor && this._autoLearnEnabled) {
+      const verification = pasteResult?.verification || (process.platform === "darwin" ? "unverified" : "accepted");
+      const pasted = pasteResult?.pasted !== false && verification !== "unverified" && verification !== "unchanged";
+      if (pasted && this.textEditMonitor && this._autoLearnEnabled) {
         setTimeout(() => {
           try {
             debugLogger.debug("[AutoLearn] Starting monitoring", {
@@ -2885,8 +2931,13 @@ class IPCHandlers {
       // ClipboardManager returns `restoreComplete` so main-process callers can
       // serialize subsequent clipboard work behind its delayed restore. A
       // Promise cannot cross Electron's IPC boundary, though, and renderer
-      // callers only need to know that the paste was accepted.
-      return { success: true };
+      // Preserve the outcome without sending the non-serializable restore Promise.
+      return {
+        success: true, pasted, verification,
+        dispatched: pasteResult?.posted ?? pasteResult?.pasted !== false,
+        method: pasteResult?.method,
+        targetPid: pasteResult?.targetPid ?? targetPid,
+      };
     });
 
     ipcMain.handle("check-accessibility-permission", async (_event, silent = false) => {
@@ -5104,6 +5155,13 @@ class IPCHandlers {
 
     ipcMain.handle("app-log", async (event, entry) => {
       debugLogger.logEntry(entry);
+      // Retain only numeric timings locally; never transcript or audio content.
+      if (entry?.message === "Pipeline timing" || entry?.message === "Paste timing") {
+        const kind = entry.message === "Pipeline timing" ? "pipeline" : "paste";
+        const meta = kind === "paste" ? {...this._nbLastPasteOutcome, ...entry.meta} : entry.meta;
+        try { await require("./nbDictationDiagnostics").recordTiming(app.getPath("userData"), kind, meta); }
+        catch { /* Diagnostic storage must never interrupt dictation. */ }
+      }
       return { success: true };
     });
 
@@ -11116,6 +11174,8 @@ class IPCHandlers {
                     this.databaseManager.updateNote(noteId, {
                       transcript: JSON.stringify(segments),
                     });
+                    const updatedNote = this.databaseManager.getNote(noteId);
+                    if (updatedNote) this._asyncMirrorWrite(updatedNote);
                   }
                 } catch (_) {}
               }
@@ -11181,6 +11241,7 @@ class IPCHandlers {
         if (changed) {
           this.databaseManager.updateNote(noteId, { transcript: JSON.stringify(transcript) });
           const updated = this.databaseManager.getNote(noteId);
+          if (updated) this._asyncMirrorWrite(updated);
           if (updated) broadcastToWindows("note-updated", updated);
         }
 
