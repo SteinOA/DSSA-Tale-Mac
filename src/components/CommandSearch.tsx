@@ -328,7 +328,7 @@ export default function CommandSearch({
             if (shouldBlockDismiss(e)) e.preventDefault();
           }}
           className={cn(
-            "fixed left-[50%] top-[18%] z-50 w-full max-w-xl translate-x-[-50%]",
+            "nb-command-search fixed left-[50%] top-[18%] z-50 w-full max-w-xl translate-x-[-50%]",
             "rounded-xl border border-border/60 bg-card shadow-2xl overflow-hidden",
             "dark:bg-surface-2 dark:border-border dark:shadow-modal",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
@@ -411,7 +411,7 @@ export default function CommandSearch({
           </div>
 
           {/* Results list */}
-          <div ref={listRef} className="overflow-y-auto max-h-[340px] p-1.5">
+          <div ref={listRef} data-nb-search-results className="overflow-y-auto max-h-[340px] p-1.5">
             {!hasResults ? (
               <div className="flex items-center justify-center py-10">
                 <p className="text-xs text-muted-foreground/50">
@@ -428,6 +428,7 @@ export default function CommandSearch({
                   key={conv.id}
                   type="button"
                   data-idx={idx}
+                  data-selected={selectedIndex === idx}
                   onClick={() => selectItem({ kind: "conversation", conversation: conv })}
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={cn(
@@ -588,6 +589,7 @@ function ContainerRow({
     <button
       type="button"
       data-idx={idx}
+      data-selected={isSelected}
       onClick={onSelect}
       onMouseEnter={onHover}
       className={cn(
@@ -642,6 +644,7 @@ function NoteRow({
     <button
       type="button"
       data-idx={idx}
+      data-selected={isSelected}
       onClick={onSelect}
       onMouseEnter={onHover}
       className={cn(
@@ -701,6 +704,7 @@ function TranscriptRow({
     <button
       type="button"
       data-idx={idx}
+      data-selected={isSelected}
       onClick={onSelect}
       onMouseEnter={onHover}
       className={cn(

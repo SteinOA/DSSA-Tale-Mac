@@ -25,4 +25,27 @@ function paste(expectedPid = 0) {
   if (!native) throw Object.assign(new Error("Innlimingskomponenten mangler. Installer DSSA Tale på nytt fra DMG-filen."), {code:"NATIVE_PASTE_UNAVAILABLE"});
   return native.paste(expectedPid || 0);
 }
-module.exports = { status, paste };
+function verify(finalCheck = true) {
+  return load()?.verify?.(finalCheck) || "unverified";
+}
+function openTestDocument(file) {
+  const native = load();
+  if (!native?.openTestDocument) throw new Error("Testkomponenten mangler.");
+  return native.openTestDocument(file);
+}
+async function activateTarget(pid) {
+  const native = load();
+  if (!(pid > 0) || !native?.activateTarget) return false;
+  const current = native.status();
+  if (current.frontmostPid === pid && !current.ownKeyWindow) return true;
+  if (!native.activateTarget(pid)) return false;
+  // One short focus hand-off, never a ladder of multi-second script calls.
+  const deadline = Date.now() + 300;
+  while (Date.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, 25));
+    const current = native.status();
+    if (current.frontmostPid === pid && !current.ownKeyWindow) return true;
+  }
+  return false;
+}
+module.exports = { status, paste, verify, openTestDocument, activateTarget };

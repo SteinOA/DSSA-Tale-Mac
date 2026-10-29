@@ -1,3 +1,5 @@
+export type NbCloudProvider = "google" | "onedrive" | "icloud";
+export type NbCloudFolder = { id: NbCloudProvider; path: string | null; status: "none" | "available" | "missing" | "denied" };
 import type { ModelDefinition } from "../models/ModelRegistry";
 import type { TinfoilCatalogModel } from "../models/tinfoilModels";
 import type { UsageResponse } from "../lib/usageStore";
@@ -1390,6 +1392,16 @@ declare global {
           [key: string]: unknown;
         }
       ) => Promise<{ success: boolean; text?: string; error?: string; code?: string }>;
+      nbOpenCalendarApp: () => Promise<{success:boolean}>;
+      nbCloudFoldersGet: () => Promise<{providers: NbCloudFolder[]}>;
+      nbCloudFolderChoose: (provider: NbCloudProvider) => Promise<NbCloudFolder | {cancelled: true}>;
+      nbCloudFolderOpen: (provider: NbCloudProvider) => Promise<{success: boolean; errorCode?: string}>;
+      nbCloudFolderRemove: (provider: NbCloudProvider) => Promise<NbCloudFolder>;
+      nbSetImportRetention: (options:{enabled:boolean;retentionDays:number;synced?:boolean}) => Promise<unknown>;
+      nbImportAudioFile: (path:string,options:{model:string;language:string;requestId:string}) => Promise<{success:boolean;text?:string;cancelled?:boolean;error?:string;segments?:unknown[]}>;
+      nbCancelAudioImport: (requestId:string) => Promise<unknown>;
+      onNbAudioImportProgress: (callback:(event:unknown,payload:{requestId:string;phase:"converting"|"transcribing"|"saving";completedChunks:number;totalChunks:number;completedSeconds:number;totalSeconds:number;resumedChunks:number})=>void) => ()=>void;
+      nbSaveAudioFromPath: (path:string,name:string) => Promise<{success?:boolean;canceled?:boolean}>;
       getPathForFile: (file: File) => string;
 
       // URL audio download
@@ -1794,7 +1806,7 @@ declare global {
       onAccessibilityMissing?: (callback: () => void) => () => void;
       checkAccessibilityTrusted?: () => Promise<boolean>;
       nbPasteStatus: () => Promise<{ trusted: boolean; canPost: boolean; nativeAvailable: boolean; installed: boolean }>;
-      nbTestPaste: () => Promise<{ success: boolean; error?: string }>;
+      nbTestPaste: () => Promise<{ success: boolean; verified?: boolean; error?: string }>;
 
       // Gemini API key management
       getGeminiKey: () => Promise<string | null>;

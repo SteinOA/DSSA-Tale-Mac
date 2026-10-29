@@ -100,6 +100,7 @@ class EnvironmentManager {
   // both no-ops on fresh installs, so neither path triggers Keychain until
   // the user actually saves their first secret.
   async init() {
+    if (app.getName?.() === "DSSA Tale") return;
     if (!fs.existsSync(this._getMigrationSentinelPath())) {
       await this._migrateToSecureStorage();
     }
@@ -111,6 +112,7 @@ class EnvironmentManager {
   }
 
   _encryptionAvailable() {
+    if (app.getName?.() === "DSSA Tale") return false;
     try {
       return secretCrypto.isAvailable();
     } catch {
@@ -227,6 +229,23 @@ class EnvironmentManager {
   }
 
   async _writeEnvFile(envPath) {
+    if (app.getName?.() === "DSSA Tale") {
+      // Local model/hotkey settings must never initialize the upstream shared
+      // Keychain. Keep existing secret and unknown lines untouched; do not
+      // decrypt them, delete them, or add secrets from the environment.
+      let previous = "";
+      try { previous = await fsPromises.readFile(envPath, "utf8"); } catch (error) { if (error.code !== "ENOENT") throw error; }
+      const localKeys = new Set(PERSISTED_KEYS.filter(key => !SECRET_KEY_SET.has(key)));
+      const kept = previous.split(/\r?\n/).filter(line => {
+        const match = line.match(/^\s*(?:export\s+)?([A-Z][A-Z0-9_]*)\s*=/);
+        return !match || !localKeys.has(match[1]);
+      });
+      for (const key of localKeys) if (process.env[key]) kept.push(`${key}=${process.env[key]}`);
+      const tmpPath = `${envPath}.tmp`;
+      await fsPromises.writeFile(tmpPath, kept.join("\n") + "\n", {encoding:"utf8",mode:0o600});
+      await fsPromises.rename(tmpPath, envPath);
+      return;
+    }
     // Only strip plaintext secrets once migration has fully completed —
     // otherwise a partial-migration recovery can lose unencrypted secrets.
     const stripSecrets =
@@ -244,10 +263,12 @@ class EnvironmentManager {
   }
 
   _getKey(envVarName) {
+    if (app.getName?.() === "DSSA Tale" && SECRET_KEY_SET.has(envVarName)) return "";
     return process.env[envVarName] || "";
   }
 
   _saveKey(envVarName, key) {
+    if (app.getName?.() === "DSSA Tale" && SECRET_KEY_SET.has(envVarName)) return {success:false,error:"DSSA Tale bruker lokale modeller og lagrer ikke API-nøkler."};
     if (SECRET_KEY_SET.has(envVarName) && this._encryptionAvailable()) {
       this._saveSecretKey(envVarName, key).catch((error) => {
         debugLogger.error(

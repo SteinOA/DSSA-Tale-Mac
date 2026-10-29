@@ -889,6 +889,10 @@
         "unavailable": "OpenWhispr 无法安全读取选中的文本。请检查辅助功能或输入自动化权限。",
         "tooLarge": "选中的内容过长。请选择不超过 6,000 个字符。",
         "reasoningFailed": "AI 无法完成选中文本编辑。原始文本未被更改。"
+      },
+      "cleanupRejected": {
+        "title": "Original text retained",
+        "description": "AI cleanup changed words or facts. The original text was used."
       }
     },
     "clipboard": {
@@ -3857,6 +3861,7 @@
     "shortcuts": "键盘快捷键",
     "recording": "录音与粘贴",
     "appearance": "外观和语言",
-    "home": "主页 — 返回开始页面"
+    "home": "主页 — 返回开始页面",
+    "system": "System"
   }
 }

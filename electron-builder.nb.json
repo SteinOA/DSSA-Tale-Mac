@@ -107,6 +107,7 @@
         "macos-globe-listener",
         "macos-fast-paste",
         "macos-native-paste.node",
+        "macos-native-audio.node",
         "macos-mic-listener",
         "macos-calendar-listener",
         "macos-text-monitor",
@@ -122,18 +123,11 @@
         "windows-system-audio-helper*",
         "windows-text-monitor*",
         "windows-fast-paste*",
-        "all-MiniLM-L6-v2/**/*",
-        "diarization-models/**/*",
-        "whisper-vad/**/*",
         "*.dylib",
         "*.dll",
         "*.so*",
         "!libsherpa-onnx-*.dylib"
       ]
-    },
-    {
-      "from": "resources/nb-models",
-      "to": "nb-models"
     },
     {
       "from": "resources/legal",
@@ -161,11 +155,11 @@
     "extendInfo": {
       "LSUIElement": false,
       "CFBundleIconName": "openwhispr",
-      "NSMicrophoneUsageDescription": "DSSA Tale trenger mikrofonen for å gjøre tale om til tekst lokalt på Mac-en. Lyden lastes ikke opp.",
-      "NSAudioCaptureUsageDescription": "DSSA Tale trenger systemlyd for å transkribere andre deltakere i møter lokalt på Mac-en.",
-      "NSAccessibilityUsageDescription": "Gi tilgang til Tilgjengelighet slik at DSSA Tale kan lime inn teksten der markøren står.",
-      "NSCalendarsUsageDescription": "DSSA Tale kan lese kalenderen på Mac-en for å vise kommende møter og knytte dem til lokale møtenotater. Dette er valgfritt.",
-      "NSCalendarsFullAccessUsageDescription": "DSSA Tale kan lese kalenderen på Mac-en for å vise kommende møter og knytte dem til lokale møtenotater. Dette er valgfritt."
+      "NSMicrophoneUsageDescription": "DSSA Tale trenger mikrofonen for \u00e5 gj\u00f8re tale om til tekst lokalt p\u00e5 Mac-en. Lyden lastes ikke opp.",
+      "NSAudioCaptureUsageDescription": "DSSA Tale trenger systemlyd for \u00e5 transkribere andre deltakere i m\u00f8ter lokalt p\u00e5 Mac-en.",
+      "NSAccessibilityUsageDescription": "Gi tilgang til Tilgjengelighet slik at DSSA Tale kan lime inn teksten der mark\u00f8ren st\u00e5r.",
+      "NSCalendarsUsageDescription": "DSSA Tale kan lese kalenderen p\u00e5 Mac-en for \u00e5 vise kommende m\u00f8ter og knytte dem til lokale m\u00f8tenotater. Dette er valgfritt.",
+      "NSCalendarsFullAccessUsageDescription": "DSSA Tale kan lese kalenderen p\u00e5 Mac-en for \u00e5 vise kommende m\u00f8ter og knytte dem til lokale m\u00f8tenotater. Dette er valgfritt."
     },
     "minimumSystemVersion": "26.0"
   },
@@ -270,7 +264,7 @@
     "include": "resources/nsis/installer.nsh"
   },
   "dmg": {
-    "title": "DSSA Tale ${version} – dra til Programmer",
+    "title": "DSSA Tale ${version} \u2013 dra til Programmer",
     "icon": "src/assets/icon.icns",
     "window": {
       "width": 540,

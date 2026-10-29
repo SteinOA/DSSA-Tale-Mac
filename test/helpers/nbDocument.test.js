@@ -13,3 +13,15 @@ test('plain prose and Norwegian characters survive exports',()=>{
  const doc=createDocx(text+'\n<test> &');
  assert.equal(doc.readUInt32LE(0),0x04034b50);assert.ok(doc.includes(Buffer.from('æøå')));assert.ok(doc.includes(Buffer.from('&lt;test&gt; &amp;')));
 });
+
+test('Nynorsk document language survives export independently of interface language',()=>{
+ const writer=require('../../src/helpers/nbDocument');
+ const text='Eg kjem i morgon. Tysdag skal vi drøfte saka.';
+ const doc=writer.createDocx(text,{language:'nn'});
+ assert.ok(doc.includes(Buffer.from('w:lang w:val="nn-NO"')));
+ assert.ok(doc.includes(Buffer.from(text)));
+ assert.equal(writer.documentLanguage({language:'en'}),'en-US');
+ assert.equal(writer.documentLanguage({language:'no'}),'nb-NO');
+ assert.equal(writer.exportText('Talar 2: '+text),text);
+ assert.equal(writer.exportText('Talar 2: '+text,{includeSpeakers:true}),'Talar 2: '+text);
+});

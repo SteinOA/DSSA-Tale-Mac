@@ -1,0 +1,22 @@
+{
+  "file": "DSSA-Tale-Test-1.9.20-Apple-Silicon.dmg",
+  "bytes": 227838891,
+  "sha256": "1dbbd396b4f7c114d7cdc7780a74279387eba6c2d71dddb352c4c99f4ae914d9",
+  "parts": [
+    {
+      "id": "1VG9v1lesCAVHLdc1nFdx7oAVC-kfSc2K",
+      "bytes": 83886080,
+      "sha256": "0bf072ae9a5e89ddd1d74f326aeeba1cc635eb83a2252946d178e24e80f0a458"
+    },
+    {
+      "id": "1vnW9fDOwWtMajVu6UEtwI0109NgSd3GF",
+      "bytes": 83886080,
+      "sha256": "1c219a90fc0e173c32020e9e5a6d9eaba9c92f4ecb784b4da3104b75cd7eaf52"
+    },
+    {
+      "id": "193826bHiKL9H3SjGxy7KWnWPFejkxqfz",
+      "bytes": 60066731,
+      "sha256": "d8d55d51b1cf3b7d3a94e2a96755dab5157182865245381599526342dd1d937e"
+    }
+  ]
+}

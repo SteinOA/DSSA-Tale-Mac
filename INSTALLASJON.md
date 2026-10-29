@@ -1,38 +1,22 @@
-# Installere DSSA Tale på Mac
+# Installer DSSA Tale Test 1.9.20 på Mac
 
-> **Testversjon – signert utgave er planlagt.**
-> DMG 1.9.4 og kontrollsum er tilgjengelige i README. Apple Developer ID-signering og notarisation mangler; denne testpakken gir derfor ikke en friksjonsfri førstegangsinstallasjon for alle.
+Dette er en testutgave for Apple Silicon. Faktisk prøvd: M4, 24 GB, macOS 27.0.1. Teknisk minimum macOS 26.0, andre maskiner ikke fysisk verifisert. Intel støttes ikke.
 
-Du trenger en Mac med **Apple Silicon** og macOS **26 eller nyere**. Pakken er prøvd på M4 med macOS 27.0.1; macOS 26 er et teknisk minstekrav, ikke en ferdig testet plattform. Intel støttes ikke. Terminal, Homebrew og Python er ikke nødvendig.
+1. Last ned `.dmg` fra utgivelsen i dette repoet. Du trenger ikke GitHub-konto.
+2. Avslutt en eventuell gammel **DSSA Tale Test** med ⌘Q. Avslutt også vanlig DSSA Tale mens du tester.
+3. Åpne DMG-filen. Dra appikonet til **Applications / Programmer** i samme vindu. Dette kopierer appen; mappen er en snarvei til Programmer.
+4. Vent på kopieringen. Åpne **Programmer** i Finder, og start **DSSA Tale Test** derfra. Løs ut installasjonsdisken i Finder; disken på skrivebordet er ikke den installerte appen.
+5. Last ned ønsket NB-Whisper Large-modell i førstegangsoppsettet eller under Tale og mikrofon. Full presisjon er standard. q5_0 er et mindre nedlastingsvalg. Begge bruker internett kun ved nedlasting, og filene kontrolleres med SHA-256.
+6. Velg bokmål eller nynorsk, mikrofon og høyttaler. Valgene skal beholdes til du selv endrer dem.
+7. Gi mikrofontilgang når du vil diktere. For innliming: **Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet**, legg til testappen fra Programmer og slå på. På enkelte macOS-utgaver brukes navnet **Enhetskontroll og datatilgang**. Følg navnene på din Mac. Ved oppdatering kan macOS kreve ny godkjenning.
+8. Plasser markøren i et tekstfelt og bruk snarveien som faktisk står valgt i appen. Test en kort setning før lange opptak. I denne testutgaven er automatisk innliming ikke sluttgodkjent; ved feil ligger teksten fortsatt i appen og kan kopieres manuelt.
 
-## Installere eller oppdatere manuelt
+## Apple blokkerer åpning
 
-1. Avslutt DSSA Tale hvis den kjører. Last ned riktig DMG fra [README](README.md). Velg **1.9.4**.
-2. Åpne DMG-filen. Dra **selve DSSA Tale-appen inne i vinduet** til **Programmer**. Ikke dra diskikonet fra skrivebordet. Ved oppdatering velger du å erstatte den gamle appen.
-3. Mat ut installasjonsdisken. Åpne DSSA Tale fra **Programmer**.
-4. Gi mikrofontillatelse når du blir spurt. Automatisk innliming trenger også **Tilgjengelighet**. Opptak av systemlyd kan kreve egen tillatelse.
-5. Velg ønsket mikrofon og kontroller at den faktisk får lyd. Bokmål og NB-Whisper Large med full presisjon er standard; Nynorsk og q5_0 kan velges.
+Pakken er ad hoc-signert, men ikke Developer ID-signert eller notarisert. Bare hvis du stoler på denne kilden: prøv å åpne appen én gang, velg Ferdig, og gå til **Systeminnstillinger → Personvern og sikkerhet → Åpne likevel**. Bekreft selv med vanlig Mac-godkjenning. Ikke slå av Gatekeeper og ikke bruk Terminal-kommandoer for å fjerne beskyttelsen. En fremtidig signert utgave krever utviklerkonto og sertifikat; ingen dato er lovet.
 
-Appens innstillinger og data ligger separat i `~/Library/Application Support/OpenWhispr-NB`. Behold denne mappen når du erstatter appen. Den skal ikke slettes for å oppdatere. Det finnes ingen automatisk appoppdatering.
+## Oppdater eller fjern
 
-## Hvis macOS stopper testappen
+Er appen i bruk, avslutt den før du erstatter den. Erstatning av bare appen i Programmer bevarer innstillinger, notater og nedlastede modeller. Testappen bruker egen profil og endrer ikke den vanlige appen. For å avinstallere appen: avslutt den og flytt den fra Programmer til Papirkurv. Dette sletter ikke automatisk profil eller dokumenter.
 
-Denne utgaven er ikke signert med Apple Developer ID eller notarisert. Du kan vente på en signert utgave. Hvis du selv velger å prøve testpakken og er sikker på kilden, kan macOS etter et åpningsforsøk tilby **Åpne likevel** under **Systeminnstillinger → Personvern og sikkerhet**. Dette lager et unntak for denne appen; det er ikke en godkjenning fra Apple. Følg [Apples beskrivelse av å åpne en app](https://support.apple.com/no-no/102445).
-
-Ikke slå av Gatekeeper globalt. Hvis macOS sier at appen er skadelig eller skadet, eller alternativet ikke finnes, stopp og meld fra fremfor å tvinge den åpen.
-
-En ny usignert testutgave kan også kreve ny tillatelse. Under **Personvern og sikkerhet → Tilgjengelighet** kontrollerer du DSSA Tale fra **Programmer**, og gir tillatelsen til den aktuelle appen. Avslutt og åpne appen igjen etterpå. Se [Apples veiledning om Tilgjengelighet](https://support.apple.com/no-no/guide/mac-help/mh43185/mac). Et aktivt valg i listen beviser ikke alene at innliming fungerer.
-
-## Før du begynner å diktere
-
-Gå til **Innstillinger → Tale og mikrofon → Test innliming om 5 sekunder**: start testen, og plasser markøren i et tomt dokument i for eksempel Tekstredigering innen fem sekunder. Kontroller at testteksten faktisk kommer inn. Synlig innliming fra den nye installerte appen avventer sluttverifisering. Backend for modellnedlasting er prøvd med en full Qwen3.5 2B-nedlasting og korrekt SHA-256.
-
-Begge NB-modellene følger med. Valgfrie språkmodeller for tekstopprydding lastes ned separat; opprydding er avslått som standard. BlackHole er en virtuell mikrofon og må få et lydsignal fra oppsettet ditt. Appen løser ikke automatisk lyd fra en annen PC, og ekte Teams-møter er ikke sluttverifisert.
-
-Lydfiler kan importeres fra Finder, også filer eksportert fra Apple Taleopptak. Lagre i en lokal mappe hvis du vil beholde filene lokalt. En mappe i iCloud Drive, OneDrive eller Google Drive kan laste opp filene gjennom synkronisering; det er ditt valg. Synkronisering alene er ikke en full sikkerhetskopi.
-
-For vanlig diktering klikker du først i tekstfeltet i målappen og bruker den valgte dikteringssnarveien (standard ⌘ ⇧ mellomrom) for å starte og stoppe. Knappen «Test valgt mikrofon i 5 sekunder» viser bare tekst inne i DSSA Tale og limer ikke automatisk inn i andre apper.
-
-Velg en valgfri språkmodell på **Assistent**-siden. Velg modellen i listen, trykk **Last ned valgt modell** og vent til fremdriften er ferdig og «Modellen er klar» vises. Deretter kan du bruke **Rydd teksten** eller **Formater notat**. Automatisk opprydding må slås på særskilt dersom du ønsker det.
-
-Versjonsnummeret står fast nederst i sidemenyen som **DSSA Tale · versjon 1.9.4**. Tallet kommer fra den kjørende appen. Ser du et eldre tall, kjører du fremdeles en eldre appkopi.
+Ingen Homebrew, Python, Terminal eller utviklingsfiler trengs for å bruke den ferdige appen. Nett trengs for modellnedlasting og eventuelle kontotjenesters egen synkronisering.

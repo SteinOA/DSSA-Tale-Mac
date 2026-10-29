@@ -2,11 +2,11 @@
   "settings": {
     "language": {
       "sectionTitle": "Språk",
-      "sectionDescription": "Set interface and transcription languages independently",
-      "uiLabel": "Interface language",
-      "uiDescription": "Choose the language used throughout OpenWhispr's interface",
-      "transcriptionLabel": "Transcription language",
-      "transcriptionDescription": "Choose the language you speak for more accurate transcription",
+      "sectionDescription": "Menyspråk og transkripsjonsspråk velges uavhengig",
+      "uiLabel": "Menyspråk",
+      "uiDescription": "Velg språket i appens menyer",
+      "transcriptionLabel": "Målform for transkripsjon",
+      "transcriptionDescription": "Velg språket teksten skal skrives på",
       "chineseScriptLabel": "Chinese script (dictation)",
       "chineseScriptDescription": "When Chinese is detected, convert dictated transcripts to Simplified or Traditional characters. Spoken Chinese is the same either way; Whisper only returns one script.",
       "chineseScriptAsTranscribed": "Keep as transcribed",
@@ -59,72 +59,72 @@
   },
   "tray": {
     "toggleDictation": {
-      "show": "Show Dictation Panel",
-      "hide": "Hide Dictation Panel"
+      "show": "Vis dikteringspanelet",
+      "hide": "Skjul dikteringspanelet"
     },
-    "openControlPanel": "Open Control Panel",
-    "hideControlPanel": "Hide Control Panel",
-    "quit": "Quit OpenWhispr",
-    "tooltip": "OpenWhispr - Voice Dictation"
+    "openControlPanel": "Åpne hovedvinduet",
+    "hideControlPanel": "Skjul hovedvinduet",
+    "quit": "Avslutt DSSA Tale",
+    "tooltip": "DSSA Tale – lokal diktering"
   },
   "menu": {
     "appLabel": "OpenWhispr",
-    "quit": "Quit OpenWhispr",
-    "speech": "Speech",
-    "settings": "Settings...",
-    "help": "Help",
-    "learnMore": "Learn More",
-    "file": "File",
-    "closeWindow": "Close Window"
+    "quit": "Avslutt DSSA Tale",
+    "speech": "Tale",
+    "settings": "Innstillinger …",
+    "help": "Hjelp",
+    "learnMore": "Les mer",
+    "file": "Fil",
+    "closeWindow": "Lukk vinduet"
   },
   "window": {
-    "voiceRecorderTitle": "Voice Recorder",
-    "controlPanelTitle": "Control Panel"
+    "voiceRecorderTitle": "Lydopptaker",
+    "controlPanelTitle": "Hovedvindu"
   },
   "dialog": {
     "openLink": {
-      "title": "Unable to Open Link",
-      "message": "Failed to open the link in your browser:\n{{url}}\n\nError: {{error}}"
+      "title": "Kunne ikke åpne lenken",
+      "message": "Kunne ikke åpne lenken i nettleseren:\n{{url}}\n\nFeil: {{error}}"
     },
     "loadFailure": {
-      "title": "OpenWhispr failed to load",
-      "message": "OpenWhispr could not load its UI.",
+      "title": "DSSA Tale kunne ikke starte",
+      "message": "Kunne ikke laste brukergrensesnittet.",
       "detail": {
-        "window": "Window: {{windowName}}",
-        "error": "Error {{errorCode}}: {{errorDescription}}",
+        "window": "Vindu: {{windowName}}",
+        "error": "Feil {{errorCode}}: {{errorDescription}}",
         "url": "URL: {{url}}",
-        "hint": "Try reinstalling the app or launching with --log-level=debug."
+        "hint": "Prøv å installere appen på nytt, eller start med --log-level=debug."
       }
     }
   },
   "startup": {
     "error": {
-      "title": "OpenWhispr Startup Error",
-      "message": "Failed to start the application:\n\n{{error}}\n\nPlease report this issue."
+      "title": "Oppstartsfeil",
+      "message": "Kunne ikke starte appen:\n\n{{error}}\n\nMeld fra om feilen."
     },
     "globeHotkey": {
-      "title": "Globe Hotkey Unavailable",
-      "message": "OpenWhispr could not activate the Globe key hotkey.",
+      "title": "Globus-tasten er utilgjengelig",
+      "message": "Kunne ikke aktivere hurtigtasten for Globus.",
       "details": {
-        "unknown": "Unknown error occurred while starting the Globe listener.",
-        "fallback": "The Globe key shortcut will remain disabled; existing keyboard shortcuts continue to work.",
-        "devHint": "Run `npm run compile:globe` and rebuild the app to regenerate the listener binary.",
-        "reinstallHint": "Try reinstalling OpenWhispr or contact support if the issue persists."
+        "unknown": "Ukjent feil ved aktivering av Globus-tasten.",
+        "fallback": "Globus-tasten er deaktivert. Andre hurtigtaster fungerer fortsatt.",
+        "devHint": "Kjør `npm run compile:globe` og bygg appen på nytt.",
+        "reinstallHint": "Prøv å installere appen på nytt. Kontakt brukerstøtte hvis feilen vedvarer."
       }
     }
   },
   "hotkey": {
     "errors": {
-      "callbackRequired": "Callback function is required for hotkey setup",
-      "globeOnlyMac": "The Globe key is only available on macOS.",
-      "fnCombinationUnsupported": "The Globe/Fn key can only be used by itself.",
-      "mouseButtonOnlyMac": "Mouse button hotkeys are currently supported on macOS only.",
-      "alreadyRegistered": "\"{{hotkey}}\" is already registered by another application.",
-      "osReserved": "\"{{hotkey}}\" may be reserved by your desktop environment.",
-      "registrationFailed": "Could not register \"{{hotkey}}\". It may be in use by another application.",
-      "updateFailedCheckFormat": "Failed to update hotkey to \"{{hotkey}}\". Check the format is valid.",
-      "trySuggestions": "Try: {{suggestions}}",
-      "slotConflict": "This hotkey is already used for {{slot}}."
+      "callbackRequired": "Hurtigtastoppsettet mangler en påkrevd funksjon",
+      "globeOnlyMac": "Globus-tasten finnes bare på macOS.",
+      "fnCombinationUnsupported": "Globus/Fn-tasten kan bare brukes alene.",
+      "mouseButtonOnlyMac": "Hurtigtaster på museknapper støttes bare på macOS.",
+      "alreadyRegistered": "«{{hotkey}}» brukes allerede av en annen app.",
+      "osReserved": "«{{hotkey}}» kan være reservert av systemet.",
+      "registrationFailed": "Kunne ikke registrere «{{hotkey}}». En annen app kan bruke den.",
+      "updateFailedCheckFormat": "Kunne ikke endre hurtigtasten til «{{hotkey}}». Kontroller formatet.",
+      "trySuggestions": "Prøv: {{suggestions}}",
+      "slotConflict": "Denne hurtigtasten brukes allerede til {{slot}}."
     }
   },
   "systemSettings": {
@@ -686,14 +686,14 @@
       "description": "Automatically fix grammar, punctuation, and formatting as you speak.",
       "enable": "Enable AI Enhancement"
     },
-    "loading": "Loading...",
+    "loading": "Laster …",
     "gpu": {
       "bannerTitle": "GPU acceleration available",
       "bannerDescription": "Enable GPU acceleration for faster performance.",
       "enableButton": "Enable GPU",
       "dismissButton": "Not now"
     },
-    "backToNotes": "Back to notes",
+    "backToNotes": "Tilbake til notatene",
     "requiredModelsByOrg": {
       "title": "Required models missing",
       "description": "Your organization requires these models on this device: {{models}}.",
@@ -846,24 +846,24 @@
         "description": "Local Whisper failed. Used OpenAI API instead."
       },
       "errorActions": {
-        "viewTranscript": "View Transcript"
+        "viewTranscript": "Vis transkripsjon"
       },
       "noAudio": {
-        "title": "We didn’t catch that",
-        "description": "Check your microphone and try again."
+        "title": "Ingen tale registrert",
+        "description": "Kontroller mikrofonen og prøv igjen."
       },
       "micDisconnected": {
-        "title": "Microphone disconnected",
-        "description": "Recording is still active and will resume when a microphone is available.",
-        "meetingDescription": "The meeting is still recording system audio and will resume microphone capture automatically."
+        "title": "Mikrofonen ble koblet fra",
+        "description": "Opptaket er fortsatt aktivt og fortsetter når en mikrofon er tilgjengelig.",
+        "meetingDescription": "Møtet tar fortsatt opp systemlyd. Mikrofonopptaket fortsetter automatisk når mikrofonen er tilbake."
       },
       "micRestored": {
-        "title": "Microphone restored",
-        "description": "Audio capture has resumed."
+        "title": "Mikrofonen er tilbake",
+        "description": "Lydopptaket har fortsatt."
       },
       "partialTranscription": {
-        "title": "Partial Transcription",
-        "description": "Part of the recording couldn't be transcribed."
+        "title": "Delvis transkripsjon",
+        "description": "En del av opptaket kunne ikke transkriberes."
       },
       "errorDescriptions": {
         "sessionExpired": "Your OpenWhispr Cloud session is unavailable. Please sign in again from Settings.",
@@ -871,130 +871,134 @@
         "dailyLimitReached": "You've reached today's transcription limit. Try again tomorrow or upgrade your plan.",
         "providerRateLimited": "Your transcription provider rate-limited the request. Wait a moment and try again.",
         "chunkLoss": "A network problem lost too much of the recording. Re-transcribe it from History.",
-        "agentReasoningFailed": "Your voice assistant couldn't process the command — the raw transcript was inserted instead.",
+        "agentReasoningFailed": "Assistenten kunne ikke behandle kommandoen. Den opprinnelige transkripsjonen ble satt inn.",
         "screenContextSkipped": "The screenshot couldn't be sent, so your command ran without screen context.",
         "customEndpointInvalid": "Your custom transcription endpoint is not configured or its URL is invalid. Update it in Settings → Speech to Text."
       },
       "translationFallback": {
-        "unreachableTitle": "Translation unavailable",
-        "unreachableDescription": "Your dictation was pasted untranslated. Check the translation settings.",
-        "failedTitle": "Translation failed",
-        "failedDescription": "The original text was pasted. You can retry it from History."
+        "unreachableTitle": "Oversettelse utilgjengelig",
+        "unreachableDescription": "Dikteringen ble satt inn uten oversettelse. Kontroller innstillingene.",
+        "failedTitle": "Oversettelsen mislyktes",
+        "failedDescription": "Originalteksten ble satt inn. Du kan prøve igjen fra historikken."
       },
       "selectionEditing": {
-        "notAppliedTitle": "Selection edit not applied",
-        "changed": "The selected text or target app changed while OpenWhispr was processing. Nothing was replaced.",
-        "expired": "The selection edit took too long and expired. Select the text and try again.",
-        "pasteFailed": "OpenWhispr generated the edit but could not replace the selected text.",
-        "unavailable": "OpenWhispr could not safely read the selected text. Check accessibility or input automation permissions and try again.",
-        "tooLarge": "The selection is too large to edit safely. Select 6,000 characters or fewer.",
-        "reasoningFailed": "The AI could not complete the selection edit. Your original text was not changed."
+        "notAppliedTitle": "Den markerte teksten ble ikke endret",
+        "changed": "Markeringen eller mottakerappen ble endret under behandlingen. Ingenting ble erstattet.",
+        "expired": "Behandlingen tok for lang tid. Marker teksten og prøv igjen.",
+        "pasteFailed": "Teksten er ferdig behandlet, men kunne ikke erstatte markeringen.",
+        "unavailable": "Kunne ikke lese markeringen på en trygg måte. Kontroller tilgangstillatelsene og prøv igjen.",
+        "tooLarge": "Markeringen er for stor. Velg høyst 6000 tegn.",
+        "reasoningFailed": "Språkmodellen kunne ikke fullføre endringen. Originalteksten er uendret."
+      },
+      "cleanupRejected": {
+        "title": "Originalteksten ble beholdt",
+        "description": "AI-oppryddingen endret ord eller fakta. Den opprinnelige teksten ble brukt."
       }
     },
     "clipboard": {
       "pasteFailed": {
-        "title": "Clipboard Paste Failed",
-        "description": "Could not paste from clipboard. Please try typing or using Cmd+V/Ctrl+V."
+        "title": "Innlimingen mislyktes",
+        "description": "Kunne ikke lime inn fra utklippstavlen. Prøv ⌘V."
       }
     },
     "hotkeyRegistration": {
       "titles": {
-        "invalidHotkey": "Invalid Hotkey",
-        "notRegistered": "Hotkey Not Registered",
-        "saved": "Hotkey Saved",
-        "error": "Hotkey Error"
+        "invalidHotkey": "Ugyldig hurtigtast",
+        "notRegistered": "Hurtigtasten er ikke registrert",
+        "saved": "Hurtigtasten er lagret",
+        "error": "Feil med hurtigtast"
       },
       "errors": {
-        "enterValidHotkey": "Please enter a valid hotkey",
-        "unsupportedShortcut": "That shortcut is not supported.",
-        "couldNotRegister": "This key could not be registered. Please choose a different key.",
-        "failedToRegister": "Failed to register hotkey. Please try again."
+        "enterValidHotkey": "Skriv inn en gyldig hurtigtast",
+        "unsupportedShortcut": "Denne hurtigtasten støttes ikke.",
+        "couldNotRegister": "Kunne ikke registrere tasten. Velg en annen.",
+        "failedToRegister": "Kunne ikke registrere hurtigtasten. Prøv igjen."
       },
       "messages": {
-        "nowUsing": "Now using {{hotkey}} for dictation"
+        "nowUsing": "Bruker nå {{hotkey}} til diktering"
       }
     },
     "modelDownload": {
       "errors": {
-        "timeout": "Download timed out. Check your internet connection and try again.",
-        "notFound": "Could not reach the download server. Check your internet connection.",
-        "corrupted": "Download was incomplete or corrupted. Please try again.",
-        "rateLimited": "Download server is rate limiting. Please wait a few minutes and try again.",
-        "server": "Server error ({{error}}). Please try again later.",
-        "generic": "Download failed: {{error}}",
-        "extractionFailed": "Model downloaded but installation failed. Click download to retry installation without re-downloading.",
-        "tlsError": "Certificate error — your network may use SSL inspection that blocks downloads. Try downloading from a different network.",
-        "unknown": "Unknown error"
+        "timeout": "Nedlastingen tok for lang tid. Kontroller internettforbindelsen og prøv igjen.",
+        "notFound": "Kunne ikke nå nedlastingsserveren. Kontroller internettforbindelsen.",
+        "corrupted": "Nedlastingen er ufullstendig eller skadet. Prøv igjen.",
+        "rateLimited": "Serveren begrenser nedlastingene. Vent noen minutter og prøv igjen.",
+        "server": "Serverfeil ({{error}}). Prøv igjen senere.",
+        "generic": "Nedlastingen mislyktes: {{error}}",
+        "extractionFailed": "Modellen er lastet ned, men installasjonen mislyktes. Trykk Last ned for å prøve installasjonen igjen.",
+        "tlsError": "Sertifikatfeil. Nettverket kan blokkere nedlastingen. Prøv et annet nettverk.",
+        "unknown": "Ukjent feil"
       },
       "downloadFailed": {
-        "title": "Download Failed"
+        "title": "Nedlastingen mislyktes"
       },
       "installationFailed": {
-        "title": "Installation Failed"
+        "title": "Installasjonen mislyktes"
       },
       "downloadInProgress": {
-        "title": "Download in Progress",
-        "description": "Please wait for the current download to complete or cancel it first."
+        "title": "Nedlasting pågår",
+        "description": "Vent til nedlastingen er ferdig, eller avbryt den først."
       },
       "modelDeleted": {
-        "title": "Model Deleted",
-        "descriptionWithSpace": "Model deleted successfully! Freed {{sizeMb}}MB of disk space.",
-        "description": "Model deleted successfully!"
+        "title": "Modellen er slettet",
+        "descriptionWithSpace": "Modellen er slettet. Frigjorde {{sizeMb}} MB lagringsplass.",
+        "description": "Modellen er slettet."
       },
       "deleteFailed": {
-        "title": "Delete Failed",
-        "description": "Failed to delete model: {{error}}"
+        "title": "Slettingen mislyktes",
+        "description": "Kunne ikke slette modellen: {{error}}"
       },
       "downloadCancelled": {
-        "title": "Download Cancelled",
-        "description": "The download has been cancelled."
+        "title": "Nedlastingen er avbrutt",
+        "description": "Nedlastingen er avbrutt."
       }
     },
     "permissions": {
       "paths": {
         "windowsMicrophone": "Settings -> Privacy -> Microphone",
         "linuxSound": "your system sound settings",
-        "defaultSound": "System Settings -> Sound -> Input",
+        "defaultSound": "Systeminnstillinger → Lyd → Inngang",
         "linuxPrivacy": "your system privacy settings",
-        "defaultPrivacy": "System Settings -> Privacy & Security -> Microphone"
+        "defaultPrivacy": "Systeminnstillinger → Personvern og sikkerhet → Mikrofon"
       },
       "micErrors": {
-        "accessFailed": "Microphone access failed. Please try again.",
-        "noMicrophones": "No microphones were detected. Connect or select a microphone in {{settingsPath}}.",
-        "permissionDenied": "Permission was denied. Open {{privacyPath}} and allow OpenWhispr.",
-        "couldNotStart": "Could not start the selected microphone. Choose an input device in {{settingsPath}}, then rerun the test.",
-        "noActiveInput": "No active audio input was found. Pick a microphone in {{settingsPath}}.",
-        "unknown": "Microphone access failed: {{error}}. Select a different input device and try again.",
-        "unknownFallback": "Unknown error"
+        "accessFailed": "Kunne ikke få tilgang til mikrofonen. Prøv igjen.",
+        "noMicrophones": "Fant ingen mikrofoner. Koble til eller velg en mikrofon i {{settingsPath}}.",
+        "permissionDenied": "Tilgang ble avslått. Åpne {{privacyPath}} og gi appen tilgang.",
+        "couldNotStart": "Kunne ikke starte valgt mikrofon. Velg en lydinngang i {{settingsPath}} og prøv igjen.",
+        "noActiveInput": "Fant ingen aktiv lydinngang. Velg en mikrofon i {{settingsPath}}.",
+        "unknown": "Mikrofontilgangen mislyktes: {{error}}. Velg en annen lydinngang og prøv igjen.",
+        "unknownFallback": "Ukjent feil"
       },
       "settingsTitles": {
-        "microphone": "Microphone Settings",
-        "sound": "Sound Settings",
-        "accessibility": "Accessibility Settings"
+        "microphone": "Mikrofoninnstillinger",
+        "sound": "Lydinnstillinger",
+        "accessibility": "Tilgjengelighet"
       },
       "settingsErrors": {
-        "unableToOpenMicrophone": "Unable to open microphone settings. Please open your system settings manually.",
-        "unableToOpenSound": "Unable to open sound settings. Please open your system settings manually.",
-        "unableToOpenAccessibility": "Unable to open accessibility settings. Please open your system settings manually."
+        "unableToOpenMicrophone": "Kunne ikke åpne mikrofoninnstillingene. Åpne Systeminnstillinger manuelt.",
+        "unableToOpenSound": "Kunne ikke åpne lydinnstillingene. Åpne Systeminnstillinger manuelt.",
+        "unableToOpenAccessibility": "Kunne ikke åpne Tilgjengelighet. Åpne Systeminnstillinger manuelt."
       },
-      "micUnavailable": "Microphone APIs are unavailable in this environment. Please restart the app.",
+      "micUnavailable": "Mikrofontilgang er utilgjengelig. Start appen på nytt.",
       "titles": {
-        "microphoneUnavailable": "Microphone Unavailable",
-        "microphonePermissionRequired": "Microphone Permission Required",
-        "accessibilityNeeded": "Accessibility Permissions Needed",
-        "readyToGo": "Ready to Go!",
+        "microphoneUnavailable": "Mikrofonen er utilgjengelig",
+        "microphonePermissionRequired": "Mikrofontillatelse kreves",
+        "accessibilityNeeded": "Tillatelse til innliming kreves",
+        "readyToGo": "Klar til bruk!",
         "waylandClipboardMode": "Clipboard Mode on Wayland",
         "optionalPasteTool": "Optional: Install Paste Tool"
       },
       "descriptions": {
-        "accessibilityNeeded": "Please grant accessibility permissions in System Settings to enable automatic text pasting.",
+        "accessibilityNeeded": "Gi appen Tilgjengelighet-tilgang i Systeminnstillinger for automatisk innliming.",
         "windowsReady": "Windows does not require special permissions for automatic pasting. You're all set!",
         "linuxReadyWithMethod": "Automatic pasting is available using {{method}}. You are all set!",
         "waylandClipboardMode": "Automatic pasting is not available on this Wayland session. OpenWhispr will copy text to your clipboard and you can paste with Ctrl+V.",
         "optionalPasteTool": "For automatic pasting, install {{tool}}:\n\n{{installCmd}}{{waylandNote}}\n\nWithout this, you can still use OpenWhispr - text will be copied to your clipboard and you can paste with Ctrl+V."
       },
       "alerts": {
-        "accessibilityNeeded": "Accessibility permissions needed! Please grant them in System Settings."
+        "accessibilityNeeded": "Gi appen Tilgjengelighet-tilgang i Systeminnstillinger."
       },
       "notes": {
         "waylandWtype": "\n\nNote: For XWayland apps, xdotool also works.",
@@ -1004,15 +1008,15 @@
         "defaultPasteTool": "xdotool",
         "xdotoolXwayland": "xdotool (XWayland apps)"
       },
-      "accessibilityTestText": "OpenWhispr accessibility test",
+      "accessibilityTestText": "DSSA Tale – test av innliming",
       "warning": {
         "messages": {
-          "macos": "Check Sound settings to select your input device",
+          "macos": "Velg lydinngang i lydinnstillingene",
           "windows": "Check Windows Settings to select your input device",
           "linux": "Check system sound settings to select your input device"
         },
-        "soundLabel": "Sound",
-        "privacyLabel": "Privacy"
+        "soundLabel": "Lyd",
+        "privacyLabel": "Personvern"
       }
     }
   },
@@ -1265,9 +1269,9 @@
     "backToSignIn": "Back to sign in"
   },
   "errorBoundary": {
-    "description": "An unexpected error occurred. Please reload to try again.",
-    "reload": "Reload",
-    "title": "Something went wrong"
+    "description": "En uventet feil oppstod. Last inn på nytt for å prøve igjen.",
+    "reload": "Last inn på nytt",
+    "title": "Noe gikk galt"
   },
   "forgotPassword": {
     "back": "Tilbake",
@@ -1288,10 +1292,10 @@
   },
   "actionPrompt": "Action Prompt",
   "hotkeyGuidance": {
-    "blockedDescription": "These shortcuts are blocked because they are commonly used by the system.",
-    "blockedTitle": "Blocked shortcuts",
-    "description": "Use these platform rules to choose a shortcut that won't conflict with your system.",
-    "examplesTitle": "Valid examples",
+    "blockedDescription": "Disse hurtigtastene er sperret fordi systemet vanligvis bruker dem.",
+    "blockedTitle": "Sperrede hurtigtaster",
+    "description": "Velg en hurtigtast som ikke er i konflikt med systemet.",
+    "examplesTitle": "Gyldige eksempler",
     "platforms": {
       "linux": "Linux",
       "macos": "macOS",
@@ -1319,16 +1323,16 @@
         "3": "Win+Alt+K"
       }
     },
-    "recommendedTitle": "Recommended shortcuts",
-    "rulesTitle": "Shortcut rules",
-    "showAll": "Show all",
-    "showFewer": "Show fewer",
-    "title": "Shortcut Guide",
+    "recommendedTitle": "Anbefalte hurtigtaster",
+    "rulesTitle": "Regler for hurtigtaster",
+    "showAll": "Vis alle",
+    "showFewer": "Vis færre",
+    "title": "Veiledning for hurtigtaster",
     "validationRules": {
-      "0": "Must use at least one modifier (Ctrl, Alt, Shift, etc.)",
-      "1": "Cannot use reserved system shortcuts",
-      "2": "Single keys alone are not allowed",
-      "3": "Some combinations may conflict with other apps"
+      "0": "Bruk minst én endringstast (Ctrl, Alt, Shift eller lignende)",
+      "1": "Reserverte systemhurtigtaster kan ikke brukes",
+      "2": "Enkelttaster alene er ikke tillatt",
+      "3": "Noen kombinasjoner kan komme i konflikt med andre apper"
     }
   },
   "hotkeyInput": {
@@ -1357,30 +1361,30 @@
     "searchPlaceholder": "Search languages"
   },
   "microphoneSettings": {
-    "builtIn": "(Built-in)",
+    "builtIn": "(Innebygd)",
     "errors": {
-      "unableToAccess": "Unable to access microphone. Please check permissions."
+      "unableToAccess": "Kunne ikke få tilgang til mikrofonen. Kontroller tillatelsene."
     },
-    "helpText": "Select a specific microphone or use the system default setting.",
+    "helpText": "Velg en mikrofon eller følg systemets standardvalg.",
     "inputDevice": "Lydinngang",
-    "noBuiltInDetected": "No built-in microphone detected. Using system default.",
+    "noBuiltInDetected": "Ingen innebygd mikrofon funnet. Bruker systemets standardvalg.",
     "preferBuiltIn": {
-      "description": "External microphones may cause latency or reduced transcription quality",
-      "label": "Prefer Built-in Microphone"
+      "description": "Eksterne mikrofoner kan gi forsinkelse eller dårligere transkribering",
+      "label": "Foretrekk innebygd mikrofon"
     },
     "selectPlaceholder": "Velg mikrofon",
     "systemDefault": "Følg systemet",
-    "unknownDevice": "Unknown Device",
-    "using": "Using: {{device}}",
+    "unknownDevice": "Ukjent enhet",
+    "using": "Bruker: {{device}}",
     "warmHold": {
-      "label": "Keep Microphone Warm",
-      "description": "After a dictation ends, keep the microphone open briefly so the next one starts instantly with nothing clipped",
-      "privacyNote": "While the microphone is held, your system's mic-in-use indicator stays on. Nothing is recorded between dictations.",
+      "label": "Hold mikrofonen klar",
+      "description": "Hold mikrofonen åpen en kort stund etter diktering, slik at neste opptak starter raskt uten å miste starten.",
+      "privacyNote": "Systemets mikrofonindikator lyser mens mikrofonen holdes åpen. Ingenting tas opp mellom dikteringer.",
       "options": {
-        "0": "Off",
-        "10": "10 seconds",
-        "60": "1 minute",
-        "900": "15 minutes"
+        "0": "Av",
+        "10": "10 sekunder",
+        "60": "1 minutt",
+        "900": "15 minutter"
       }
     }
   },
@@ -2547,8 +2551,8 @@
     }
   },
   "models": {
-    "learnMore": "Learn more",
-    "noneAvailable": "No models available",
+    "learnMore": "Les mer",
+    "noneAvailable": "Ingen modeller tilgjengelige",
     "descriptions": {
       "parakeet": {
         "parakeet_tdt_0_6b_v3": "Fast multilingual ASR with auto language detection (25 languages)",
@@ -2557,8 +2561,8 @@
         "nemotron_3_5_asr_streaming_0_6b": "Multilingual streaming ASR from NVIDIA Nemotron with auto language detection (15 languages)"
       },
       "diarization": {
-        "segmentation": "Speech boundary detection for speaker diarization",
-        "embedding_en": "Speaker voice fingerprinting for identification"
+        "segmentation": "Finner talegrenser for å skille talere",
+        "embedding_en": "Sammenligner stemmer for å skille talere"
       },
       "whisper": {
         "tiny": "Fastest, lower quality",
@@ -2636,14 +2640,14 @@
       },
       "local": {
         "qwen_qwen3_5_9b_q4_k_m": "Powerful hybrid model",
-        "qwen_qwen3_5_4b_q4_k_m": "Balanced Qwen3.5 for general use",
-        "qwen_qwen3_5_2b_q4_k_m": "Small Qwen3.5 for quick tasks",
-        "qwen_qwen3_8b_q4_k_m": "Latest Qwen3 with thinking mode support",
+        "qwen_qwen3_5_4b_q4_k_m": "Qwen3.5 med balanse mellom minnebruk og kvalitet",
+        "qwen_qwen3_5_2b_q4_k_m": "Liten Qwen3.5 for raske oppgaver",
+        "qwen_qwen3_8b_q4_k_m": "Qwen3 med støtte for resonnering",
         "qwen_qwen3_8b_q5_k_m": "Higher quality Qwen3 with thinking mode",
         "qwen_qwen3_4b_q4_k_m": "Compact Qwen3 with reasoning capabilities",
         "qwen_qwen3_1_7b_q8_0": "Small but capable Qwen3 model",
         "qwen_qwen3_32b_q4_k_m": "Most powerful local Qwen3 with deep reasoning",
-        "qwen_qwen2_5_1_5b_instruct_q5_k_m": "Small model, good for basic tasks",
+        "qwen_qwen2_5_1_5b_instruct_q5_k_m": "Liten modell for enkle oppgaver",
         "qwen_qwen2_5_3b_instruct_q5_k_m": "Balanced model for general use",
         "qwen_qwen2_5_7b_instruct_q4_k_m": "Large model with high quality (Q4_K_M)",
         "qwen_qwen2_5_7b_instruct_q5_k_m": "Large model, high quality reasoning (Q5_K_M)",
@@ -3382,10 +3386,10 @@
     "agentDefault": "Lagt til som standard"
   },
   "support": {
-    "documentation": "Documentation",
-    "joinDiscord": "Join Discord",
-    "contactSupport": "Contact Support",
-    "submitBug": "Submit Bug"
+    "documentation": "Dokumentasjon",
+    "joinDiscord": "Åpne Discord",
+    "contactSupport": "Kontakt brukerstøtte",
+    "submitBug": "Meld fra om feil"
   },
   "postMigration": {
     "title": "Welcome back to OpenWhispr",
@@ -3441,26 +3445,26 @@
         "description": "An update removed an outdated GPU pack installation ({{packs}}). Re-download it in Settings to restore GPU acceleration."
       },
       "cleanupFailed": {
-        "title": "Cleanup failed",
-        "description": "Your dictation was pasted without AI cleanup."
+        "title": "Tekstoppryddingen mislyktes",
+        "description": "Dikteringen ble satt inn uten tekstopprydding."
       }
     },
     "mic": {
-      "hotkeyToSpeak": "{{hotkey}} to talk",
-      "recording": "Recording...",
-      "processing": "Processing...",
-      "clickToSpeak": "Click to speak",
-      "waitingForMicrophone": "Waiting for microphone…"
+      "hotkeyToSpeak": "{{hotkey}} for å snakke",
+      "recording": "Tar opp …",
+      "processing": "Behandler …",
+      "clickToSpeak": "Klikk for å snakke",
+      "waitingForMicrophone": "Venter på mikrofonen …"
     },
     "buttons": {
-      "cancelRecording": "Cancel recording",
-      "cancelProcessing": "Cancel processing"
+      "cancelRecording": "Avbryt opptak",
+      "cancelProcessing": "Avbryt behandling"
     },
     "commandMenu": {
-      "stopListening": "Stop listening",
-      "startListening": "Start listening",
-      "hideForNow": "Hide for now",
-      "askAssistant": "Ask Assistant"
+      "stopListening": "Stopp opptak",
+      "startListening": "Start opptak",
+      "hideForNow": "Skjul foreløpig",
+      "askAssistant": "Spør assistenten"
     }
   },
   "dictationAgent": {
@@ -3684,27 +3688,27 @@
     }
   },
   "notesView": {
-    "searchPlaceholder": "Search notes…",
-    "newNote": "New Note",
+    "searchPlaceholder": "Søk i notater …",
+    "newNote": "Nytt notat",
     "empty": {
-      "title": "No notes yet",
-      "description": "Create your first note to get started."
+      "title": "Ingen notater ennå",
+      "description": "Lag ditt første notat for å komme i gang."
     },
     "searchEmpty": {
-      "title": "No results",
-      "description": "No notes found for \"{{query}}\"."
+      "title": "Ingen treff",
+      "description": "Ingen notater funnet for «{{query}}»."
     },
     "noteType": {
-      "personal": "personal",
-      "meeting": "meeting",
-      "upload": "upload"
+      "personal": "personlig",
+      "meeting": "møte",
+      "upload": "lydfil"
     }
   },
   "noteEditor": {
-    "saved": "Saved",
-    "deleteNote": "Delete note",
-    "deleteConfirmTitle": "Delete note?",
-    "deleteConfirmDescription": "This note will be permanently deleted and cannot be recovered.",
+    "saved": "Lagret",
+    "deleteNote": "Slett notat",
+    "deleteConfirmTitle": "Slette notatet?",
+    "deleteConfirmDescription": "Notatet slettes permanent og kan ikke gjenopprettes.",
     "deleteConfirm": "Slett",
     "share": {
       "button": "Share",
@@ -3755,22 +3759,22 @@
     }
   },
   "commandSearch": {
-    "allSpaces": "All spaces",
+    "allSpaces": "Alle områder",
     "title": "Søk",
-    "description": "Search across notes and transcripts",
+    "description": "Søk i notater og transkripsjoner",
     "shortPlaceholder": "Søk",
-    "placeholder": "Search notes and transcripts…",
+    "placeholder": "Søk i notater og transkripsjoner …",
     "sections": {
       "notes": "Notater",
-      "transcripts": "Transcripts",
-      "jumpTo": "Jump to"
+      "transcripts": "Transkripsjoner",
+      "jumpTo": "Gå til"
     },
-    "noResults": "No results",
-    "emptyState": "Start typing to search",
+    "noResults": "Ingen treff",
+    "emptyState": "Skriv for å søke",
     "footer": {
-      "navigate": "Navigate",
-      "open": "Open",
-      "dismiss": "Dismiss"
+      "navigate": "Naviger",
+      "open": "Åpne",
+      "dismiss": "Lukk"
     }
   },
   "updateNotification": {
@@ -3779,37 +3783,37 @@
     "cta": "Update Now"
   },
   "permissionsGate": {
-    "title": "Permissions Required",
-    "description": "OpenWhispr needs a few permissions to work on this computer.",
+    "title": "Tillatelser kreves",
+    "description": "Appen trenger noen tillatelser for å fungere på denne Mac-en.",
     "continue": "Fortsett"
   },
   "embeddedChat": {
-    "askPlaceholder": "Ask anything...",
+    "askPlaceholder": "Still et spørsmål …",
     "send": "Send",
     "title": "Assistent",
-    "emptyState": "Ask a question about this note",
-    "dock": "Dock to sidebar",
-    "undock": "Undock from sidebar",
-    "close": "Close chat",
-    "newChat": "New chat",
-    "conversationSelector": "Switch conversation"
+    "emptyState": "Still et spørsmål om dette notatet",
+    "dock": "Fest til sidefeltet",
+    "undock": "Løsne fra sidefeltet",
+    "close": "Lukk samtalen",
+    "newChat": "Ny samtale",
+    "conversationSelector": "Bytt samtale"
   },
   "transcriptionPreview": {
-    "label": "Preview",
-    "listening": "Listening...",
-    "polishing": "Polishing...",
-    "ready": "Ready",
+    "label": "Forhåndsvisning",
+    "listening": "Lytter …",
+    "polishing": "Rydder tekst …",
+    "ready": "Klar",
     "copy": "Kopier",
     "copied": "Kopiert",
-    "collapse": "Collapse transcript",
-    "waitingForInput": "Say something..."
+    "collapse": "Skjul transkripsjon",
+    "waitingForInput": "Si noe …"
   },
   "transcript": {
     "speaker": {
-      "you": "You",
-      "others": "Others"
+      "you": "Du",
+      "others": "Andre"
     },
-    "missingAudio": "[missing audio {{from}}-{{to}}]"
+    "missingAudio": "[mangler lyd {{from}}–{{to}}]"
   },
   "dictationTranslation": {
     "title": "Dictation Translation",
@@ -3857,6 +3861,7 @@
     "shortcuts": "Hurtigtaster",
     "recording": "Opptak og innliming",
     "appearance": "Utseende og språk",
-    "home": "Hjem – til startsiden"
+    "home": "Hjem – til startsiden",
+    "system": "System"
   }
 }

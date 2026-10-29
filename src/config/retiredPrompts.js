@@ -86,6 +86,13 @@ export const RETIRED_DEFAULT_PROMPT_HASHES = new Set([
 // used by the sweep; the registry test compares these against the live locale
 // bundles so a prompt change cannot land without updating the retired set.
 export const CURRENT_DEFAULT_PROMPT_HASHES = {
+  "nn/cleanupPrompt": "e2ae7805f960179400585446c8879133113045f7773eae6cbaf6c8414e97eee1",
+  "nn/fullPrompt": "8580f0fe9b35555acf8d304402d6773bc24915b42cb15c66ad84fee0f0d9c6c3",
+  "nn/translatePrompt": "2acf77e82671cfb27f56210461369cca96da52d68597dd825bb5f3cf7fd4cd47",
+  "nb/cleanupPrompt": "41352088ade78b8137830ff0ecd99aeaaa87f8bb3796b4b4f63bd19fc62cab02",
+  "nb/fullPrompt": "80a1d94aafdf2681e1416a43f3a1f23380b498e69f28b2ebf1b6b3c924534628",
+  "nb/translatePrompt": "2acf77e82671cfb27f56210461369cca96da52d68597dd825bb5f3cf7fd4cd47",
+
   "de/cleanupPrompt": "89452bfcce253803ae9fd9b0e9fc3f50afbf9c8d89706ad92dfc48d1e29ec4af",
   "de/fullPrompt": "9312644f8de56d874e0de9e18d610a3ed6afd0ca1b31411f02d021e012fee601",
   "de/translatePrompt": "818b9176518120cd7889726574b61026733ffb69768d3d00e417c28389e5875e",

@@ -51,7 +51,7 @@ function loadEnvironmentManager(t, userDataDirectory) {
   }
 }
 
-test("fresh Chinese browser locale survives settings hydration", async (t) => {
+test("fresh NB edition selects Norwegian despite a Chinese browser locale", async (t) => {
   installNavigatorLanguage(t, "zh-Hans-CN");
   installBrowserGlobals(t, {
     initialStorage: {
@@ -88,10 +88,10 @@ test("fresh Chinese browser locale survives settings hydration", async (t) => {
     },
     {
       initialLanguage: "zh-CN",
-      initialStoreLanguage: "zh-CN",
-      hydratedLanguage: "zh-CN",
-      hydratedStoreLanguage: "zh-CN",
-      persistedLanguage: null,
+      initialStoreLanguage: "nb",
+      hydratedLanguage: "nb",
+      hydratedStoreLanguage: "nb",
+      persistedLanguage: "nb",
     }
   );
 });

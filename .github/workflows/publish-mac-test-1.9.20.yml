@@ -1,0 +1,57 @@
+name: Publish tested Mac 1.9.20 installer
+on:
+  push:
+    branches: [release/mac-1.9.20]
+permissions:
+  contents: write
+concurrency:
+  group: publish-mac-test-1.9.20
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: SteinOA/DSSA-Tale-Mac
+      RELEASE_TAG: v1.9.20-test
+    steps:
+      - name: Fetch exact manifest and documents at this commit
+        run: |
+          set -euo pipefail
+          for file in release-1.9.20-manifest.json INSTALLASJON.md BRUK-OG-RETTIGHETER.md TESTSTATUS-1.9.20.md RELEASE-NOTES-1.9.20.md; do
+            curl --fail --silent --show-error --location --retry 2 "https://raw.githubusercontent.com/${GH_REPO}/${GITHUB_SHA}/${file}" --output "${file}"
+          done
+      - name: Reassemble the Mac-built installer and verify every byte
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,pathlib,urllib.request
+          m=json.loads(pathlib.Path('release-1.9.20-manifest.json').read_text())
+          assert m['file']=='DSSA-Tale-Test-1.9.20-Apple-Silicon.dmg'
+          assert m['sha256']=='1dbbd396b4f7c114d7cdc7780a74279387eba6c2d71dddb352c4c99f4ae914d9'
+          combined=hashlib.sha256();total=0
+          with open(m['file'],'xb') as out:
+            for p in m['parts']:
+              digest=hashlib.sha256();size=0
+              url='https://drive.usercontent.google.com/download?id='+p['id']+'&export=download&confirm=t'
+              with urllib.request.urlopen(url,timeout=120) as response:
+                while data:=response.read(1024*1024):
+                  size+=len(data)
+                  if size>p['bytes']:raise RuntimeError('Part too large')
+                  digest.update(data);combined.update(data);out.write(data)
+              assert size==p['bytes'] and digest.hexdigest()==p['sha256'],'Part verification failed'
+              total+=size
+          assert total==m['bytes'] and combined.hexdigest()==m['sha256'],'Installer verification failed'
+          pathlib.Path(m['file']+'.sha256').write_text(m['sha256']+'  '+m['file']+'\n')
+          print('Verified single DMG:',m['file'],total,m['sha256'])
+          PY
+      - name: Publish prerelease only after all assets have uploaded
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo 'Release already exists; refusing to replace an existing release.' >&2
+            exit 1
+          fi
+          gh release create "$RELEASE_TAG" --draft --prerelease --target "$GITHUB_SHA" --title 'DSSA Tale Test 1.9.20 – Mac, modeller lastes ned i appen' --notes-file RELEASE-NOTES-1.9.20.md
+          gh release upload "$RELEASE_TAG" DSSA-Tale-Test-1.9.20-Apple-Silicon.dmg DSSA-Tale-Test-1.9.20-Apple-Silicon.dmg.sha256 INSTALLASJON.md BRUK-OG-RETTIGHETER.md TESTSTATUS-1.9.20.md
+          gh release edit "$RELEASE_TAG" --draft=false --prerelease

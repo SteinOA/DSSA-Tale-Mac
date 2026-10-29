@@ -165,3 +165,11 @@ test("getMeetingJoinUrl trims hangout_link and skips whitespace-only links", asy
   };
   assert.equal(getMeetingJoinUrl(eventWithWhitespaceOnly), "https://zoom.us/j/123");
 });
+
+test("extracts FaceTime HTTPS meeting links without accepting lookalikes or dial schemes", async () => {
+  const { extractMeetingUrl } = await load();
+  const link="https://facetime.apple.com/join#v=1&p=test&k=sample";
+  assert.equal(extractMeetingUrl(["FaceTime: "+link]),link);
+  for(const value of ["http://facetime.apple.com/join#v=1","https://facetime.apple.com.evil.example/join","https://evil.example/join#v=1","https://facetime.apple.com/help","facetime:someone@example.com"])
+    assert.equal(extractMeetingUrl([value]),null);
+});

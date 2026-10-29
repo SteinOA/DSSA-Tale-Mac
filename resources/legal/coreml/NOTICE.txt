@@ -1,0 +1,93 @@
+CORE ML-BYGGEGRUNNLAG – INGEN ENCODERVEKT I 1.9.20-INSTALLASJONEN
+Denne lette utgaven inkluderer ikke Core ML-encoder eller andre modellvekter.
+Uten encoder bruker appen den portable Metal/CPU-motoren. Notatene nedenfor
+beskriver tidligere isolerte tester og reproduksjon, ikke medfølgende vekter.
+
+VALGFRI CORE ML-KANDIDAT – IKKE INSTALLERT/PUBLISERT
+29. oktober 2026
+
+FERDIGE RESSURSER
+work/coreml-evaluation/candidate-assets/bin/whisper-server-coreml-darwin-arm64
+SHA256: 9670709d9c96cf67c7d0d8f3c52c006034520d568122b92af44c011c37881cf9
+work/coreml-evaluation/candidate-assets/nb-models/ggml-nb-large-full-encoder.mlmodelc
+work/coreml-evaluation/candidate-assets/nb-models/ggml-nb-large-encoder.mlmodelc
+Den siste er en RELATIV symlink til ggml-nb-large-full-encoder.mlmodelc.
+Det finnes bare én fysisk encoder. Samlet logisk assetstørrelse:
+1 277 990 366 byte, inkludert serveren, ikke eksisterende NB-GGML-vekter.
+Hash for hver fil og symlinkmål: candidate-assets-manifest.json.
+Ingen arbeidsmappe-/hjemmebaner funnet ved binært tekstsøk i mlmodelc.
+Prototypens andre symlinker må ikke kopieres; bruk kun candidate-assets.
+
+RUTING SOM BØR IMPLEMENTERES AV HOVEDARBEIDET
+Behold eksisterende generiske Metal/CPU-server og begge NB-modellfiler.
+Velg denne separate serveren automatisk bare for eksplisitt gjenkjent
+Apple M4-familie når encoder, alias og binær finnes, og GPU/Metal er valgt.
+CPU-modus skal ALLTID bruke original server og dermed respektere CPU-valget.
+Ukjent prosessor og nyere M-familier skal foreløpig bruke original server.
+Ikke utled støtte fra høyere tall, eller merk Intel-støtte.
+M4 er faktisk prøvd; M4 Pro/Max og andre maskiner er ikke fysisk prøvd her.
+
+Serveren er kompilert med WHISPER_COREML_ALLOW_FALLBACK=ON. Dette gjør at
+manglende Core ML-last kan falle tilbake, men status skal si faktisk motor.
+Kun «Core ML model loaded» bekrefter at encoder ble lastet; COREML=1 er
+bare byggestøtte. Ved startfeil bør originalserver kunne brukes uten å
+endre brukerens språk, modellvalg eller lydruting.
+
+CPU_AND_NE gjelder encoder. Dette utelukker Core ML-GPU, men både CPU og
+Neural Engine er tillatt. Decoder bruker fortsatt Metal. Faktisk ANE-
+utførelse er ikke profilert, så grensesnittet må ikke hevde dette sikkert.
+q5-valget blir en hybrid: kvantisert q5-decoder + encoder fra full NB-modell.
+Dette skal beskrives; det er ikke en ren q5-encoderbane. Fullvalget beholder
+samme modellfamilie og encodervekter med FP16 Core ML-beregning.
+
+OPPSTART/MINNE
+Første Core ML-last var 24,7s; senere 11,6–17,6s; q5-kandidat 13,6s.
+Bruk minst 120s oppstartsfrist og vurder varm modell før diktering.
+Vis klargjøring; ikke la modellen se frosset ut. Oppstart er tregere enn
+original Metal (ca1–2s i prøvene). Konvertering peakRSS4,71GB; dette er ikke
+appens runtime-minnekrav. Runtime øker minnebruken, og bredere prøver på
+24GB-maskiner gjenstår. Appen må ikke automatisk avslutte andre programmer.
+
+FAKTISK KANDIDATTEST MED FALLBACK PÅ
+Begge 12s offentlige prøver logget «Core ML model loaded» og ga tekst
+identisk med original q5-server i samme runde:
+                  Core ML-hybrid   Original q5 Metal
+Bokmål            2,028s           2,556s
+Nynorsk           1,855s           2,571s
+Dette er HTTP-requesttid, ikke tastslipp-til-innliming. Fullmodellens øvrige
+3/12/28s-prøver og kaldstartavveiing står i ../PROTOTYPE-RESULTAT.txt.
+Ingen generell ettsekundsgaranti. Ingen endring av originalvektfilene.
+
+BYGG OG ETTERPRØVBARHET
+Pinned OpenWhispr/whisper.cpp commit:
+dd18d1107cf20feb58f11b2719d66a5bfeaff0dc (tag0.0.8).
+Bruk denne kildekoden, påfør cpu-and-neural-engine.patch, og kjør
+build-coreml-server.sh med kildecheckout, byggemappe og ønsket outputfil.
+CMake må finnes på PATH; bruk den isolerte venv/bin ved reproduksjon.
+Flagg: CoreML ON, fallback ON, Metal ON, BUILD_SHARED_LIBS OFF,
+GGML_NATIVE ON, Release, arm64, minOS26.0. Native CPU-flagg på M4:
+-mcpu=native+dotprod+i8mm+nosve+sme. Ingen M1/M2/M3-portabilitet loves.
+otool bekrefter minOS26.0 og kun Appleframeworks/systembiblioteker.
+Faktisk OS-test: M4/macOS27.0.1; macOS26 er teknisk minimum, ikke prøvd.
+
+convert-nb-encoder.py --model <full-GGML> --output <egen mappe>
+kontrollerer SHA256 før lesing, og rekonstruerer kun 487 encoder-tensorer.
+Ingen modellnedlasting skjer. requirements-frozen.txt låser prototypevenv;
+bruk separat venv, aldri mottakerens system-Python. Konvertererens CLI og
+syntaks er kontrollert; selve vekt-/Core ML-logikken er identisk med den
+kjørte prototypen. En ren reproduksjonsrunde av CLI-innpakningen gjenstår.
+Originalens format følger convert-pt-to-ggml.py fra samme pinned fork.
+Manifestet inneholder kildeoffset, type, dimensjoner og SHA for hver tensor.
+Interface er logmel_data float32[1,128,3000] -> output float32[1,1500,1280].
+Compiled modellen bruker specificationVersion6 og intern FP16.
+
+LISENSOPPLYSNINGER FOR SENERE PAKKING
+NB Large-encoder er avledet fra NbAiLab/nb-whisper-large, revisjon
+8c6249fdeeb4dcd05e5735a4c39640607eb6e4ac, Apache-2.0. Behold modellkort,
+Apache-lisens, modellproveniens og at encoder er konvertert/FP16-optimalisert.
+Serveren er OpenWhispr/whisper.cpp, MIT, copyright ggml authors. Behold MIT.
+Egen konverterings-/byggelimkode hører til DSSA-tilpasningen under MIT.
+Relevant eksisterende fulltekstmateriale er samlet i legal/ her.
+Coremltools/PyTorch/Whisper-Python brukes kun ved bygging, ikke i appen.
+Ingen Apple-SDK eller Python-runtime skal kopieres til installasjonspakken.
+Dette notatet er attribusjons-/byggegrunnlag, ikke en juridisk garanti.

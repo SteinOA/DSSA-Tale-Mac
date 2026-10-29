@@ -1,5 +1,6 @@
 import logger from "./logger";
 import { getSettings } from "../stores/settingsStore";
+import { applyAudioOutput, audioOutputStep, playNativeAudioCue } from "./nbAudioOutput";
 
 const START_NOTES = [523.25, 659.25];
 const STOP_NOTES = [587.33, 440];
@@ -35,9 +36,11 @@ export const resumeContextIfNeeded = async () => {
       return null;
     }
 
-    if (context.state === "suspended") {
-      await context.resume();
-    }
+    const pendingResume = context.state === "suspended" ? context.resume() : Promise.resolve();
+    const resumed = audioOutputStep("Start dikteringslyd", () => pendingResume).then(() => null, error => error);
+    await applyAudioOutput(context);
+    const resumeError = await resumed;
+    if (resumeError) throw resumeError;
 
     return context.state === "running" ? context : null;
   } catch (error) {
@@ -74,6 +77,7 @@ const isEnabled = () => getSettings().audioCuesEnabled;
 const playCue = async (notes) => {
   try {
     if (!isEnabled()) return;
+    if (await playNativeAudioCue(notes === START_NOTES ? "start" : "stop")) return;
 
     const context = await resumeContextIfNeeded();
     if (!context) {

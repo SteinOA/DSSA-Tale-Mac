@@ -12,6 +12,7 @@ const {
 } = require("./downloadUtils");
 const WhisperServerManager = require("./whisperServer");
 const { createAbortError } = require("./abortError");
+const { NbWhisperQueue } = require("./nbWhisperQueue");
 const { getModelsDirForService } = require("./modelDirUtils");
 
 const modelRegistryData = require("../models/modelRegistryData.json");
@@ -25,6 +26,7 @@ function getWhisperModelConfig(modelName) {
     url: modelInfo.downloadUrl,
     size: modelInfo.expectedSizeBytes || modelInfo.sizeMb * 1_000_000,
     fileName: modelInfo.fileName,
+    sha256: modelInfo.sha256,
   };
 }
 
@@ -66,6 +68,8 @@ class WhisperManager {
     this.currentServerModel = null;
     this.cachedVadModelPath = undefined;
     this._transcribing = false;
+    this._transcribingCount = 0;
+    this._requestQueue = new NbWhisperQueue();
     this._rewarmInFlight = false;
     this._cudaBinaryManager = null;
     this._vulkanBinaryManager = null;
@@ -108,10 +112,12 @@ class WhisperManager {
   async restartServerWithGpuPreference(modelName = this.currentServerModel) {
     if (!modelName || this.serverManager.isRemote) return { success: true, restarted: false };
 
-    const options = { ...this.serverManager.lastStartOptions, ...this.resolveGpuStartOptions() };
-    await this.stopServer();
-    const result = await this.startServer(modelName, options);
-    return { ...result, restarted: true };
+    return this._getRequestQueue().run(async () => {
+      const options = { ...this.serverManager.lastStartOptions, ...this.resolveGpuStartOptions() };
+      await this._stopServerUnlocked();
+      const result = await this._startServerUnlocked(modelName, options);
+      return { ...result, restarted: true };
+    });
   }
 
   getModelsDir() {
@@ -178,8 +184,8 @@ class WhisperManager {
 
           try {
             const serverStartTime = Date.now();
-            await this.serverManager.start(modelPath, { useCuda, useVulkan });
-            this.currentServerModel = whisperModel;
+            const warmed = await this.startServer(whisperModel, { useCuda, useVulkan });
+            if (!warmed.success) throw new Error(warmed.reason);
 
             debugLogger.info("whisper-server pre-warmed successfully", {
               model: whisperModel,
@@ -281,6 +287,10 @@ class WhisperManager {
   }
 
   async startServer(modelName, options = {}) {
+    return this._getRequestQueue().run(() => this._startServerUnlocked(modelName, options), { priority: "background" });
+  }
+
+  async _startServerUnlocked(modelName, options = {}) {
     if (!this.serverManager.isAvailable()) {
       return { success: false, reason: "whisper-server binary not found" };
     }
@@ -291,6 +301,7 @@ class WhisperManager {
     }
 
     try {
+      await this._verifyNbModel(modelName);
       await this.serverManager.start(modelPath, options);
       this.currentServerModel = modelName;
       debugLogger.info("whisper-server started", {
@@ -305,6 +316,10 @@ class WhisperManager {
   }
 
   async stopServer() {
+    return this._getRequestQueue().run(() => this._stopServerUnlocked());
+  }
+
+  async _stopServerUnlocked() {
     await this.serverManager.stop();
     this.currentServerModel = null;
   }
@@ -363,6 +378,32 @@ class WhisperManager {
     };
   }
 
+  nbPrecomputeIdentity(options = {}) {
+    const model = this.getModelPath(options.model || "nb-large-full");
+    const stat = fs.statSync(model);
+    return {
+      model, modelSize: stat.size, modelMtime: stat.mtimeMs,
+      requestModel: options.model || "nb-large-full",
+      language: options.language || "auto",
+      decoder: {
+        initialPrompt: options.initialPrompt || null,
+        fields: options.skipDecoderThresholds === true ? {} : require("./whisperServer").INFERENCE_DECODER_FIELDS,
+        skipDecoderThresholds: options.skipDecoderThresholds === true,
+        vadEnabled: options.vadEnabled === true,
+        vadModel: options.vadEnabled === true ? this.getVadModelPath() || null : null,
+        vadConfig: options.vadConfig || null,
+        gpu: this.resolveGpuStartOptions(),
+        acceleration: process.env.NB_ACCELERATION || "auto",
+        nbRecovery: "non-silent-nocaptions-suppress-nst-v1",
+      },
+    };
+  }
+
+  async _verifyNbModel(modelName, signal) {
+    const pinned = getWhisperModelConfig(modelName);
+    if (pinned?.sha256) await require("./nbWhisperDownload").verifyModel(this.getModelPath(modelName), pinned, signal);
+  }
+
   async transcribeLocalWhisper(audioBlob, options = {}) {
     debugLogger.logWhisperPipeline("transcribeLocalWhisper - start", {
       options,
@@ -390,21 +431,29 @@ class WhisperManager {
       throw new Error(`Whisper model "${model}" not downloaded. Please download it from Settings.`);
     }
 
+    await this._verifyNbModel(model, options.signal);
+
     return await this.transcribeViaServer(audioBlob, model, language, initialPrompt, {
       vadEnabled,
       vadConfig,
       signal: options.signal,
       skipDecoderThresholds: options.skipDecoderThresholds === true,
+      priority: options.priority === "background" ? "background" : "interactive",
+      nbNormalized: options.nbNormalized === true,
+      nbCacheLookup: options.nbCacheLookup,
+      nbIdentity: options.nbCacheLookup ? this.nbPrecomputeIdentity(options) : null,
     });
   }
 
   async transcribeViaServer(audioBlob, model, language, initialPrompt = null, options = {}) {
     // Mark the server busy so a wake re-warm doesn't kill an in-flight dictation. See #766.
+    this._transcribingCount = (this._transcribingCount || 0) + 1;
     this._transcribing = true;
     try {
       return await this._runServerTranscription(audioBlob, model, language, initialPrompt, options);
     } finally {
-      this._transcribing = false;
+      this._transcribingCount--;
+      this._transcribing = this._transcribingCount > 0;
     }
   }
 
@@ -413,23 +462,6 @@ class WhisperManager {
     if (options.signal?.aborted) {
       throw createAbortError("whisper-server transcription cancelled");
     }
-
-    debugLogger.info("Transcription mode: SERVER", { model, language: language || "auto" });
-    const modelPath = this.getModelPath(model);
-
-    const vadEnabled = options.vadEnabled === true;
-    const vadModelPath = vadEnabled ? this.getVadModelPath() : null;
-    if (vadEnabled && !vadModelPath) {
-      debugLogger.warn("VAD requested but ggml-silero model not found; running without VAD");
-    }
-
-    await this.serverManager.start(modelPath, {
-      ...this.resolveGpuStartOptions(),
-      vadEnabled,
-      vadModelPath,
-      vadConfig: options.vadConfig || null,
-    });
-    this.currentServerModel = model;
 
     // Convert audioBlob to Buffer if needed
     let audioBuffer;
@@ -451,31 +483,73 @@ class WhisperManager {
       throw new Error("Audio buffer is empty - no audio data received");
     }
 
-    debugLogger.logWhisperPipeline("transcribeViaServer - sending to server", {
-      bufferSize: audioBuffer.length,
-      model,
-      language,
-      port: this.serverManager.port,
+    // Normalize independently of model startup; FFmpeg never owns the engine.
+    const wav = options.nbNormalized ? audioBuffer : await this.serverManager._convertToWav(audioBuffer);
+    if (options.signal?.aborted) throw createAbortError("Whisper job cancelled");
+    const chunks = ["nb-large", "nb-large-full"].includes(model)
+      ? require("./nbAudioChunks").splitPcm16Wav(wav) : [wav];
+    const results = [];
+    for (const chunk of chunks) {
+      results.push(await this._decodeQueuedWindow(chunk, model, language, initialPrompt, options));
+    }
+    return this.parseWhisperResult(chunks.length === 1 ? results[0] : {
+      text: results.map(result => result.text || "").join(" "),
     });
+  }
 
-    const startTime = Date.now();
-    const result = await this.serverManager.transcribe(audioBuffer, {
-      language,
-      initialPrompt,
-      signal: options.signal,
-      skipDecoderThresholds: options.skipDecoderThresholds,
-    });
-    const elapsed = Date.now() - startTime;
+  _getRequestQueue() {
+    return this._requestQueue || (this._requestQueue = new NbWhisperQueue());
+  }
 
-    debugLogger.logWhisperPipeline("transcribeViaServer - completed", {
-      elapsed,
-      resultKeys: Object.keys(result),
-    });
+  async _decodeQueuedWindow(wav, model, language, initialPrompt, options = {}) {
+    if (options.signal?.aborted) throw createAbortError("Whisper job cancelled");
+    // MUST remain outside the lock: a matching background inference may itself
+    // be waiting for that lock. No approximate/partial cache results are used.
+    if (typeof options.nbCacheLookup === "function") {
+      const cached = await options.nbCacheLookup(wav, options.nbIdentity);
+      if (options.signal?.aborted) throw createAbortError("Whisper job cancelled");
+      if (cached !== undefined) return cached;
+    }
+    return this._getRequestQueue().run(async () => {
+      const modelPath = this.getModelPath(model);
+      await this._verifyNbModel(model, options.signal);
+      await this.serverManager.start(modelPath, {
+        ...this.resolveGpuStartOptions(),
+        vadEnabled: options.vadEnabled === true,
+        vadModelPath: options.vadEnabled === true ? this.getVadModelPath() : null,
+        vadConfig: options.vadConfig || null,
+      });
+      this.currentServerModel = model;
+      if (options.signal?.aborted) throw createAbortError("Whisper job cancelled");
+      // Keep the engine lock until HTTP completion even on cancellation. Native
+      // whisper.cpp keeps computing after a disconnected client; early unlock
+      // would permit a model switch to kill another request's active decode.
+      return this.serverManager._transcribeNormalizedWav(wav, {
+        language, initialPrompt, skipDecoderThresholds: options.skipDecoderThresholds,
+      });
+    }, { priority: options.priority, signal: options.signal });
+  }
 
-    return this.parseWhisperResult(result);
+  // Internal main-process API for bounded disk imports. The caller owns file
+  // decoding, persistence/checkpoints and offsets. Silent windows are results,
+  // not failed imports. Never expose this normalized-input shortcut over IPC.
+  async transcribeNormalizedWhisperWindow(wav, options = {}) {
+    const pcm = require("./nbAudioChunks").getPcm16WavData(wav);
+    if (!pcm.length || pcm.length > 28 * 32000) throw new Error("Expected one PCM window of at most 28 seconds");
+    const model = options.model || "nb-large-full";
+    if (!["nb-large", "nb-large-full"].includes(model)) throw new Error("NB Large model required");
+    return this._decodeQueuedWindow(wav, model, options.language || null, options.initialPrompt || null,
+      { ...options, priority: options.priority || "background", nbCacheLookup: undefined });
   }
 
   async transcribeViaLan(audioBlob, url, options = {}) {
+    // Legacy remote mode is not exposed by the Mac UI, but must not change the
+    // shared manager into remote mode while a local window is still decoding.
+    return this._getRequestQueue().run(() => this._transcribeViaLanUnlocked(audioBlob, url, options),
+      { priority: options.priority, signal: options.signal });
+  }
+
+  async _transcribeViaLanUnlocked(audioBlob, url, options = {}) {
     debugLogger.info("Transcription mode: LAN", { url, language: options.language || "auto" });
 
     await this.serverManager.connectRemote(url);
@@ -594,7 +668,8 @@ class WhisperManager {
     const modelsDir = this.getModelsDir();
 
     if (fs.existsSync(modelPath)) {
-      const stats = await fsPromises.stat(modelPath);
+      try {
+      const stats = modelConfig.sha256 ? await require("./nbWhisperDownload").verifyModel(modelPath, modelConfig) : await fsPromises.stat(modelPath);
       return {
         model: modelName,
         downloaded: true,
@@ -603,6 +678,10 @@ class WhisperManager {
         size_mb: Math.round(stats.size / (1024 * 1024)),
         success: true,
       };
+      } catch (error) {
+        if (!modelConfig.sha256 || error.code !== "DOWNLOAD_CORRUPTED") throw error;
+        // Explicit download request repairs only after verified replacement.
+      }
     }
 
     if (this.currentDownloadProcess) {
@@ -631,7 +710,12 @@ class WhisperManager {
         );
       }
 
-      await downloadFile(modelConfig.url, modelPath, {
+      const transfer = modelConfig.sha256
+        ? (_url, destination, transferOptions) => require("./nbWhisperDownload").downloadVerifiedModel(modelConfig, destination, {
+            ...transferOptions, download: downloadFile,
+            onVerifying: () => { downloadProcess.phase = "verifying"; progressCallback?.({ type: "verifying", model: modelName, percentage: 100 }); },
+          }) : downloadFile;
+      await transfer(modelConfig.url, modelPath, {
         timeout: 600000,
         signal,
         expectedSize: modelConfig.size,
@@ -703,6 +787,11 @@ class WhisperManager {
 
     if (fs.existsSync(modelPath)) {
       const stats = await fsPromises.stat(modelPath);
+      const config = getWhisperModelConfig(modelName);
+      if (config?.sha256) {
+        try { await require("./nbWhisperDownload").verifyModel(modelPath, config); }
+        catch { return { model: modelName, downloaded: false, success: true, verificationError: "DOWNLOAD_CORRUPTED", ...downloadStatus }; }
+      }
       return {
         model: modelName,
         downloaded: true,

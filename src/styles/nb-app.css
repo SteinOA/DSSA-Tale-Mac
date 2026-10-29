@@ -66,3 +66,337 @@
   color: color-mix(in srgb, var(--color-primary) 55%, #ffffff);
 }
 .dark .nb-app-shell main .rounded-lg.border { box-shadow: 0 3px 14px #00000014; }
+
+/* Approved pearl/lavender direction, with a compact, persistent navigation rail. */
+.nb-app-shell { --color-background: #f8f8fc; }
+.nb-app-shell .app-sidebar {
+  background: linear-gradient(155deg, #f5f2ffef 0%, #eceef9db 65%, #edf6f7db 100%);
+  border-right: 1px solid #dfe1ef;
+  box-shadow: inset -1px 0 #ffffffa0, 5px 0 24px #31306805;
+}
+.nb-app-shell .app-sidebar nav button[data-active="true"] {
+  background: linear-gradient(110deg, color-mix(in srgb,var(--color-primary) 15%,white), #e9e4fc);
+  box-shadow: inset 0 0 0 1px #ffffff90, 0 3px 8px #5145a509;
+}
+.nb-home-welcome { padding: 14px 16px 0; max-width: 1040px; margin: auto; }
+.nb-home-welcome header { margin-bottom: 16px; }
+.nb-home-welcome h1 { font-size: 25px; line-height: 1.2; font-weight: 700; }
+.nb-home-welcome header p { color: var(--color-muted-foreground); font-size: 12px; margin-top: 5px; }
+.nb-dictation-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px 20px 18px; border: 1px solid #e5e3f2; border-radius: 18px;
+  background: radial-gradient(ellipse at 50% 0%, #eeeaff 0%, #ffffff 75%);
+  box-shadow: 0 8px 28px #3b346808, inset 0 1px #fff;
+}
+.nb-primary-pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 46px; padding: 11px 28px; border-radius: 999px; border: 1px solid #ffffff25;
+  background: linear-gradient(120deg, var(--nb-accent,#5756da), #7654db);
+  color: white; font-size: 14px; font-weight: 650; cursor: pointer;
+  box-shadow: 0 6px 16px #6253cc32, inset 0 1px #ffffff35;
+  transition: filter 150ms, box-shadow 150ms;
+}
+.nb-primary-pill:hover { filter: brightness(1.08); box-shadow: 0 8px 20px #6253cc40; }
+.nb-primary-pill:focus-visible { outline: 3px solid #9284e7; outline-offset: 3px; }
+.nb-dictation-card p { font-size: 12px; color: var(--color-muted-foreground); margin: 14px 0 8px; text-align: center; }
+.nb-shortcut { display:inline-block; font-size: 11px; font-family: inherit; padding: 4px 9px; border: 1px solid var(--color-border); border-radius: 7px; background: var(--color-card); box-shadow: 0 2px 0 #22243c09; }
+.nb-local-caption { font-size: 10px; color: var(--color-muted-foreground); margin-top: 12px; }
+.nb-local-caption::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #54aaa4; margin-right: 6px; vertical-align: middle; }
+.nb-onboarding { height:100vh; overflow-y:auto; background: radial-gradient(ellipse at 5% 0%,#e9e5fa,transparent 65%),var(--color-background); }
+.nb-onboarding-inner { max-width: 780px; padding: 40px 30px 24px; margin: auto; font-size: 13px; line-height: 1.5; }
+.nb-brand-mark { color:#6554ba; font-size:11px; letter-spacing:.1em; font-weight:700; }
+.nb-onboarding h1 { font-size:28px; font-weight:700; letter-spacing:-.03em; margin:8px 0; }
+.nb-onboarding header p { color:var(--color-muted-foreground); max-width:580px; margin-bottom:20px; }
+.nb-setup-card { background:var(--color-card); border:1px solid var(--color-border); border-radius:16px; padding:16px 18px; box-shadow:0 4px 20px #42386d06; margin-top:12px; }
+.nb-setup-card h2 { font-size:15px; font-weight:650; margin-bottom:7px; }
+.nb-setup-card p { color:var(--color-muted-foreground); font-size:12px; margin:7px 0 12px; }
+.nb-setup-card label { display:inline-block; margin:4px 8px 2px 0; }
+.nb-setup-card select { background:var(--color-surface-1); border:1px solid var(--color-border); border-radius:7px; padding:5px; }
+.nb-setup-card button { background:var(--color-surface-1); border:1px solid var(--color-border); border-radius:8px; padding:7px 10px; font-weight:600; font-size:12px; cursor:pointer; }
+.nb-permission-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.nb-onboarding footer { text-align:center; margin-top:18px; }
+.nb-onboarding footer>.nb-primary-pill { margin-top:14px; }
+.nb-onboarding [role=alert] { color:#b33b4f; margin-top:12px; }
+.dark .nb-app-shell { --color-background:#141923; }
+.dark .nb-app-shell .app-sidebar { background:linear-gradient(155deg,#25253bed,#1a2331ed); border-color:#33374e; box-shadow:inset -1px 0 #ffffff05; }
+.dark .nb-app-shell .app-sidebar nav button[data-active="true"] { background:linear-gradient(110deg,#3c3c69,#33304e); box-shadow:inset 0 0 0 1px #8680c825; }
+.dark .nb-dictation-card { background:radial-gradient(ellipse at 50% 0%,#32304c,#1b2230 80%); border-color:#36384c; box-shadow:0 8px 28px #00000016; }
+.dark .nb-onboarding { background:radial-gradient(ellipse at 5% 0%,#28243e,transparent 65%),var(--color-background); }
+.dark .nb-brand-mark { color:#b4a8f0; }
+@media(max-width:600px) { .nb-permission-grid { grid-template-columns:1fr; gap:0; } .nb-onboarding-inner { padding:30px 20px 20px; } }
+
+/* Local action palette: ordinary actions blue, destructive actions red.
+   Body scope also covers Radix menus/dialogs rendered through portals. */
+:where(.nb-app-shell, body.nb-theme) {
+  --nb-action-bg: #e9f1ff;
+  --nb-action-fg: #164895;
+  --nb-action-border: #769bd5;
+  --nb-action-hover: #d5e5ff;
+  --nb-primary-bg: #205dce;
+  --nb-primary-fg: #ffffff;
+  --nb-primary-border: #1647a4;
+  --nb-danger-bg: #fff0f1;
+  --nb-danger-fg: #aa182c;
+  --nb-danger-border: #d76877;
+  --nb-disabled-bg: #e9ecf1;
+  --nb-disabled-fg: #616b7b;
+  --nb-disabled-border: #aab3c1;
+}
+:where(.dark .nb-app-shell, .dark body.nb-theme, body.nb-theme.dark) {
+  --nb-action-bg: #172d4e;
+  --nb-action-fg: #c8dfff;
+  --nb-action-border: #6696d3;
+  --nb-action-hover: #234574;
+  --nb-primary-bg: #2563d7;
+  --nb-primary-border: #8ab7ff;
+  --nb-danger-bg: #411e2b;
+  --nb-danger-fg: #ffbfca;
+  --nb-danger-border: #dc7b8f;
+  --nb-disabled-bg: #252d39;
+  --nb-disabled-fg: #9ca9bb;
+  --nb-disabled-border: #576378;
+}
+:where(.nb-app-shell, body.nb-theme) :is(button,[role="button"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]):where(:not([role="switch"]):not([role="checkbox"]):not([role="radio"])) {
+  color: var(--nb-action-fg) !important;
+  background: var(--nb-action-bg) !important;
+  border: 1px solid var(--nb-action-border) !important;
+  border-radius: 9px;
+  opacity: 1;
+  box-shadow: 0 1px 2px #102b5010;
+  transition: background-color 140ms, border-color 140ms, box-shadow 140ms;
+}
+:where(.nb-app-shell, body.nb-theme) :is(button,[role="button"],[role^="menuitem"]):where(:not([role="switch"]):not([role="checkbox"]):not([role="radio"])):where(:not(:disabled):not([aria-disabled="true"])):hover {
+  background: var(--nb-action-hover) !important;
+  box-shadow: 0 2px 6px #102b5026;
+}
+:where(.nb-app-shell, body.nb-theme) :is(button,[role="button"],[role^="menuitem"]):focus-visible {
+  outline: 3px solid #3b82f6 !important;
+  outline-offset: 3px;
+}
+:where(.nb-app-shell, body.nb-theme) :is(button,[role="button"]) :is(svg,span):not(.nb-cloud-marks) {
+  color: inherit;
+}
+:where(.nb-app-shell, body.nb-theme) :is(button,[role="button"]):is([data-variant="default"],.nb-primary-pill,[data-emphasis="primary"]) {
+  background: var(--nb-primary-bg) !important;
+  color: var(--nb-primary-fg) !important;
+  border: 2px solid var(--nb-primary-border) !important;
+  box-shadow: 0 4px 10px #154b9f28, inset 0 1px #ffffff30;
+  font-weight: 650;
+}
+:where(.nb-app-shell, body.nb-theme) :is(.nb-primary-pill,[data-emphasis="primary"]) {
+  min-height: 46px;
+  padding: 11px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+:where(.nb-app-shell, body.nb-theme) :is(button,[role^="menuitem"]):is([data-action="destructive"],[data-variant="destructive"]) {
+  background: var(--nb-danger-bg) !important;
+  color: var(--nb-danger-fg) !important;
+  border-color: var(--nb-danger-border) !important;
+}
+:where(.nb-app-shell, body.nb-theme) button[data-variant="destructive"] {
+  background: #b42339 !important;
+  color: #ffffff !important;
+  border: 2px solid #881a2b !important;
+}
+:where(.nb-app-shell, body.nb-theme) :is(button,[role^="menuitem"])[data-action="destructive"]:hover {
+  background: color-mix(in srgb,var(--nb-danger-bg) 82%,var(--nb-danger-border)) !important;
+}
+:where(.nb-app-shell, body.nb-theme) :is(button,[role="button"])[data-active="true"] {
+  border-width: 2px !important;
+  box-shadow: inset 3px 0 var(--nb-primary-bg);
+}
+:where(.nb-app-shell, body.nb-theme) [role^="menuitem"] { margin-block: 3px; }
+.nb-app-shell .nb-control-panel button { min-height: 34px; }
+.nb-app-shell .app-sidebar nav button { min-height: 32px; }
+.nb-cloud-marks { display:inline-flex; align-items:center; gap:5px; flex-shrink:0; }
+.nb-cloud-marks img { width:24px; height:24px; object-fit:contain; background:white; padding:2px; border-radius:5px; }
+.nb-cloud-card { border-left:4px solid var(--nb-cloud-border) !important; }
+.nb-cloud-card[data-provider="google"] { --nb-cloud-border:#188038; }
+.nb-cloud-card[data-provider="onedrive"] { --nb-cloud-border:#0078d4; }
+.nb-cloud-card[data-provider="icloud"] { --nb-cloud-border:#007aff; }
+.nb-app-shell button[data-provider="google"] { --nb-action-bg:#e8f5ec; --nb-action-fg:#125a2c; --nb-action-border:#4b9b64; --nb-primary-bg:#137333; --nb-primary-border:#0d5325; }
+.nb-app-shell button[data-provider="onedrive"] { --nb-action-bg:#e4f1ff; --nb-action-fg:#005493; --nb-action-border:#438dc7; --nb-primary-bg:#005a9e; --nb-primary-border:#004373; }
+.nb-app-shell button[data-provider="icloud"] { --nb-action-bg:#e9f2ff; --nb-action-fg:#0755ae; --nb-action-border:#578ed1; --nb-primary-bg:#005bc4; --nb-primary-border:#00468f; }
+.dark .nb-app-shell button[data-provider="google"] { --nb-action-bg:#153a26; --nb-action-fg:#b9f1cd; --nb-action-border:#62ba82; }
+.dark .nb-app-shell button[data-provider="onedrive"] { --nb-action-bg:#113451; --nb-action-fg:#c3e4ff; --nb-action-border:#71b5e7; }
+.dark .nb-app-shell button[data-provider="icloud"] { --nb-action-bg:#193451; --nb-action-fg:#c7e1ff; --nb-action-border:#7eb4f4; }
+/* Last: disabled always wins over primary, destructive and provider accents. */
+:where(.nb-app-shell, body.nb-theme) :is(button,[role="button"],[role^="menuitem"]):is(:disabled,[aria-disabled="true"],[data-disabled]) {
+  background: var(--nb-disabled-bg) !important;
+  color: var(--nb-disabled-fg) !important;
+  border: 1px dashed var(--nb-disabled-border) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
+}
+:where(.nb-app-shell, body.nb-theme) :disabled .nb-cloud-marks { opacity:.45; }
+@media (prefers-reduced-motion: reduce) {
+  :where(.nb-app-shell, body.nb-theme) button { transition:none !important; }
+}
+/* Strong fills retain readable white text on hover, including provider CTAs. */
+:where(.nb-app-shell, body.nb-theme) :is(button,[role="button"]):is([data-variant="default"],.nb-primary-pill,[data-emphasis="primary"]):where(:not([role="switch"]):not([role="checkbox"]):not([role="radio"])):where(:not(:disabled):not([aria-disabled="true"])):hover {
+  background: var(--nb-primary-bg) !important;
+  color: var(--nb-primary-fg) !important;
+  filter: brightness(.94);
+  box-shadow: 0 5px 14px #154b9f38;
+}
+:where(.nb-app-shell, body.nb-theme) button[data-variant="destructive"]:not(:disabled):hover {
+  background: #951c30 !important;
+  color: white !important;
+}
+:where(.nb-app-shell, body.nb-theme) :is(button,[role="button"],[role^="menuitem"]) :is(svg,span) { color:inherit !important; }
+:where(.nb-app-shell, body.nb-theme) :is(button,[role^="menuitem"]):has(svg[class*="lucide-trash"]) {
+  background: var(--nb-danger-bg) !important;
+  color: var(--nb-danger-fg) !important;
+  border-color: var(--nb-danger-border) !important;
+}
+.nb-app-shell .nb-history-actions { opacity:1 !important; }
+/* Extra specificity ensures disabled overrides every filled/brand/danger state. */
+:is(.nb-app-shell, body.nb-theme) :is(button,[role="button"],[role^="menuitem"]):is(:disabled,[aria-disabled="true"],[data-disabled]) {
+  background: var(--nb-disabled-bg) !important;
+  color: var(--nb-disabled-fg) !important;
+  border: 1px dashed var(--nb-disabled-border) !important;
+  box-shadow:none !important;
+  filter:none !important;
+}
+
+.nb-app-shell input[type="file"]::file-selector-button {
+  color:var(--nb-primary-fg); background:var(--nb-primary-bg);
+  border:2px solid var(--nb-primary-border); border-radius:10px;
+  padding:10px 16px; margin:8px 12px 8px 0; font:inherit; font-weight:650; cursor:pointer;
+}
+.nb-app-shell input[type="file"]:disabled::file-selector-button {
+  color:var(--nb-disabled-fg); background:var(--nb-disabled-bg);
+  border:1px dashed var(--nb-disabled-border); cursor:not-allowed;
+}
+.nb-app-shell select { border:1px solid var(--nb-action-border) !important; background:var(--nb-action-bg) !important; color:var(--nb-action-fg) !important; }
+.nb-app-shell [role="switch"] { border:1px solid var(--nb-action-border); }
+
+/* User-requested spacing: each independent control reserves an 8px halo,
+   giving adjacent controls at least 16px. Navigation uses explicit 16px gaps. */
+:where(.nb-app-shell,body.nb-theme) {
+  --nb-action-bg:#205dce;
+  --nb-action-fg:#ffffff;
+  --nb-action-border:#1647a4;
+  --nb-action-hover:#174aa8;
+}
+:where(.dark .nb-app-shell,.dark body.nb-theme,body.nb-theme.dark) {
+  --nb-action-bg:#2563d7;
+  --nb-action-fg:#ffffff;
+  --nb-action-border:#8ab7ff;
+  --nb-action-hover:#1b50b5;
+}
+:where(.nb-app-shell,body.nb-theme) :is(button,[role="button"],[role^="menuitem"]) {
+  margin:8px !important;
+}
+.nb-app-shell .app-sidebar {
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.nb-app-shell .app-sidebar > * { flex-shrink:0; }
+.nb-app-shell .app-sidebar nav { gap:16px !important; }
+.nb-app-shell .app-sidebar button { margin:0 !important; }
+.nb-app-shell .nb-sidebar-search { padding-bottom:8px; }
+.nb-app-shell .nb-sidebar-footer { display:flex; flex-direction:column; gap:16px; }
+.nb-app-shell .nb-sidebar-footer > * { margin-block:0 !important; }
+.nb-app-shell .nb-sidebar-footer nav { flex-shrink:0; }
+.nb-app-shell .app-sidebar button[data-active="true"] {
+  background:#123b8d !important;
+  color:white !important;
+  border-color:#a2c4ff !important;
+  box-shadow:inset 4px 0 #b2d0ff;
+}
+.nb-app-shell button[data-provider="google"] { --nb-action-bg:#137333; --nb-action-fg:white; --nb-action-hover:#0e5c29; }
+.nb-app-shell button[data-provider="onedrive"] { --nb-action-bg:#005a9e; --nb-action-fg:white; --nb-action-hover:#004577; }
+.nb-app-shell button[data-provider="icloud"] { --nb-action-bg:#005bc4; --nb-action-fg:white; --nb-action-hover:#004a9e; }
+.dark .nb-app-shell button[data-provider="google"] { --nb-action-bg:#137333; --nb-action-fg:white; }
+.dark .nb-app-shell button[data-provider="onedrive"] { --nb-action-bg:#005a9e; --nb-action-fg:white; }
+.dark .nb-app-shell button[data-provider="icloud"] { --nb-action-bg:#005bc4; --nb-action-fg:white; }
+/* Nested icon discs must not look active inside a disabled control. */
+:where(.nb-app-shell,body.nb-theme) :is(button,[role="button"]):is(:disabled,[aria-disabled="true"]) :is(span,div) {
+  background:transparent !important;
+  box-shadow:none !important;
+}
+/* The notes rail uses tree rows rather than buttons: give them the same
+   separation and readable treatment without changing tree interactions. */
+.nb-app-shell [role="treeitem"] {
+  min-height:40px;
+  height:auto;
+  margin-top:0 !important;
+  margin-bottom:16px !important;
+  padding-block:6px;
+  border:1px solid var(--nb-action-border);
+  border-radius:9px;
+  background:var(--nb-action-bg);
+  color:var(--nb-action-fg);
+  font-size:14px;
+}
+.nb-app-shell [role="treeitem"] :is(span,svg) { color:inherit !important; }
+.nb-app-shell [role="treeitem"][aria-selected="true"] {
+  background:#123b8d;
+  border-color:#a2c4ff;
+  box-shadow:inset 3px 0 #b2d0ff;
+}
+.nb-app-shell .app-sidebar button { min-height:36px; font-size:14px; line-height:1.35; }
+:where(.nb-app-shell,body.nb-theme) :is(button,[role="button"],[role^="menuitem"]) :is(p,small) { color:inherit !important; }
+body.nb-theme .nb-command-search {
+  width:calc(100vw - 48px);
+  max-width:760px;
+  font-size:16px;
+  line-height:1.5;
+}
+body.nb-theme .nb-command-search input { font-size:16px !important; min-height:44px; color:#233047 !important; }
+body.nb-theme .nb-command-search input::placeholder { color:#52627a !important; opacity:1; }
+.dark body.nb-theme .nb-command-search input { color:#edf3ff !important; }
+.dark body.nb-theme .nb-command-search input::placeholder { color:#bdcbe0 !important; }
+body.nb-theme .nb-command-search button[data-idx] {
+  width:calc(100% - 16px);
+  min-height:72px;
+  padding:14px 16px;
+}
+body.nb-theme .nb-command-search button[data-idx] p { font-size:14px !important; line-height:1.5; }
+body.nb-theme .nb-command-search button[data-idx] p:first-child { font-size:16px !important; font-weight:600; }
+body.nb-theme .nb-command-search button[data-idx] span { font-size:13px !important; }
+body.nb-theme .nb-command-search button[data-idx][data-selected="true"] {
+  background:#123b8d !important;
+  border:2px solid #a2c4ff !important;
+  box-shadow:inset 4px 0 #b2d0ff;
+}
+/* Also separate the main navigation from the settings/support group. */
+.nb-app-shell .nb-sidebar-footer { padding-top:16px !important; }
+.nb-app-shell .app-sidebar button { min-height:36px !important; }
+.nb-app-shell .app-sidebar button span { font-size:14px !important; }
+/* Block margins collapse instead of adding, so result/menu rows need an
+   explicit 16px trailing margin rather than two 8px margins. */
+body.nb-theme .nb-command-search button[data-idx],
+:is(.nb-app-shell,body.nb-theme) [role^="menuitem"] {
+  margin-top:0 !important;
+  margin-bottom:16px !important;
+}
+body.nb-theme .nb-command-search [data-nb-search-results] { max-height:min(520px,55vh); }
+.nb-app-shell .nb-note-section-header {
+  height:auto;
+  min-height:52px;
+  margin-bottom:16px !important;
+  padding:8px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:16px;
+}
+.nb-app-shell .nb-note-section-header button {
+  min-height:36px;
+  padding:6px 10px;
+  margin:0 !important;
+}
+.nb-app-shell .nb-note-section-header button span { font-size:13px !important; }
+.nb-app-shell [role="treeitem"] button { margin:0 0 0 16px !important; }
+.nb-app-shell [role="treeitem"] span { font-size:14px !important; }
+.nb-app-shell .nb-model-guide { border:1px solid var(--color-border); border-radius:14px; padding:16px; margin:16px 0; font-size:14px; line-height:1.6; }
+.nb-app-shell .nb-model-guide h3 { font-weight:650; margin:12px 0 6px; }
+.nb-app-shell .nb-calendar-choices { display:flex; flex-wrap:wrap; gap:16px; margin:16px 0; }
+.nb-app-shell .nb-calendar-choices button { margin:0 !important; min-height:44px; padding:10px 16px; }

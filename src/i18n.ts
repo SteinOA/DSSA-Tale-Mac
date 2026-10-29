@@ -1,3 +1,4 @@
+import nnTranslation from "./locales/nn/translation.json";
 import nbTranslation from "./locales/nb/translation.json";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
@@ -6,6 +7,7 @@ import { TRANSLATIONS_BY_LOCALE } from "./locales/translations";
 
 export const SUPPORTED_UI_LANGUAGES = [
   "nb",
+  "nn",
   "en",
   "es",
   "fr",
@@ -50,6 +52,7 @@ export function normalizeUiLanguage(language: string | null | undefined): UiLang
 }
 
 const resources = {
+  nn: { translation: nnTranslation, prompts: PROMPTS_BY_LOCALE.nn },
   nb: { translation: nbTranslation, prompts: PROMPTS_BY_LOCALE.nb },
   en: {
     translation: TRANSLATIONS_BY_LOCALE.en,

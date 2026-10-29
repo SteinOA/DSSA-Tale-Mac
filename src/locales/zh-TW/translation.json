@@ -889,6 +889,10 @@
         "unavailable": "OpenWhispr 無法安全讀取選取的文字。請檢查輔助使用或輸入自動化權限。",
         "tooLarge": "選取內容過長。請選取不超過 6,000 個字元。",
         "reasoningFailed": "AI 無法完成選取文字編輯。原始文字未被變更。"
+      },
+      "cleanupRejected": {
+        "title": "Original text retained",
+        "description": "AI cleanup changed words or facts. The original text was used."
       }
     },
     "clipboard": {
@@ -3857,6 +3861,7 @@
     "shortcuts": "鍵盤快速鍵",
     "recording": "錄音與貼上",
     "appearance": "外觀與語言",
-    "home": "首頁 — 返回起始頁面"
+    "home": "首頁 — 返回起始頁面",
+    "system": "System"
   }
 }

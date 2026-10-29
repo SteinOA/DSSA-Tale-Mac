@@ -407,7 +407,7 @@ export const useAudioRecording = (toast, options = {}) => {
           status: "error",
           message: error?.message,
         });
-        if (error?.title !== "Paste Error") {
+        if (error?.title !== "Paste Error" && !error?.preserveDictationPreview) {
           window.electronAPI?.hideDictationPreview?.();
         }
         const title = getRecordingErrorTitle(error, t);
@@ -470,6 +470,7 @@ export const useAudioRecording = (toast, options = {}) => {
       onTranscriptionComplete: async (result) => {
         if (result.success) {
           dismissDictationError?.();
+          if (result.nbCleanupRejected) toast({title:t("hooks.audioRecording.cleanupRejected.title"),description:t("hooks.audioRecording.cleanupRejected.description"),variant:"default",duration:3500});
           const transcribedText = result.text?.trim();
 
           if (!transcribedText) {

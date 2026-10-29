@@ -1,3 +1,5 @@
+import nbTranslation from "./nb/translation.json";
+import nnTranslation from "./nn/translation.json";
 import deTranslation from "./de/translation.json";
 import enTranslation from "./en/translation.json";
 import esTranslation from "./es/translation.json";
@@ -10,6 +12,8 @@ import zhCNTranslation from "./zh-CN/translation.json";
 import zhTWTranslation from "./zh-TW/translation.json";
 
 export const TRANSLATIONS_BY_LOCALE = {
+  nb: nbTranslation,
+  nn: nnTranslation,
   en: enTranslation,
   es: esTranslation,
   fr: frTranslation,

@@ -103,6 +103,10 @@ class DiarizationManager {
   }
 
   _resolveModelPath(relativePath) {
+    if (process.platform === "darwin") {
+      const local=path.join(this.getModelsDir(),relativePath);
+      if(fs.existsSync(local))return local;
+    }
     const bundledModelsDir = this.getBundledModelsDir();
     if (bundledModelsDir) {
       const bundledPath = path.join(bundledModelsDir, relativePath);
@@ -117,6 +121,10 @@ class DiarizationManager {
   isModelDownloaded() {
     const segPath = this._resolveModelPath(SEGMENTATION_ONNX);
     const embPath = this._resolveModelPath(EMBEDDING_ONNX);
+    if(process.platform === "darwin") {
+      const {isVerified,manifest}=require("./nbDiarizationDownload");
+      return isVerified(segPath,manifest.segmentation) && isVerified(embPath,manifest.embedding);
+    }
     return fs.existsSync(segPath) && fs.existsSync(embPath);
   }
 
@@ -125,15 +133,29 @@ class DiarizationManager {
   }
 
   isVadModelDownloaded() {
+    if(process.platform === "darwin") {
+      const {isVerified,manifest}=require("./nbDiarizationDownload");
+      return isVerified(this.getVadModelPath(),manifest.vad);
+    }
     return fs.existsSync(this.getVadModelPath());
   }
 
   async downloadModels(progressCallback = null) {
+    if (process.platform === "darwin") {
+      if (this.currentDownloadProcess) throw Object.assign(new Error("Model download already running"), {code:"DOWNLOAD_IN_PROGRESS"});
+      const {signal,abort}=createDownloadSignal(); const active={abort}; this.currentDownloadProcess=active;
+      try {
+        return await require("./nbDiarizationDownload").downloadDiarizationModels(this.getModelsDir(),{
+          download:downloadFile,signal,onProgress:progressCallback,
+        });
+      } finally { if(this.currentDownloadProcess===active)this.currentDownloadProcess=null; }
+    }
     const modelsDir = this.getModelsDir();
     await fsPromises.mkdir(modelsDir, { recursive: true });
 
     const modelsReady = this.isModelDownloaded();
     const vadReady = this.isVadModelDownloaded();
+
 
     if (modelsReady && vadReady) {
       return { success: true, path: modelsDir };

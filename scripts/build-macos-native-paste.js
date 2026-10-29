@@ -13,4 +13,14 @@ const result = spawnSync("xcrun", ["clang++", "-std=c++17", "-O2", "-bundle", "-
   "-I", path.join(root, "resources/vendor/node-api"),
   path.join(root, "resources/macos-native-paste.mm"), "-framework", "AppKit", "-framework", "ApplicationServices", "-o", output], { stdio: "inherit" });
 if (result.status !== 0) process.exit(result.status || 1);
+// Inspect the compiled addon itself, not just its source or a mock. A hardcoded
+// napi property count previously hid new functions despite successful linking.
+const check = spawnSync(process.execPath, ["-e", `
+  const addon = require(process.argv[1]);
+  const required = ["status", "paste", "verify", "openTestDocument"];
+  const missing = required.filter(name => typeof addon[name] !== "function");
+  if (missing.length) console.error("Native paste exports missing: " + missing.join(", "));
+  process.exit(missing.length ? 1 : 0);
+`, output], {stdio:"inherit", timeout:15000});
+if (check.status !== 0) process.exit(check.status || 1);
 console.log("Built Apple Silicon in-process paste addon.");
