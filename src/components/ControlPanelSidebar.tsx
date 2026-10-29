@@ -125,7 +125,7 @@ export default function ControlPanelSidebar({
       />
 
       {onOpenSearch && (
-        <div className="px-2 pt-2 pb-1">
+        <div className="nb-sidebar-search px-2 pt-2 pb-1">
           <button
             onClick={onOpenSearch}
             className="group flex items-center w-full h-7 px-2.5 rounded-md border border-border/70 dark:border-white/25 bg-transparent hover:bg-foreground/5 dark:hover:bg-white/5 transition-colors gap-2 outline-none focus-visible:ring-1 focus-visible:ring-primary/30"
@@ -257,7 +257,7 @@ export default function ControlPanelSidebar({
         </div>
       )}
 
-      <div className="px-2 pb-2 space-y-0.5">
+      <div className="nb-sidebar-footer px-2 pb-2 space-y-0.5">
         {updateAction && (
           <div className="px-1 pb-1" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
             {updateAction}
@@ -305,8 +305,8 @@ export default function ControlPanelSidebar({
 
         <div className="mx-1 h-px bg-border/10 dark:bg-white/6 my-1.5!" />
 
-        {appVersion && <p className="px-2.5 py-1 text-xs text-foreground/65 dark:text-foreground/65" aria-label={i18n.language === "nb" ? "Appversjon" : "App version"}>
-          DSSA Tale · {i18n.language === "nb" ? "versjon" : "version"} {appVersion}
+        {appVersion && <p className="px-2.5 py-1 text-xs text-foreground/65 dark:text-foreground/65" aria-label={i18n.language !== "en" ? "Appversjon" : "App version"}>
+          DSSA Tale · {i18n.language !== "en" ? "versjon" : "version"} {appVersion}
         </p>}
         <div className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md">
           {avatarImage ? (
@@ -317,7 +317,7 @@ export default function ControlPanelSidebar({
           <div className="flex-1 min-w-0">
             {localProfile ? <>
               <p className="text-xs text-foreground/80 dark:text-foreground/80 truncate leading-tight">{localProfile.name}</p>
-              <p className="text-xs text-foreground/45 dark:text-foreground/55">{i18n.language === "nb" ? "Lokal profil" : "Local profile"}</p>
+              <p className="text-xs text-foreground/45 dark:text-foreground/55">{i18n.language !== "en" ? "Lokal profil" : "Local profile"}</p>
             </> : isSignedIn && (userName || userEmail) ? (
               <>
                 <p className="text-xs text-foreground/80 dark:text-foreground/80 truncate leading-tight">

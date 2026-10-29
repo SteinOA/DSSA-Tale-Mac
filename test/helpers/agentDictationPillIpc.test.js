@@ -18,6 +18,7 @@ const electronStub = {
     getVersion: () => "0.0.0",
     isPackaged: false,
     on: () => {},
+    once: () => {},
     requestSingleInstanceLock: () => true,
   },
   ipcMain: {

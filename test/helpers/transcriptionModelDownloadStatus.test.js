@@ -247,6 +247,11 @@ test("Whisper emits a complete event after validating the downloaded model", asy
   const originalLoad = Module._load;
   delete require.cache[whisperModulePath];
   Module._load = function loadWithDownloadMock(request, parent, isMain) {
+    if (request === "../models/modelRegistryData.json" && parent?.filename === whisperModulePath) {
+      const sha256 = require("node:crypto").createHash("sha256").update(Buffer.alloc(16)).digest("hex");
+      return { ...modelRegistryData, whisperModels: Object.fromEntries(Object.entries(modelRegistryData.whisperModels)
+        .map(([id, model]) => [id, { ...model, expectedSizeBytes: 16, sha256 }])) };
+    }
     if (request === "./downloadUtils" && parent?.filename === whisperModulePath) {
       return {
         ...downloadUtils,
@@ -275,8 +280,10 @@ test("Whisper emits a complete event after validating the downloaded model", asy
   const events = [];
   manager.getModelsDir = () => modelsDir;
 
+  await fs.writeFile(manager.getModelPath(model), "damaged model");
   await manager.downloadWhisperModel(model, (event) => events.push(event));
 
+  assert.ok(events.some(event => event.type === "verifying"));
   assert.equal(events.at(-1)?.type, "complete");
   assert.equal(events.at(-1)?.model, model);
   assert.equal(events.at(-1)?.percentage, 100);

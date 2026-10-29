@@ -414,6 +414,11 @@ class WhisperServerManager extends EventEmitter {
       if (fs.existsSync(gpuPath)) return gpuPath;
     }
 
+    const coreMLBinary = require("./nbAcceleration").selectCoreMLBinary({
+      roots: [process.resourcesPath, path.join(__dirname, "..", "..", "resources")],
+      cpuOnly: options.cpuOnly === true,
+    });
+    if (coreMLBinary) return coreMLBinary;
     if (this.cachedServerBinaryPath) return this.cachedServerBinaryPath;
 
     const platform = process.platform;
@@ -558,7 +563,7 @@ class WhisperServerManager extends EventEmitter {
     const usingVulkan = !usingCuda && (options.useVulkan || false);
     const threadResolution = options.threadResolution || resolveWhisperThreads(options);
     const serverBinary = this.getServerBinaryPath(
-      usingCuda ? { preferCuda: true } : usingVulkan ? { preferVulkan: true } : {}
+      usingCuda ? { preferCuda: true } : usingVulkan ? { preferVulkan: true } : {cpuOnly: options.useGpu === false}
     );
     if (!serverBinary) throw new Error("whisper-server binary not found");
     if (!fs.existsSync(modelPath)) throw new Error(`Model file not found: ${modelPath}`);
@@ -648,6 +653,7 @@ class WhisperServerManager extends EventEmitter {
     sidecarPidFile.write("whisper", this.process.pid);
 
     let stderrBuffer = "";
+    this.encoderBackend = options.useGpu === false || process.env.NB_ACCELERATION === "cpu" ? "cpu" : "metal";
     let exitCode = null;
 
     this.process.stdout.on("data", (data) => {
@@ -656,6 +662,7 @@ class WhisperServerManager extends EventEmitter {
 
     this.process.stderr.on("data", (data) => {
       stderrBuffer += data.toString();
+      if (stderrBuffer.includes("Core ML model loaded")) this.encoderBackend = "coreml";
       debugLogger.debug("whisper-server stderr", { data: data.toString().trim() });
     });
 
@@ -676,7 +683,7 @@ class WhisperServerManager extends EventEmitter {
     try {
       await this.waitForReady(
         () => ({ stderr: stderrBuffer, exitCode }),
-        usingVulkan ? VULKAN_STARTUP_TIMEOUT_MS : STARTUP_TIMEOUT_MS
+        usingVulkan || path.basename(serverBinary).includes("coreml") ? VULKAN_STARTUP_TIMEOUT_MS : STARTUP_TIMEOUT_MS
       );
     } catch (err) {
       // An intentional stop() during startup is not a GPU/thread failure
@@ -872,7 +879,7 @@ class WhisperServerManager extends EventEmitter {
     });
 
     // signal is optional; only cancellable uploads pass one.
-    const { language, initialPrompt, signal, skipDecoderThresholds } = options;
+    const { signal } = options;
     if (signal?.aborted) throw createAbortError("whisper-server transcription cancelled");
 
     // Always convert to 16kHz mono WAV - whisper.cpp requires this exact format
@@ -881,16 +888,34 @@ class WhisperServerManager extends EventEmitter {
       throw new Error("FFmpeg not found - required for audio conversion");
     }
     finalBuffer = await this._convertToWav(audioBuffer);
+    return this._transcribeNormalizedWav(finalBuffer, options);
+  }
+
+  // Internal only: callers must provide the PCM16/16kHz/mono WAV produced by
+  // FFmpeg above or by splitPcm16Wav. Public uploads always normalize once.
+  // Re-running FFmpeg on each already normalized window adds process/disk
+  // overhead but cannot improve the samples.
+  async _transcribeNormalizedWav(finalBuffer, options = {}) {
+    const { language, initialPrompt, signal, skipDecoderThresholds } = options;
+    if (signal?.aborted) throw createAbortError("whisper-server transcription cancelled");
     const isNbModel = /ggml-nb-large(?:-q5_0|-full)?\.bin$/.test(this.modelPath || "");
     const chunks = isNbModel ? require("./nbAudioChunks").splitPcm16Wav(finalBuffer) : [finalBuffer];
     if (chunks.length > 1) {
       const texts = [];
       for (const chunk of chunks) {
         if (signal?.aborted) throw createAbortError("whisper-server transcription cancelled");
-        const result = await this.transcribe(chunk, options);
+        const result = await this._transcribeNormalizedWav(chunk, options);
         texts.push(result.text || "");
       }
       return { text: texts.join(" ").replace(/<\|[^|]*\|>/g, "").replace(/\s+/g, " ").trim() };
+    }
+
+    // Lookup sees only the final normalized samples, never the original WebM
+    // approximation. The cache itself rejects tails and mismatched settings.
+    if (isNbModel && typeof options.nbCacheLookup === "function") {
+      const cached = await options.nbCacheLookup(finalBuffer, options.nbIdentity);
+      if (signal?.aborted) throw createAbortError("whisper-server transcription cancelled");
+      if (cached !== undefined) return cached;
     }
 
 
@@ -1134,7 +1159,7 @@ class WhisperServerManager extends EventEmitter {
 
   async _convertToWav(audioBuffer) {
     const tempDir = getSafeTempDir();
-    const timestamp = Date.now();
+    const timestamp = require("node:crypto").randomUUID();
     const tempInputPath = path.join(tempDir, `whisper-input-${timestamp}.webm`);
     const tempWavPath = path.join(tempDir, `whisper-output-${timestamp}.wav`);
 

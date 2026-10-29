@@ -928,6 +928,8 @@ class ClipboardManager {
             expectedClipboardText: text,
           });
         } catch (firstError) {
+          // A posted shortcut must not be retried: a slow receiver could insert twice.
+          if (firstError.code === "PASTE_NOT_CONFIRMED") throw firstError;
           this.safeLog("⚠️ First paste attempt failed, retrying...", firstError?.message);
           clipboard.writeText(text);
           await new Promise((r) => setTimeout(r, 200));
@@ -2080,12 +2082,27 @@ class ClipboardManager {
   async pasteMacOSInProcess(originalClipboard, options = {}) {
     const native = require("./nbNativePaste");
     await new Promise((resolve) => setTimeout(resolve, options.fromStreaming ? 25 : PASTE_DELAYS.darwin));
-    native.paste(options.expectedTargetPid || 0);
+    const dispatchStart = Date.now();
+    const dispatch = native.paste(options.expectedTargetPid || 0);
+    const dispatchMs = Date.now() - dispatchStart;
     // Keep the new clipboard available until the receiving app handles ⌘V.
-    await new Promise((resolve) => setTimeout(resolve, 40));
+    let verification = "unverified";
+    const verificationDelays = [600, 400, 600, 800];
+    for (let attempt = 0; attempt < verificationDelays.length; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, verificationDelays[attempt]));
+      verification = native.verify?.(attempt === verificationDelays.length - 1) || "unverified";
+      if (verification !== "unchanged") break;
+    }
+    if (verification === "unchanged") {
+      throw Object.assign(new Error("Teksten kom ikke inn i tekstfeltet. Den er beholdt i utklippstavlen; bruk ⌘V."), {code:"PASTE_NOT_CONFIRMED"});
+    }
     this.safeLog("Paste shortcut submitted by DSSA Tale main process");
     return {
-      restoreComplete: originalClipboard == null ? Promise.resolve()
+      ...(dispatch && typeof dispatch === "object" ? dispatch : {}),
+      dispatched: true,
+      dispatchMs,
+      verification,
+      restoreComplete: originalClipboard == null || verification !== "verified" ? Promise.resolve()
         : this._restoreClipboardAfterDelay(originalClipboard, {
           delayMs: RESTORE_DELAYS.darwin,
           expectedText: options.expectedClipboardText,

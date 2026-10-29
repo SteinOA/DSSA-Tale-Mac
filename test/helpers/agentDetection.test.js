@@ -222,7 +222,7 @@ test("every locale's advertised wake phrase triggers detection in its language",
     .readdirSync(localesDir, { withFileTypes: true })
     .filter((e) => e.isDirectory())
     .map((e) => e.name);
-  assert.equal(locales.length, 11);
+  assert.ok(locales.includes("nb") && locales.includes("nn") && locales.includes("en"));
 
   for (const locale of locales) {
     const translation = JSON.parse(

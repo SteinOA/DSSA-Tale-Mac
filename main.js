@@ -25,13 +25,15 @@ const {
 const path = require("path");
 // Separate profile and cache: preserve the upstream app and its settings.
 app.setName("DSSA Tale");
+const isNBTestBuild = require("fs").existsSync(path.join(process.resourcesPath || "", "nb-test-build.json"));
+const nbProfileFolder = isNBTestBuild ? "OpenWhispr-NB-Test" : "OpenWhispr-NB";
 try {
-  const nbPreferences = JSON.parse(require("fs").readFileSync(require("path").join(app.getPath("appData"), "OpenWhispr-NB", "nb-preferences.json"), "utf8"));
-  process.env.NB_ACCELERATION = nbPreferences.acceleration === "cpu" ? "cpu" : "metal";
-} catch { process.env.NB_ACCELERATION = "metal"; }
+  const nbPreferences = JSON.parse(require("fs").readFileSync(path.join(app.getPath("appData"), nbProfileFolder, "nb-preferences.json"), "utf8"));
+  process.env.NB_ACCELERATION = require("./src/helpers/nbAcceleration").accelerationMode(nbPreferences.acceleration);
+} catch { process.env.NB_ACCELERATION = "auto"; }
 
-app.setPath("userData", path.join(app.getPath("appData"), "OpenWhispr-NB"));
-process.env.OPENWHISPR_CACHE_ROOT = path.join(app.getPath("appData"), "OpenWhispr-NB", "cache");
+app.setPath("userData", path.join(app.getPath("appData"), nbProfileFolder));
+process.env.OPENWHISPR_CACHE_ROOT = path.join(app.getPath("appData"), nbProfileFolder, "cache");
 const http = require("http");
 const tls = require("tls");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
@@ -91,7 +93,7 @@ const APP_CHANNEL = resolveAppChannel();
 process.env.OPENWHISPR_CHANNEL = APP_CHANNEL;
 
 function configureChannelUserDataPath() {
-  if (APP_CHANNEL === "production") {
+  if (isNBTestBuild || APP_CHANNEL === "production") {
     return;
   }
 
@@ -144,6 +146,7 @@ if (process.platform === "win32") {
 }
 
 function getOAuthProtocol() {
+  if (isNBTestBuild) return "dssa-tale-test";
   const fromEnv = (process.env.VITE_OPENWHISPR_PROTOCOL || process.env.OPENWHISPR_PROTOCOL || "")
     .trim()
     .toLowerCase();

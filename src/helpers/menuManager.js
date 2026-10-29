@@ -1,3 +1,4 @@
+const { localizeNativeMenu } = require("./nbNativeMenuLabels");
 const { Menu } = require("electron");
 const { i18nMain } = require("./i18nMain");
 
@@ -26,7 +27,7 @@ class MenuManager {
           ],
         },
       ];
-      const menu = Menu.buildFromTemplate(template);
+      const menu = Menu.buildFromTemplate(localizeNativeMenu(template, i18nMain.language));
       Menu.setApplicationMenu(menu);
     }
   }
@@ -113,7 +114,7 @@ class MenuManager {
         },
       ];
 
-      const menu = Menu.buildFromTemplate(template);
+      const menu = Menu.buildFromTemplate(localizeNativeMenu(template, i18nMain.language));
       Menu.setApplicationMenu(menu);
     } else {
       // For Windows/Linux, keep the window-specific menu
@@ -159,7 +160,7 @@ class MenuManager {
         },
       ];
 
-      const menu = Menu.buildFromTemplate(template);
+      const menu = Menu.buildFromTemplate(localizeNativeMenu(template, i18nMain.language));
       controlPanelWindow.setMenu(menu);
     }
   }

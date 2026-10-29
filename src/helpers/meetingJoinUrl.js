@@ -1,6 +1,7 @@
 const URL_PATTERN = /https?:\/\/[^\s<>"']+/gi;
 const TRAILING_PUNCTUATION_PATTERN = /[),.;:!?]+$/;
 const MEETING_URL_RULES = [
+  { hostname: "facetime.apple.com", protocol: "https:", pathnamePattern: /^\/join\/?$/i },
   {
     hostname: "zoom.us",
     allowSubdomains: true,
@@ -27,7 +28,8 @@ function isMeetingUrl(value) {
   try {
     const url = new URL(value);
     return MEETING_URL_RULES.some(
-      ({ hostname, allowSubdomains, pathnamePattern }) =>
+      ({ hostname, allowSubdomains, pathnamePattern, protocol }) =>
+        (!protocol || url.protocol === protocol) &&
         isAllowedHostname(url.hostname, hostname, allowSubdomains) &&
         pathnamePattern.test(url.pathname)
     );

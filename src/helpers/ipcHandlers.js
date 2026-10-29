@@ -778,6 +778,11 @@ class IPCHandlers {
   }
 
   _asyncMirrorWrite(note) {
+    try {
+      require("./nbConversationMirror").createDefault().write(note, this._buildSpeakerMappings(note.id));
+    } catch (error) {
+      debugLogger.warn("Local conversation file could not be updated", { noteId: note.id, error: error.message });
+    }
     if (!this._noteFilesEnabled) {
       debugLogger.debug(
         "Mirror write skipped: note files disabled",
@@ -797,6 +802,8 @@ class IPCHandlers {
   }
 
   _asyncMirrorDelete(noteId) {
+    try { require("./nbConversationMirror").createDefault().remove(noteId); }
+    catch (error) { debugLogger.warn("Local conversation file could not be removed", { noteId, error: error.message }); }
     if (!this._noteFilesEnabled) {
       debugLogger.debug("Mirror delete skipped: note files disabled", { noteId }, "note-files");
       return;
@@ -1600,7 +1607,22 @@ class IPCHandlers {
       debugLogger.debug("[AutoLearn] Setting changed", { enabled: this._autoLearnEnabled });
     });
 
+    require("./nbCloudFolders").registerNbCloudFolderHandlers({
+      ipcMain, dialog: require("electron").dialog, shell, windowManager: this.windowManager,
+      getLanguage: () => i18nMain.language,
+    });
+    require("./nbFileImportIpc").registerNbFileImportHandlers({
+      ipcMain,app,dialog:require("electron").dialog,windowManager:this.windowManager,
+      whisperManager:this.whisperManager,resolveAllowedAudioPath,getLanguage:()=>i18nMain.language,
+      getVad:()=>this._resolveWhisperVadOptions("noteRecording"),
+      getDictionaryPrompt:()=>this.databaseManager.getDictionary().filter(word=>typeof word === "string").slice(0,100).join(", ").slice(0,16000),
+    });
     ipcMain.handle("nb-get-preferences", () => require("./nbPreferences").read());
+    ipcMain.handle("nb-validate-cleanup", (_event, original, candidate, language) => {
+      if (typeof original !== "string" || typeof candidate !== "string" || original.length > 10000000 || candidate.length > 10000000)
+        throw new Error(require("./nbDialogLabels").getNbDialogLabels(i18nMain.language).invalidDocument);
+      return require("./nbTextIntegrity").validateCleanup(original, candidate, {language});
+    });
     ipcMain.handle("nb-set-preferences", (_event, values) => {
       const clean={};
       if(["after","live"].includes(values.meetingMode))clean.meetingMode=values.meetingMode;
@@ -1610,65 +1632,94 @@ class IPCHandlers {
       return saved;
     });
     ipcMain.handle("nb-memory", async () => {
-      const os=require("os");let rss=0;
-      try {
-        const run=require("util").promisify(require("child_process").execFile);
-        const {stdout}=await run("/bin/ps",["-axo","pid=,ppid=,rss="]);
-        const rows=stdout.trim().split("\n").map(x=>x.trim().split(/\s+/).map(Number));
-        const family=new Set([process.pid]);let changed=true;
-        while(changed){changed=false;for(const [pid,parent] of rows)if(family.has(parent)&&!family.has(pid)){family.add(pid);changed=true;}}
-        rss=rows.filter(([pid])=>family.has(pid)).reduce((sum,row)=>sum+row[2]*1024,0);
-      } catch {}
-      return {total:os.totalmem(),free:os.freemem(),rss};
+      const os=require("os");
+      const appMetrics=await require("./nbAppMetrics").sampleAppMetrics();
+      const server=this.whisperManager?.serverManager;
+      return {total:os.totalmem(),free:os.freemem(),...appMetrics,system:await require("./nbSystemMetrics").sampleSystemMetrics(),engine:{requested:process.env.NB_ACCELERATION || "auto",active:server?.encoderBackend || null,ready:!!server?.ready,starting:!!server?.startupPromise}};
     });
     ipcMain.handle("nb-open-voice-memos", () => shell.openPath("/System/Applications/VoiceMemos.app"));
+    ipcMain.handle("nb-open-calendar-app", async event => {
+      const owners=[this.windowManager.mainWindow?.webContents,this.windowManager.controlPanelWindow?.webContents].filter(Boolean);
+      if(!event.sender || event.sender.isDestroyed?.() || !owners.includes(event.sender))throw new Error("UNAUTHORIZED");
+      const error=await shell.openPath("/System/Applications/Calendar.app");
+      return {success:!error};
+    });
     ipcMain.handle("nb-storage-folder", async (event) => {
-      const result=await require("electron").dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender),{title:"Velg mappe for dokumenter",properties:["openDirectory","createDirectory"]});
+      const result=await require("electron").dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender),{title:require("./nbDialogLabels").getNbDialogLabels(i18nMain.language).storageTitle,properties:["openDirectory","createDirectory"]});
       if(result.canceled)return {canceled:true};
       require("./nbPreferences").update({documentFolder:result.filePaths[0]});return {path:result.filePaths[0]};
     });
     ipcMain.handle("nb-save-audio", async(event,bytes,name) => {
       const safeName=path.basename(typeof name === "string" ? name : "DSSA-opptak.webm");
-      const result=await require("electron").dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender),{title:"Lagre lydfil – velg lokal mappe eller skymappe",defaultPath:path.join(app.getPath("documents"),safeName)});
+      const result=await require("electron").dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender),{title:require("./nbDialogLabels").getNbDialogLabels(i18nMain.language).audioTitle,defaultPath:path.join(app.getPath("documents"),safeName)});
       if(result.canceled||!result.filePath)return {canceled:true};
       await fs.promises.writeFile(result.filePath,Buffer.from(bytes));return {success:true};
     });
     ipcMain.handle("nb-save-document", async (event, text, format, options = {}) => {
-      if(typeof text !== "string" || text.length > 10000000 || !["docx","txt","pdf"].includes(format)) throw new Error("Invalid document");
+      const labels=require("./nbDialogLabels").getNbDialogLabels(i18nMain.language);
+      if(typeof text !== "string" || text.length > 10000000 || !["docx","txt","pdf"].includes(format)) throw new Error(labels.invalidDocument);
       const {dialog}=require("electron");
       const result=await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender),{
-        title:"Lagre dokument",defaultPath:path.join(require("./nbPreferences").read().documentFolder || app.getPath("documents"),"DSSA-Tale-notat."+format),
-        filters:[{name:format === "docx" ? "Word-dokument" : format === "pdf" ? "PDF-dokument" : "Tekstdokument",extensions:[format]}]
+        title:labels.documentTitle,defaultPath:path.join(require("./nbPreferences").read().documentFolder || app.getPath("documents"),"DSSA-Tale-notat."+format),
+        filters:[{name:format === "docx" ? labels.wordFilter : format === "pdf" ? labels.pdfFilter : labels.textFilter,extensions:[format]}]
       });
       if(result.canceled || !result.filePath) return {canceled:true};
       const writer=require("./nbDocument");
-      const content=writer.exportText(text,options);
-      await fs.promises.writeFile(result.filePath,format === "docx" ? writer.createDocx(content) : format === "pdf" ? await writer.createPdf(content) : content);
+      const content=options.preformatted === true ? text : writer.exportText(text,options);
+      await fs.promises.writeFile(result.filePath,format === "docx" ? writer.createDocx(content,{language:options.language}) : format === "pdf" ? await writer.createPdf(content,{language:options.language}) : content);
       return {success:true};
     });
+    ipcMain.handle("nb-conversation-file", async (_event, id, action, options = {}) => {
+      try {
+        if (!Number.isSafeInteger(id) || id < 1 || !["text", "reveal"].includes(action)) throw new Error(require("./nbDialogLabels").getNbDialogLabels(i18nMain.language).invalidConversation);
+        const note = this.databaseManager.getNote(id);
+        if (!note || note.deleted_at || !note.transcript) throw new Error(require("./nbDialogLabels").getNbDialogLabels(i18nMain.language).missingConversation);
+        const mirror = require("./nbConversationMirror");
+        const mappings = this._buildSpeakerMappings(id);
+        if (action === "text") return {success:true, text:mirror.text(note,mappings,{includeTimestamps:options.includeTimestamps === true,includeSpeakers:options.includeSpeakers === true})};
+        const file = mirror.createDefault().write(note,mappings);
+        if (!file) throw new Error(require("./nbDialogLabels").getNbDialogLabels(i18nMain.language).missingConversation);
+        shell.showItemInFolder(file);
+        return {success:true};
+      } catch (error) { return {success:false,error:error.message}; }
+    });
     ipcMain.handle("nb-local-profile", () => require("./nbLocalProfile").getLocalProfile(path.join(app.getPath("userData"),"cache")));
-    ipcMain.handle("nb-paste-status", () => ({
+    ipcMain.handle("nb-audio-outputs", () => require("./nbNativeAudio").listOutputs());
+    ipcMain.handle("nb-play-audio", (_event, uid, kind) => require("./nbNativeAudio").playTone(uid, kind));
+    ipcMain.handle("nb-paste-status", async () => ({
       ...require("./nbNativePaste").status(),
       installed: process.execPath.startsWith("/Applications/"),
+      lastPasteOutcome: this._nbLastPasteOutcome || null,
+      timings: await require("./nbDictationDiagnostics").readTiming(app.getPath("userData")),
     }));
-    ipcMain.handle("nb-test-paste", async () => {
+    ipcMain.handle("nb-test-paste", async (_event, repetitions = 1) => {
       try {
         const status = require("./nbNativePaste").status();
         if (!status.trusted || !status.canPost) {
           return { success: false, error: "Gi DSSA Tale tilgang til Tilgjengelighet i Systeminnstillinger først." };
         }
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-        await this.clipboardManager.pasteText("Dette er en innlimingstest fra DSSA Tale. Æ, ø og å. ", {
+        const testFolder = path.join(app.getPath("userData"), "paste-tests");
+        await fs.promises.mkdir(testFolder, { recursive: true });
+        const testFile = path.join(testFolder, `DSSA-innlimingstest-${Date.now()}.txt`);
+        await fs.promises.writeFile(testFile, "", { flag: "wx" });
+        require("./nbNativePaste").openTestDocument(testFile);
+        await new Promise((resolve) => setTimeout(resolve, 1800));
+        const testTargetPid = require("./nbNativePaste").status().testTargetPid;
+        if (!(testTargetPid > 0)) throw new Error("Testdokumentet kunne ikke åpnes i Tekstredigering.");
+        const count = Number.isInteger(repetitions) ? Math.max(1, Math.min(repetitions, 1000)) : 1;
+        const testText = "Dette er en innlimingstest fra DSSA Tale. Æ, ø og å. ".repeat(count);
+        const result = await this.clipboardManager.pasteText(testText, {
           allowClipboardFallback: false, restoreClipboard: true,
+          expectedTargetPid: testTargetPid,
         });
-        return { success: true };
+        return { success: true, verified: result.verification === "verified", textLength: testText.length, dispatchMs: result.dispatchMs };
       } catch (error) {
         return { success: false, error: error.message };
       }
     });
-    ipcMain.handle("nb-get-acceleration", () => process.env.NB_ACCELERATION || "metal");
+    ipcMain.handle("nb-get-acceleration", () => process.env.NB_ACCELERATION || "auto");
     ipcMain.handle("nb-set-acceleration", async (_event, value) => {
-      if(value !== "metal" && value !== "cpu") throw new Error("Invalid acceleration");
+      if(!["auto","metal","cpu"].includes(value)) throw new Error("Invalid acceleration");
       require("./nbPreferences").update({acceleration:value});
       return {success:true};
     });
@@ -2823,6 +2874,7 @@ class IPCHandlers {
         return { success: true };
       }
 
+      const pasteRequestedAt = Date.now();
       const mainWindow = this.windowManager?.mainWindow;
       const targetPid = this.textEditMonitor?.lastTargetPid || null;
 
@@ -2830,7 +2882,7 @@ class IPCHandlers {
       // focus hand-off for Chromium apps like Claude desktop and Brave (#668).
       let activated = false;
       if (process.platform === "darwin" && this.textEditMonitor) {
-        activated = await this.textEditMonitor.activateTargetPid();
+        activated = await require("./nbNativePaste").activateTarget(targetPid);
       }
 
       if (!activated && mainWindow && !mainWindow.isDestroyed() && mainWindow.isFocused()) {
@@ -2859,18 +2911,28 @@ class IPCHandlers {
           ? ((await this.selectionManager?.getWinTargetHwnd?.()) ?? null)
           : null;
 
-      await this.clipboardManager.pasteText(textToPaste, {
+      const activationMs = Date.now() - pasteRequestedAt;
+      let pasteResult;
+      try {
+      pasteResult = await this.clipboardManager.pasteText(textToPaste, {
         ...options,
         webContents: event.sender,
         targetWindow,
         expectedTargetPid: process.platform === "darwin" ? targetPid : undefined,
       });
+      } catch (error) {
+        this._nbLastPasteOutcome = { at: new Date().toISOString(), code: error.code || "PASTE_FAILED", textLength: textToPaste.length, activationMs, totalMs: Date.now() - pasteRequestedAt };
+        throw error;
+      }
+      this._nbLastPasteOutcome = { at: new Date().toISOString(), verification: pasteResult?.verification, posted: pasteResult?.posted, textLength: textToPaste.length, activationMs, dispatchMs: pasteResult?.dispatchMs, totalMs: Date.now() - pasteRequestedAt };
       debugLogger.debug("[AutoLearn] Paste completed", {
         autoLearnEnabled: this._autoLearnEnabled,
         hasMonitor: !!this.textEditMonitor,
         targetPid,
       });
-      if (this.textEditMonitor && this._autoLearnEnabled) {
+      const verification = pasteResult?.verification || (process.platform === "darwin" ? "unverified" : "accepted");
+      const pasted = pasteResult?.pasted !== false && verification !== "unverified" && verification !== "unchanged";
+      if (pasted && this.textEditMonitor && this._autoLearnEnabled) {
         setTimeout(() => {
           try {
             debugLogger.debug("[AutoLearn] Starting monitoring", {
@@ -2885,8 +2947,13 @@ class IPCHandlers {
       // ClipboardManager returns `restoreComplete` so main-process callers can
       // serialize subsequent clipboard work behind its delayed restore. A
       // Promise cannot cross Electron's IPC boundary, though, and renderer
-      // callers only need to know that the paste was accepted.
-      return { success: true };
+      // Preserve the outcome without sending the non-serializable restore Promise.
+      return {
+        success: true, pasted, verification,
+        dispatched: pasteResult?.posted ?? pasteResult?.pasted !== false,
+        method: pasteResult?.method,
+        targetPid: pasteResult?.targetPid ?? targetPid,
+      };
     });
 
     ipcMain.handle("check-accessibility-permission", async (_event, silent = false) => {
@@ -2937,6 +3004,69 @@ class IPCHandlers {
       return { success: true };
     });
 
+    // One bounded, ephemeral dictation cache. Tokens are scoped to their owner
+    // webContents; no audio or transcript is persisted by this optimization.
+    const { NbDictationPrecompute } = require("./nbDictationPrecompute");
+    let nbPrecompute = null;
+    const nbOwnedPrecompute = (event, token) =>
+      nbPrecompute?.owner === event.sender && nbPrecompute?.clientToken === token ? nbPrecompute : null;
+    const nbDropPrecompute = () => {
+      if (nbPrecompute) {
+        nbPrecompute.cache.cancel();
+        nbPrecompute.owner.removeListener("destroyed", nbPrecompute.onDestroyed);
+      }
+      nbPrecompute = null;
+    };
+    app.once("before-quit", nbDropPrecompute);
+    const nbPrecomputeCache = new NbDictationPrecompute({
+          normalize: async (input, { signal }) => {
+            if (signal.aborted) throw new Error("Cancelled");
+            const server = this.whisperManager.serverManager;
+            if (!server.canConvert) throw new Error("Normalizer not ready");
+            return server._convertToWav(input);
+          },
+          transcribe: async (wav, settings, { signal }) => {
+            const options = { model: settings.requestModel, language: settings.language,
+              initialPrompt: settings.decoder.initialPrompt, ...this._resolveWhisperVadOptions("dictation") };
+            const currentIdentity = this.whisperManager.nbPrecomputeIdentity(options);
+            if (JSON.stringify(settings) !== JSON.stringify(currentIdentity) ||
+                this.whisperManager.serverManager.modelPath !== settings.model) throw new Error("Settings changed");
+            const result = await this.whisperManager.transcribeLocalWhisper(wav, { ...options, signal, nbNormalized: true, priority: "background" });
+            if (!result?.success) throw new Error("Background decode failed");
+            // Preserve the server-level result shape used by normal chunk joining.
+            return { text: result.text || "" };
+          },
+        });
+
+    ipcMain.handle("nb-precompute-begin", (event, supplied = {}) => {
+      nbDropPrecompute();
+      if (!["nb-large", "nb-large-full"].includes(supplied.model)) return null;
+      const options = {
+        model: supplied.model,
+        language: typeof supplied.language === "string" ? supplied.language : "auto",
+        initialPrompt: typeof supplied.initialPrompt === "string" ? supplied.initialPrompt.slice(0, 16000) : null,
+        ...this._resolveWhisperVadOptions("dictation"),
+      };
+      try {
+        const identity = this.whisperManager.nbPrecomputeIdentity(options);
+        const cache = nbPrecomputeCache;
+        const token = cache.begin(identity);
+        const owner = event.sender;
+        const entry = { owner, clientToken: crypto.randomUUID(), token, cache };
+        nbPrecompute = entry;
+        entry.onDestroyed = () => { if (nbPrecompute === entry) nbDropPrecompute(); };
+        owner.once("destroyed", entry.onDestroyed);
+        return entry.clientToken;
+      } catch { return null; }
+    });
+    ipcMain.handle("nb-precompute-offer", (event, token, audio) => {
+      const entry = nbOwnedPrecompute(event, token);
+      if (!entry || !(audio instanceof ArrayBuffer) || audio.byteLength > 128 * 1024 * 1024) return false;
+      return entry.cache.offer(entry.token, Buffer.from(audio));
+    });
+    ipcMain.handle("nb-precompute-finish", (event, token) => { const e = nbOwnedPrecompute(event, token); e?.cache.finish(e.token); });
+    ipcMain.handle("nb-precompute-cancel", (event, token) => { if (nbOwnedPrecompute(event, token)) nbDropPrecompute(); });
+
     ipcMain.handle("transcribe-local-whisper", async (_event, audioBlob, options = {}) => {
       debugLogger.log("transcribe-local-whisper called", {
         audioBlobType: typeof audioBlob,
@@ -2947,7 +3077,9 @@ class IPCHandlers {
       try {
         // skipVad: dictionary-echo rescue retries decode VAD-free, since VAD
         // stripping the speech is what turned the transcript into prompt echo.
-        const { skipVad, ...requestOptions } = options;
+        const { skipVad, nbPrecomputeToken, nbNormalized, nbCacheLookup, nbIdentity, ...requestOptions } = options;
+        const precompute = nbOwnedPrecompute(_event, nbPrecomputeToken);
+        if (precompute) requestOptions.nbCacheLookup = (wav, identity) => precompute.cache.lookup(precompute.token, wav, identity);
         const vadOptions = skipVad
           ? { vadEnabled: false }
           : this._resolveWhisperVadOptions("dictation");
@@ -4807,9 +4939,31 @@ class IPCHandlers {
     ipcMain.handle("process-local-reasoning", async (event, text, modelId, _agentName, config) => {
       try {
         const LocalReasoningService = require("../services/localReasoningBridge").default;
-        const result = await LocalReasoningService.processText(text, modelId, config);
+        const {nbTask, language, ...modelConfig} = config || {};
+        if (nbTask === "notes") {
+          modelConfig.systemPrompt = 'Extract only verbatim complete source sentences. Return ONLY a JSON array of {"type":"note"|"decision"|"task","quote":"exact source sentence"}. Never translate, correct, invent, or paraphrase quotations. Opinions and proposals are notes, never decisions. Do not remove a negation. Use decision only for an explicitly agreed decision, and task only for an explicit named assignment.';
+        }
+        const result = await LocalReasoningService.processText(text, modelId, modelConfig);
+        if (nbTask === "cleanup") {
+          const integrity = require("./nbTextIntegrity").validateCleanup(text, result, {language});
+          return {success:true,text:integrity.text,integrity:{accepted:integrity.accepted,reason:integrity.reason}};
+        }
+        if (nbTask === "notes") {
+          let items;
+          try { items = JSON.parse(result.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "")); } catch {}
+          const integrity = require("./nbTextIntegrity").validateQuotedMinutes(text, items, {language});
+          if (!integrity.accepted) return {success:true,text,integrity:{accepted:false,reason:integrity.reason},draft:true};
+          const labels = language === "nn" ? {note:"Notat",decision:"Vedtak",task:"Oppgåver"} : language === "en" ? {note:"Notes",decision:"Decisions",task:"Tasks"} : {note:"Notater",decision:"Vedtak",task:"Oppgaver"};
+          const rendered = Object.keys(labels).map(type => {
+            const quotes = [...new Set(integrity.items.filter(item => item.type === type).map(item => item.quote))];
+            return quotes.length ? labels[type]+"\n"+quotes.map(quote=>"• "+quote).join("\n\n") : "";
+          }).filter(Boolean).join("\n\n");
+          return {success:true,text:rendered,integrity:{accepted:true,reason:integrity.reason},draft:true};
+        }
         return { success: true, text: result };
       } catch (error) {
+        if (["cleanup", "notes"].includes(config?.nbTask) && typeof text === "string")
+          return {success:true,text,integrity:{accepted:false,reason:"processing-failed"},...(config.nbTask === "notes" ? {draft:true} : {})};
         return { success: false, error: error.message };
       }
     });
@@ -5104,6 +5258,13 @@ class IPCHandlers {
 
     ipcMain.handle("app-log", async (event, entry) => {
       debugLogger.logEntry(entry);
+      // Retain only numeric timings locally; never transcript or audio content.
+      if (entry?.message === "Pipeline timing" || entry?.message === "Paste timing") {
+        const kind = entry.message === "Pipeline timing" ? "pipeline" : "paste";
+        const meta = kind === "paste" ? {...this._nbLastPasteOutcome, ...entry.meta} : entry.meta;
+        try { await require("./nbDictationDiagnostics").recordTiming(app.getPath("userData"), kind, meta); }
+        catch { /* Diagnostic storage must never interrupt dictation. */ }
+      }
       return { success: true };
     });
 
@@ -11116,6 +11277,8 @@ class IPCHandlers {
                     this.databaseManager.updateNote(noteId, {
                       transcript: JSON.stringify(segments),
                     });
+                    const updatedNote = this.databaseManager.getNote(noteId);
+                    if (updatedNote) this._asyncMirrorWrite(updatedNote);
                   }
                 } catch (_) {}
               }
@@ -11181,6 +11344,7 @@ class IPCHandlers {
         if (changed) {
           this.databaseManager.updateNote(noteId, { transcript: JSON.stringify(transcript) });
           const updated = this.databaseManager.getNote(noteId);
+          if (updated) this._asyncMirrorWrite(updated);
           if (updated) broadcastToWindows("note-updated", updated);
         }
 

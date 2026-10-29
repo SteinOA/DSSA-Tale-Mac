@@ -772,7 +772,7 @@ test("cloud-backup resume fires only on a denial-to-grant transition", async () 
 
 test("required local models resolve only for managed policies", async () => {
   const { requiredLocalModelIds } = await load();
-  const required = ["base", "parakeet-tdt-0.6b-v3"];
+  const required = ["nb-large", "nb-large-full"];
   const managed = {
     status: "managed",
     policy: { ...policy, requiredLocalModels: required },
@@ -805,12 +805,12 @@ test("required local models drop ids the registry does not know, with a warning"
       status: "managed",
       policy: {
         ...policy,
-        requiredLocalModels: ["base", "a-model-from-the-future", "turbo", "base"],
+        requiredLocalModels: ["nb-large", "a-model-from-the-future", "nb-large-full", "nb-large", "base"],
       },
       appVersion: null,
     };
     // Unknown ids are filtered (forward compat) and duplicates collapse.
-    assert.deepEqual(requiredLocalModelIds(managed), ["base", "turbo"]);
+    assert.deepEqual(requiredLocalModelIds(managed), ["nb-large", "nb-large-full"]);
   } finally {
     console.warn = originalWarn;
   }

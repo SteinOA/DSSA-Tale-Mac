@@ -123,7 +123,8 @@ test("transcribeLocalWhisper plumbs skipDecoderThresholds to the server request 
   const captured = [];
   manager.serverManager.isAvailable = () => true;
   manager.serverManager.start = async () => {};
-  manager.serverManager.transcribe = async (_buffer, options) => {
+  manager.serverManager._convertToWav = async buffer => buffer;
+  manager.serverManager._transcribeNormalizedWav = async (_buffer, options) => {
     captured.push(options);
     return { text: "ok" };
   };

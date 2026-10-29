@@ -1,3 +1,4 @@
+import { nbInterfaceText } from "../utils/nbInterfaceText";
 import NBIntegrations from "./NBIntegrations";
 import React, { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,6 +14,7 @@ import {
   PanelLeftOpen,
   PanelLeftClose,
   Home,
+  Mic,
 } from "lucide-react";
 import UpgradePrompt from "./UpgradePrompt";
 import PostMigrationOnboarding from "./PostMigrationOnboarding";
@@ -113,14 +115,17 @@ interface ControlPanelProps {
   nbSettings?: (section?: string) => void;
   nbProfile?: {name:string;image?:string|null}|null;
   nbContent?: React.ReactNode;
+  nbStatus?: React.ReactNode;
   nbSection?: string;
   nbOnNavigate?: () => void;
   /** Open the settings modal at this section on mount (e.g. after onboarding). */
   initialSettingsSection?: string;
 }
 
-export default function ControlPanel({ initialSettingsSection, nbSettings, nbProfile, nbContent, nbSection, nbOnNavigate }: ControlPanelProps = {}) {
-  const { t } = useTranslation();
+export default function ControlPanel({ initialSettingsSection, nbSettings, nbProfile, nbContent, nbStatus, nbSection, nbOnNavigate }: ControlPanelProps = {}) {
+  const nbTheme = !!nbSettings;
+  useEffect(()=>{if(!nbTheme)return;document.body.classList.add("nb-theme");return()=>document.body.classList.remove("nb-theme");},[nbTheme]);
+  const { t, i18n } = useTranslation();
   const history = useTranscriptions();
   const [isLoading, setIsLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(!!initialSettingsSection);
@@ -1012,6 +1017,7 @@ export default function ControlPanel({ initialSettingsSection, nbSettings, nbPro
               {id:"shortcuts",label:t("nbNavigation.shortcuts", {defaultValue: "Hurtigtaster"})},
               {id:"recording",label:t("nbNavigation.recording", {defaultValue: "Opptak og innliming"})},
               {id:"appearance",label:t("nbNavigation.appearance", {defaultValue: "Utseende og språk"})},
+              {id:"system",label:t("nbNavigation.system", {defaultValue: "System"})},
             ] : undefined}
             onSettingsPageChange={nbSettings}
             onOpenSearch={() => setShowSearch(true)}
@@ -1198,6 +1204,15 @@ export default function ControlPanel({ initialSettingsSection, nbSettings, nbPro
                   </div>
                 </div>
               )}
+            {activeView === "home" && nbSettings && <section className="nb-home-welcome">
+              <header><h1>{t("sidebar.home")}</h1><p>{nbInterfaceText(i18n.language, 'Din stemme. Dine ord. På din Mac.', 'Your voice. Your words. On your Mac.')}</p></header>
+              <div className="nb-dictation-card">
+                <button className="nb-primary-pill" onClick={()=>void window.electronAPI.showDictationPanel()}><Mic size={20}/>{nbInterfaceText(i18n.language, 'Åpne diktering', 'Open dictation')}</button>
+                <p>{nbInterfaceText(i18n.language, 'Plasser markøren i et tekstfelt. Start og stopp med', 'Place the cursor in a text field. Start and stop with')}</p>
+                <kbd className="nb-shortcut">{hotkey}</kbd>
+                <span className="nb-local-caption">{nbInterfaceText(i18n.language, 'NB-Whisper · Lokalt på denne Mac-en', 'NB-Whisper · Local on this Mac')}</span>
+              </div>
+            </section>}
             {activeView === "home" && (
               <HistoryView
                 history={history}
@@ -1301,6 +1316,7 @@ export default function ControlPanel({ initialSettingsSection, nbSettings, nbPro
           </div>
         )}
       </div>
+      {nbStatus}
       <BackgroundActionToastListener />
       <SpaceSyncToastListener />
     </div>

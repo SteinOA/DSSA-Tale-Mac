@@ -308,9 +308,10 @@ export default function HistoryView({
                         {group.label}
                       </span>
                       {index === 0 && (
-                        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200">
+                        <div className="nb-history-actions flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200">
                           {discardedToggle}
                           <button
+                            data-action="destructive"
                             onClick={clearAllTranscriptions}
                             className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] text-muted-foreground/60 hover:!text-destructive hover:!bg-destructive/8 dark:hover:!bg-destructive/10 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/30 transition-all duration-200"
                           >

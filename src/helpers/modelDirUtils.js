@@ -134,8 +134,8 @@ function getCacheRoot() {
 }
 
 function getModelsDirForService(service) {
-  if (service === "whisper" && process.platform === "darwin" && app.isPackaged) {
-    return path.join(process.resourcesPath, "nb-models");
+  if (["whisper", "diarization"].includes(service) && process.platform === "darwin" && app.isPackaged) {
+    return path.join(app.getPath("userData"), `${service}-models`);
   }
   return path.join(getCacheRoot(), `${service}-models`);
 }

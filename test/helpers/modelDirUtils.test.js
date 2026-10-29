@@ -12,12 +12,13 @@ describe("modelDirUtils cache policy (#1279, #1399)", () => {
   let tempRoot;
   let mockedHome;
 
-  function loadFresh(homeDir) {
+  function loadFresh(homeDir, isPackaged = false) {
     mockedHome = homeDir;
     Module._load = function loadWithElectronStub(request, parent, isMain) {
       if (request === "electron") {
         return {
           app: {
+            isPackaged,
             getPath: (name) => (name === "home" ? mockedHome : tempRoot),
             isReady: () => true,
           },
@@ -33,6 +34,23 @@ describe("modelDirUtils cache policy (#1279, #1399)", () => {
   function setPlatform(platform) {
     Object.defineProperty(process, "platform", { value: platform });
   }
+
+  it("packaged Mac Whisper uses writable profile models independently of bundle and development caches", () => {
+    setPlatform("darwin");
+    const previous = Object.getOwnPropertyDescriptor(process,"resourcesPath");
+    try {
+      const resources = path.join(tempRoot,"DSSA Tale.app","Contents","Resources");
+      Object.defineProperty(process,"resourcesPath",{configurable:true,value:resources});
+      process.env.OPENWHISPR_CACHE_ROOT=path.join(tempRoot,"unrelated-development-cache");
+      const dirs=loadFresh(path.join(tempRoot,"home"),true);
+      assert.equal(dirs.getModelsDirForService("whisper"),path.join(tempRoot,"whisper-models"));
+      assert.equal(dirs.getModelsDirForService("diarization"),path.join(tempRoot,"diarization-models"));
+      assert.notEqual(dirs.getModelsDirForService("llama"),path.join(resources,"nb-models"));
+    } finally {
+      if(previous)Object.defineProperty(process,"resourcesPath",previous);
+      else delete process.resourcesPath;
+    }
+  });
 
   function createRedirectedWindowsFixture() {
     setPlatform("win32");

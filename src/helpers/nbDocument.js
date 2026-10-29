@@ -16,12 +16,16 @@ function zip(files){
  const index=Buffer.concat(directory),end=Buffer.alloc(22);end.writeUInt32LE(0x06054b50,0);end.writeUInt16LE(Object.keys(files).length,8);end.writeUInt16LE(Object.keys(files).length,10);end.writeUInt32LE(index.length,12);end.writeUInt32LE(offset,16);
  return Buffer.concat([...chunks,index,end]);
 }
-function createDocx(text){
+function documentLanguage(options={}) {
+ const code=String(options.language || "nb").toLowerCase().split(/[-_]/)[0];
+ return code === "nn" ? "nn-NO" : code === "en" ? "en-US" : "nb-NO";
+}
+function createDocx(text,options={}){
  const escape=(s)=>s.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
  return zip({
   "[Content_Types].xml":'<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
   "_rels/.rels":'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>',
-  "word/document.xml":'<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+text.split(/\r?\n/).map(line=>'<w:p><w:r><w:t xml:space="preserve">'+escape(line)+'</w:t></w:r></w:p>').join("")+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/></w:sectPr></w:body></w:document>'
+  "word/document.xml":'<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+text.split(/\r?\n/).map(line=>'<w:p><w:r><w:rPr><w:lang w:val="'+documentLanguage(options)+'"/></w:rPr><w:t xml:space="preserve">'+escape(line)+'</w:t></w:r></w:p>').join("")+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/></w:sectPr></w:body></w:document>'
  });
 }
 module.exports={createDocx};
@@ -29,19 +33,21 @@ function exportText(text, options={}) {
  return text.split(/\r?\n/).map(line=>{
   const stamp=line.match(/^\s*(\[(?:\d{1,3}:)?\d{1,2}:\d{2}(?:\.\d+)?\])\s*/);
   let rest=stamp ? line.slice(stamp[0].length) : line;
-  const speaker=rest.match(stamp ? /^([^:\n]{1,80}:)\s*/ : /^((?:Taler|Speaker)\s+\d+:)\s*/i);
+  const speaker=rest.match(stamp ? /^([^:\n]{1,80}:)\s*/ : /^((?:Taler|Talar|Speaker)\s+\d+:)\s*/i);
   if(speaker)rest=rest.slice(speaker[0].length);
   return (stamp && options.includeTimestamps ? stamp[1]+" " : "")+(speaker && options.includeSpeakers ? speaker[1]+" " : "")+rest;
  }).join("\n");
 }
-async function createPdf(text) {
+async function createPdf(text,options={}) {
  const {BrowserWindow}=require("electron");
  const win=new BrowserWindow({show:false,webPreferences:{sandbox:true,nodeIntegration:false,contextIsolation:true,javascript:false}});
  try {
   const escaped=text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  await win.loadURL("data:text/html;charset=utf-8,"+encodeURIComponent('<!doctype html><html lang="nb"><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'"><style>@page{size:A4;margin:20mm}body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.5}p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 8pt}</style><body>'+escaped.split(/\r?\n/).map(line=>'<p>'+(line||'&#160;')+'</p>').join('')+'</body></html>'));
+  await win.loadURL("data:text/html;charset=utf-8,"+encodeURIComponent('<!doctype html><html lang="'+documentLanguage(options)+'"><title>DSSA Tale</title><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'"><style>@page{size:A4;margin:20mm}body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.5}p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 8pt}</style><body>'+escaped.split(/\r?\n/).map(line=>'<p>'+(line||'&#160;')+'</p>').join('')+'</body></html>'));
   return await win.webContents.printToPDF({printBackground:true,pageSize:"A4",preferCSSPageSize:true});
  } finally {win.destroy();}
 }
 module.exports.exportText=exportText;
 module.exports.createPdf=createPdf;
+
+module.exports.documentLanguage=documentLanguage;

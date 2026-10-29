@@ -107,6 +107,7 @@ test("registry entries are well-formed sha256 hex digests", async () => {
 test("current-hash snapshot matches the live locale bundles (ratchet)", async () => {
   const { CURRENT_DEFAULT_PROMPT_HASHES } = await load();
   const bundles = readLocaleBundles();
+  assert.ok(bundles.nb, "Norwegian prompts must be part of the shipped locale inventory");
   const expected = {};
   for (const [locale, bundle] of Object.entries(bundles)) {
     for (const key of BUNDLE_KEYS) {

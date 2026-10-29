@@ -200,7 +200,7 @@ function SectionHeader({
       role="none"
       {...dropHandlers}
       className={cn(
-        "group flex items-center justify-between h-6 px-2 mt-1 rounded-md",
+        "nb-note-section-header group flex items-center justify-between h-6 px-2 mt-1 rounded-md",
         isDragOver && DROP_TARGET_CLASS,
         isDropSuccess && DROP_SUCCESS_CLASS,
         className

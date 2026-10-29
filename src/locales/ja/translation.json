@@ -889,6 +889,10 @@
         "unavailable": "OpenWhispr は選択したテキストを安全に読み取れませんでした。アクセシビリティまたは入力自動化の権限を確認してください。",
         "tooLarge": "選択範囲が大きすぎます。6,000文字以内を選択してください。",
         "reasoningFailed": "AI は選択範囲の編集を完了できませんでした。元のテキストは変更されていません。"
+      },
+      "cleanupRejected": {
+        "title": "Original text retained",
+        "description": "AI cleanup changed words or facts. The original text was used."
       }
     },
     "clipboard": {
@@ -3857,6 +3861,7 @@
     "shortcuts": "キーボードショートカット",
     "recording": "録音と貼り付け",
     "appearance": "外観と言語",
-    "home": "ホームに戻る"
+    "home": "ホームに戻る",
+    "system": "System"
   }
 }

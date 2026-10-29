@@ -1,45 +1,26 @@
-Bygget 2026-10-27 på Apple M4 / 24 GB / macOS 27.0.1.
-NB-repo: 55708e7. Upstream OpenWhispr: v1.9.2, commit 313ba032534d7a7ca8c3d633d096ec3171dfcb6c.
-Egen arbeidsgren: macos/nb-whisper-installer i begge lokale repoer.
-Patchen openwhispr-macos.patch inkluderer NB-patchen; ikke legg den på to ganger.
-Node fra Codex-runtime; npm 11.6.2; npm ci med upstream package-lock.json.
-Electron 41.10.5; electron-builder 26.15.3; whisper-server 0.0.8 darwin-arm64.
-Native hjelpere: npm run compile:native. Renderer: npm run build:renderer.
-Pakkekonfigurasjon: electron-builder.nb.json, --mac --arm64 --publish never.
-Appens ressurser inkluderer nb-models/ og legal/; modeller er hentet fra låst revisjon i model-metadata.json.
-Begge filenes SHA-256 og byteantall er kontrollert mot Hugging Face LFS-metadata.
-FFmpeg er bygget fra ffmpeg-6.0.tar.xz, med Opus 1.5.2 statisk og macOS deployment target 14.2.
-Full kildekode, konfigurasjonslogger, Opus-lisens og LGPL-tekst følger med i appens Resources/legal.
-FFmpeg-konfigurasjonsloggen har full configure-linje. Opus-byggloggen har configure-linje.
-Kopier egen FFmpeg til node_modules/ffmpeg-static/ffmpeg og den selvstendige MIT-stishimmen til index.js.
-Ikke bruk FFmpeg-binæren npm laster ned: den er bygd med nonfree.
-AGPL-avhengighetene tinfoil og @tinfoilsh er ekskludert i pakkekonfigurasjonen; skykoblingen er erstattet med en lokal feilmelding.
-Bygg legal/ fra MIT-lisensene, modellkortet, Apache-2.0, Electron/Chromium notices og npm dependency inventory.
-Appen er kun ad hoc-signert. Endelig Developer ID-signering krever eget Developer ID Application-sertifikat
-med privatnøkkel i nøkkelringen, Apple-team og notarytool-tilgang. Ingen slike hemmeligheter er lagret i repoet.
-Ingen GitHub-release eller publisering er utført.
+DSSA Tale Test 1.9.20 – Mac-kandidat
 
-Sluttversjonen heter DSSA Tale. Appidentitet og egen brukerprofil er no.steinoa.openwhispr.nb / OpenWhispr-NB.
-Begge Large-modeller er med; full presisjon og bokmål er standard ved første oppstart.
-Teknisk macOS-minimum er 26.0 på grunn av llama.cpp/AEC. Ingen Intel-støtte er levert.
-Lisensmaterialet ligger ferdig i resources/legal/ i dette Mac-repoet. Kildearkiver og lisenser er inkludert.
-28-sekunders NB-oppdeling og betinget suppress_nst-retry hindrer manglende tale ved segmentgrenser.
-Retry utføres ikke ved stillhet; PCM RMS/peak kontrolleres før nytt forsøk.
-Godkjent moderne utseende er implementert som avgrenset NB-CSS. Ingen funksjoner er endret av designarbeidet.
-DMG-bakgrunnen gir norsk «dra til Programmer»-veiledning.
+Kilde: OpenWhispr v1.9.2 + SteinOA NB-oppsett + egne DSSA Mac-endringer.
+Egen arbeidsgren. Windows-repoet er separat.
+Node24 / Electron41.10.5, arm64. Ikke npm ci blindt over den kuraterte FFmpeg-binæren.
+Ressursbinærer må bygges/hentes fra de låste kildene i resources/legal/SOURCES.txt og
+byggeoppskriftene før pakking. Store modellvekter følger ikke med og skal ikke
+kopieres inn i pakken. Kontroller pakkens innhold, ikke bare kildekonfigurasjon.
 
-Navigasjonsoppdatering: fast sidemeny i alle vanlige hovedvinduer, fast Hjem-knapp i topplinjen.
-Lydfiler og Assistent er egne sider. Innstillinger har fire separate undersider uten sammenfoldbare seksjoner.
-ControlPanel forblir montert ved navigasjon; pågående arbeid og lokal tekst beholdes.
-Audio-ruting er ikke endret. BlackHole krever en lydkilde inn til den virtuelle inngangen.
+Validering:
+  npm test
+  npm run typecheck
+  npm run build:renderer
+  node node_modules/electron-builder/cli.js --config electron-builder.nb-test.cjs --config.directories.output=/private/tmp/dssa-tale-test-candidate --mac dmg --arm64 --publish never
+  codesign --verify --deep --strict <app>
+  hdiutil verify <dmg>
 
-Bygg Mac NB med npm run build:mac:nb etter at de medfølgende motorene og begge modellfilene er hentet til resources/bin og resources/nb-models. Bruk ikke upstreams nonfree FFmpeg. Hjelperen for Opus-bygg finnes i scripts/nb/pkg-config-opus; plasser den ved opus-local/ under ombygging. Lisensiert FFmpeg- og Opus-kilde og full configure-linje ligger i resources/legal/.
+Bygg utenfor iCloud/Documents-mappen. afterPack fjerner FinderInfo/ResourceFork
+som hindrer signering. Kun ad hoc-signering; ikke Developer ID eller notarisering.
+Testprofilet er separat fra den vanlige appen. Ta aldri med profil, nøkkelring,
+transcriptions.db, personlig lyd, tokens eller nedlastingscache i repo/utgivelse.
 
-Versjon 1.9.3 (samme upstream 1.9.2): npm run build:mac:nb kompilerer nå
-macos-native-paste.node med xcrun/clang++ og de medfølgende Node-API v8-headerne
-(Node.js v24.19.0, MIT). Ingen ekstra npm-/Python-avhengighet for mottakeren.
-Innliming bruker CGEvent fra Electron-hovedprosessen med samme Tilgjengelighet-
-tillatelse som appen; den overstyrer ikke Gatekeeper eller manglende TCC-tillit.
-Dokumentasjon: https://nodejs.org/docs/latest/api/n-api.html og
-https://developer.apple.com/documentation/applicationservices/1460720-axisprocesstrusted
-Den medfølgende Node-headerlisensen ligger i resources/legal.
+Denne lette utgaven bruker portable Metal/CPU. Den eksperimentelle M4-spesifikke
+Core ML-serveren velges ikke uten separat encoder, og encodervektene følger ikke med.
+Core ML-byggegrunnlaget er historisk/for reproduksjon, ikke et løfte om ANE-bruk.
+Fysisk maskin/OS verifisert: M4,24GB,macOS27.0.1. MinOS26.0 er teknisk krav.

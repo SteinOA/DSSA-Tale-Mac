@@ -1360,6 +1360,49 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
     }
   }
 
+  nbPrecomputeOptions() {
+    const settings = getSettings();
+    if (!settings.useLocalWhisper || settings.localTranscriptionProvider === "nvidia" ||
+        !["nb-large", "nb-large-full"].includes(settings.whisperModel)) return null;
+    return { model: settings.whisperModel,
+      language: getBaseLanguageCode(this.getEffectiveSttLanguage(settings)) || "auto",
+      initialPrompt: this.getWhisperPrompt() || null };
+  }
+
+  nbCancelPrecompute() {
+    const state = this._nbPrecompute;
+    this._nbPrecompute = null;
+    if (state) {
+      state.sealed = true;
+      if (state.token) void window.electronAPI.nbPrecomputeCancel?.(state.token).catch(() => {});
+    }
+  }
+
+  nbOfferPrecompute(chunks, mimeType) {
+    const state = this._nbPrecompute;
+    if (!state || state.sealed || !window.electronAPI.nbPrecomputeBegin) return;
+    if (this.micRecovery.started || this._batchSegments.length ||
+        JSON.stringify(this.nbPrecomputeOptions()) !== state.identity) {
+      this.nbCancelPrecompute(); return;
+    }
+    const windowCount = Math.floor(((Date.now() - this.recordingStartTime) / 1000 - 1) / 28);
+    if (windowCount <= state.offered) return;
+    state.offered = windowCount;
+    const snapshot = new Blob(chunks, { type: mimeType });
+    if (snapshot.size > 128 * 1024 * 1024) { this.nbCancelPrecompute(); return; }
+    // One original cumulative snapshot per newly completed window. Blob keeps
+    // its own parts even when recorder.onstop clears the segment array.
+    state.pending = (state.pending || Promise.resolve()).then(async () => {
+      if (this._nbPrecompute !== state) return;
+      if (!state.token) state.token = await window.electronAPI.nbPrecomputeBegin(state.options);
+      if (this._nbPrecompute !== state) {
+        if (state.token) await window.electronAPI.nbPrecomputeCancel(state.token);
+        return;
+      }
+      if (state.token) await window.electronAPI.nbPrecomputeOffer(state.token, await snapshot.arrayBuffer());
+    }).catch(() => { if (this._nbPrecompute === state) this.nbCancelPrecompute(); });
+  }
+
   createBatchRecorder(micStream, adoption = null) {
     // Adopting the pre-roll recorder keeps every chunk captured since key-down:
     // rebinding the handlers below transfers ownership with no gap and no
@@ -1373,6 +1416,11 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
       // short utterance spoken entirely in pre-roll (#845).
       this._localSpeechGateState = null;
     }
+    this.nbCancelPrecompute();
+    const nbOptions = this.nbPrecomputeOptions();
+    if (nbOptions && !this.micRecovery.started && !this._batchSegments.length) {
+      this._nbPrecompute = { options: nbOptions, identity: JSON.stringify(nbOptions), offered: 0, token: null, sealed: false, pending: null };
+    }
     this.mediaRecorder = recorder;
     this.audioChunks = segmentChunks;
     this.recordingMimeType = recorder.mimeType || "audio/webm";
@@ -1381,6 +1429,7 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
       if (event.data && event.data.size > 0) {
         this._receivedAudioData = true;
         segmentChunks.push(event.data);
+        this.nbOfferPrecompute(segmentChunks, recorder.mimeType || "audio/webm");
       }
     };
 
@@ -1392,6 +1441,7 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
       // goes inactive). While recovery is armed, treat that like a rotation:
       // bank the segment and keep the recording alive for the replacement mic.
       if (rotating || this.micRecovery.started) {
+        this.nbCancelPrecompute();
         if (segment.size > 0) this._batchSegments.push(segment);
         micStream.getTracks().forEach((track) => track.stop());
         this._markCaptureStreamReleased();
@@ -1415,6 +1465,27 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
   }
 
   async finalizeBatchRecording(finalSegment) {
+    const state = this._nbPrecompute;
+    if (state) state.sealed = true;
+    if (this._batchSegments.length || this.micRecovery.started ||
+        (state && JSON.stringify(this.nbPrecomputeOptions()) !== state.identity)) this.nbCancelPrecompute();
+    const ready = (async () => {
+      try {
+        await state?.pending;
+        if (state && this._nbPrecompute === state && state.token) {
+          await window.electronAPI.nbPrecomputeFinish(state.token);
+          return state.token;
+        }
+      } catch { this.nbCancelPrecompute(); }
+      return null;
+    })();
+    // Enter the normal processing/cancellation lifecycle synchronously. Sealing
+    // runs alongside the existing merge, never delaying that state transition.
+    try { return await this._finalizeBatchRecording(finalSegment, ready); }
+    finally { if (this._nbPrecompute === state) this.nbCancelPrecompute(); }
+  }
+
+  async _finalizeBatchRecording(finalSegment, nbPrecomputeReady = null) {
     const processingPipeline = this._startProcessingPipeline();
     const wasCancelled = () => this._shouldAbandonProcessingPipeline(processingPipeline);
     this.micRecovery.stop();
@@ -1495,10 +1566,16 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
     }
     this._streamingCommitActive = false;
 
+    const nbPrecomputeToken = await nbPrecomputeReady;
+    if (wasCancelled()) {
+      this._settleProcessingPipeline(processingPipeline);
+      return;
+    }
     await this.processAudio(
       audioBlob,
       {
         durationSeconds,
+        ...(nbPrecomputeToken ? { nbPrecomputeToken } : {}),
         ...(salvagedRecording ? { salvagedRecording: true } : {}),
         ...(previewStop?.streamed ? { streamedText: previewStop.text } : {}),
       },
@@ -1507,6 +1584,7 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
   }
 
   async replaceBatchMic(replacement) {
+    this.nbCancelPrecompute();
     try {
       const recorder = this.mediaRecorder;
       if (!recorder) throw new Error("Batch recorder is no longer active");
@@ -1607,6 +1685,7 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
   }
 
   cancelRecording() {
+    this.nbCancelPrecompute();
     clearTimeout(this._nbRecordingLimit);
     this.micRecovery.stop();
     if (this._rotatingBatchRecorder) {
@@ -1739,6 +1818,7 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
   }
 
   cancelProcessing() {
+    this.nbCancelPrecompute();
     if (this.isProcessing) {
       this._processingCancellationGeneration = (this._processingCancellationGeneration ?? 0) + 1;
       this._requestStreamingCancellation();
@@ -1965,6 +2045,7 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
       const arrayBuffer = await audioBlob.arrayBuffer();
       const language = getBaseLanguageCode(this.getEffectiveSttLanguage(getSettings()));
       const options = { model };
+      if (metadata.nbPrecomputeToken) options.nbPrecomputeToken = metadata.nbPrecomputeToken;
       if (language) {
         options.language = language;
       }
@@ -2416,9 +2497,11 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
         ? { assistantConversation: this.pendingAssistantConversation }
         : {}),
       ...(this.pendingSelectionEdit ? { selectionEdit: this.pendingSelectionEdit } : {}),
+      ...(this.pendingNbCleanupRejected ? {nbCleanupRejected: true} : {}),
     };
     this.pendingAssistantConversation = null;
     this.pendingSelectionEdit = null;
+    this.pendingNbCleanupRejected = false;
     return extras;
   }
 
@@ -2715,8 +2798,26 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
   }
 
   async processTranscription(text, source, wasCancelled = neverCancelled) {
+    this.pendingNbCleanupRejected = false;
+    this._nbTranscriptionReasoningRoute = null;
+    const settings = getSettings();
+    const automaticCleanup = !this.voiceAgentRequested && !this.translationRequested && settings.useCleanupModel;
     const result = await this.processTranscriptionCore(text, source, wasCancelled);
     if (wasCancelled()) return result;
+    // Wake-word agents also bypass cleanup: they may be invoked without the
+    // dedicated voice-assistant hotkey/flag. Only automatic cleanup is restricted.
+    if (automaticCleanup && !["agent", "translation"].includes(this._nbTranscriptionReasoningRoute) &&
+        typeof result === "string" && result !== text) {
+      let checked;
+      try {
+        checked = await window.electronAPI?.nbValidateCleanup?.(text, result, this.getEffectiveSttLanguage(settings));
+      } catch { /* An unavailable validator must never allow rewritten words. */ }
+      if (wasCancelled()) return text;
+      if (checked?.accepted !== true || checked.text !== result) {
+        this.pendingNbCleanupRejected = true;
+        return text;
+      }
+    }
     return this.finalizeChineseScript(result);
   }
 
@@ -2785,6 +2886,7 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
           this.translationRequested,
           screenContext
         );
+        this._nbTranscriptionReasoningRoute = route.kind;
         if (this.translationRequested && route.kind !== "translation") {
           this.notifyTranslationFallback("unreachable");
         }
@@ -3649,13 +3751,34 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
 
   async safePaste(text, options = {}) {
     try {
-      await window.electronAPI.pasteText(text, options);
+      const result = await window.electronAPI.pasteText(text, options);
+      // A posted shortcut is not a confirmed insertion. Some Chromium editors
+      // do not expose their text through AX at all: keep that outcome in the
+      // log, without interrupting successful dictation with a warning card.
+      if (result?.success === true && result.dispatched === true && result.verification === "unverified") {
+        logger.debug("Paste dispatched; receiver does not expose verification", {}, "audio");
+        return true;
+      }
+      if (result?.success !== true || result.pasted === false || ["unverified", "unchanged"].includes(result.verification)) {
+        const unverified = result?.verification === "unverified" && result?.dispatched !== false;
+        this.onError?.({
+          code: unverified ? "PASTE_UNVERIFIED" : "PASTE_NOT_APPLIED",
+          title: unverified ? "Innlimingen kunne ikke bekreftes" : "Teksten må limes inn manuelt",
+          description: unverified
+            ? "Innlimingstasten er sendt, men appen kan ikke bekrefte at teksten kom inn. Kontroller tekstfeltet før du eventuelt bruker ⌘V. Teksten er beholdt i utklippstavlen."
+            : "Teksten er beholdt i utklippstavlen. Klikk i ønsket tekstfelt og bruk ⌘V.",
+          variant: "default",
+          preserveDictationPreview: true,
+        });
+        return false;
+      }
       return true;
     } catch (error) {
       const message =
         error?.message ??
         (typeof error?.toString === "function" ? error.toString() : String(error));
       this.onError?.({
+        preserveDictationPreview: true,
         title: "Automatisk innliming mislyktes",
         description: `Teksten er kopiert. Du kan lime inn med ⌘V. Kontroller «Tilgjengelighet og innliming» under Tale og mikrofon. ${message}`,
       });
@@ -5077,6 +5200,7 @@ registerProcessor("pcm-streaming-processor", PCMStreamingProcessor);
   }
 
   cleanup() {
+    this.nbCancelPrecompute();
     this.micRecovery.stop();
     this._unsubscribeSettings?.();
     this.preparedMicCapture.cancel();

@@ -178,7 +178,7 @@ export default function TranscriptionItem({
 
         <div
           className={cn(
-            "flex items-center gap-0.5 shrink-0 transition-opacity duration-150",
+            "nb-history-actions flex items-center gap-0.5 shrink-0 transition-opacity duration-150",
             isFailed || isDiscarded ? "opacity-100" : isHovered ? "opacity-100" : "opacity-0"
           )}
         >
@@ -289,6 +289,7 @@ export default function TranscriptionItem({
             <Button
               size="icon"
               variant="ghost"
+              data-action="destructive"
               onClick={() => onDelete(item.id)}
               className="h-6 w-6 rounded-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             >

@@ -70,6 +70,7 @@ import {
 import NoteParticipants from "./NoteParticipants";
 import type { CalendarAttendee } from "../../types/calendar";
 import { observeFloatingChatLayout } from "./floatingChatLayout";
+import NBConversationExport from "./NBConversationExport";
 
 const CHIP_BUTTON_CLASS =
   "inline-flex items-center gap-1.5 text-[11px] px-1.5 py-0.5 rounded-md border border-border/70 dark:border-white/25 text-foreground/50 dark:text-foreground/35 hover:text-foreground/60 hover:border-border/60 hover:bg-foreground/3 dark:hover:text-foreground/40 dark:hover:border-white/10 dark:hover:bg-white/3 transition-all duration-150 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-ring/30";
@@ -808,6 +809,7 @@ export default function NoteEditor({
   return (
     <div className="flex h-full min-h-0">
       <div className="flex-1 min-w-0 flex flex-col">
+        {hasMeetingTranscript && <NBConversationExport key={note.id} noteId={note.id}/>}
         <div className="px-5 pt-4 pb-0">
           <div
             ref={titleRef}

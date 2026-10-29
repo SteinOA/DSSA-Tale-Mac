@@ -1,5 +1,6 @@
 import dePrompts from "./de/prompts.json";
 import enPrompts from "./en/prompts.json";
+import nnPrompts from "./nn/prompts.json";
 import nbPrompts from "./nb/prompts.json";
 import esPrompts from "./es/prompts.json";
 import frPrompts from "./fr/prompts.json";
@@ -19,6 +20,7 @@ export interface PromptBundle {
 }
 
 export const en: PromptBundle = enPrompts;
+export const nn: PromptBundle = nnPrompts;
 export const nb: PromptBundle = nbPrompts;
 export const es: PromptBundle = esPrompts;
 export const fr: PromptBundle = frPrompts;
@@ -31,6 +33,7 @@ export const zhCN: PromptBundle = zhCNPrompts;
 export const zhTW: PromptBundle = zhTWPrompts;
 
 export const PROMPTS_BY_LOCALE = {
+  nn,
   nb,
   en,
   es,

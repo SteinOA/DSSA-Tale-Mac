@@ -80,3 +80,63 @@ test("audio validation fails closed and invalid window lengths cannot loop forev
   assert.throws(()=>isSilentPcm16Wav(Buffer.from("not audio")));
   for(const duration of [0,-1,NaN,Infinity])assert.throws(()=>splitPcm16Wav(wav(1,0),duration));
 });
+
+test("NB long uploads normalize once and send every original PCM sample without reconverting windows",async t=>{
+  const {manager,requests}=await fixture(t,{first:"God norsk tekst."});
+  const normalized=wav(57,2000);
+  const upload=Buffer.from("opaque uploaded MP3 fixture");
+  let conversions=0;
+  manager._convertToWav=async input=>{conversions++;assert.equal(input,upload);return normalized;};
+  const result=await manager.transcribe(upload,{language:"nn",initialPrompt:"Nasjonalbiblioteket",skipDecoderThresholds:true});
+  assert.equal(conversions,1);
+  assert.equal(requests.length,3);
+  assert.equal(result.text,"God norsk tekst. God norsk tekst. God norsk tekst.");
+  const {splitPcm16Wav}=require("../../src/helpers/nbAudioChunks");
+  splitPcm16Wav(normalized).forEach((chunk,index)=>{
+    assert.ok(requests[index].includes(chunk));
+    assert.ok(requests[index].includes(Buffer.from('name="language"\r\n\r\nnn\r\n')));
+    assert.ok(requests[index].includes(Buffer.from("Nasjonalbiblioteket")));
+    assert.ok(!requests[index].includes(Buffer.from('name="entropy_thold"')));
+  });
+});
+
+test("public WAV inputs still normalize, including stereo and other sample rates",async t=>{
+  const {manager,requests}=await fixture(t,{first:"Hei."});
+  const normalized=wav(1,2000);
+  const stereo=Buffer.from(normalized);stereo.writeUInt16LE(2,22);stereo.writeUInt32LE(48000,24);
+  const inputs=[normalized,stereo];let conversions=0;
+  manager._convertToWav=async input=>{assert.equal(input,inputs[conversions++]);return normalized;};
+  for(const input of inputs)await manager.transcribe(input,{language:"no"});
+  assert.equal(conversions,2);assert.equal(requests.length,2);
+});
+
+test("cancellation after normalization prevents any chunk request",async t=>{
+  const {manager,requests}=await fixture(t);
+  const controller=new AbortController();
+  manager._convertToWav=async()=>{controller.abort();return wav(57,2000);};
+  await assert.rejects(manager.transcribe(Buffer.from("upload"),{signal:controller.signal}),{name:"AbortError"});
+  assert.equal(requests.length,0);
+});
+
+test("cancellation between normalized windows stops the remaining requests",async t=>{
+  const {manager,requests}=await fixture(t,{first:"Hei."});
+  const controller=new AbortController();
+  const post=manager._postInference.bind(manager);
+  manager._postInference=async(...args)=>{const response=await post(...args);controller.abort();return response;};
+  await assert.rejects(manager.transcribe(wav(57,2000),{signal:controller.signal}),{name:"AbortError"});
+  assert.equal(requests.length,1);
+});
+
+test("actual server path uses exact precomputed window only after final normalization and decodes tail",async t=>{
+ const {NbDictationPrecompute}=require('../../src/helpers/nbDictationPrecompute');
+ const {manager,requests}=await fixture(t,{first:'Final tail.'});
+ const input=wav(29,3000),identity={model:manager.modelPath,language:'no',decoder:{prompt:'DSSA'}};
+ let normalization=0;manager._convertToWav=async()=>{normalization++;return input;};
+ const cache=new NbDictationPrecompute({normalize:async()=>input,transcribe:async()=>({text:'Cached first window.'})});
+ const token=cache.begin(identity);cache.offer(token,Buffer.from('original complete WebM'));await cache.idle();cache.finish(token);
+ const result=await manager.transcribe(Buffer.from('final complete WebM'),{language:'no',nbIdentity:identity,nbCacheLookup:(w,s)=>cache.lookup(token,w,s)});
+ assert.equal(normalization,1);assert.equal(result.text,'Cached first window. Final tail.');assert.equal(requests.length,1);assert.ok(requests[0].includes(slicePcm16Wav(input,28,29)));
+ await manager.transcribe(input,{language:'nn',nbIdentity:{...identity,language:'nn'},nbCacheLookup:(w,s)=>cache.lookup(token,w,s)});assert.equal(requests.length,3,'changed settings decode both windows normally');
+ const changed=Buffer.from(input);changed[100]^=1;manager._convertToWav=async()=>changed;
+ await manager.transcribe(input,{language:'no',nbIdentity:identity,nbCacheLookup:(w,s)=>cache.lookup(token,w,s)});assert.equal(requests.length,5,'changed final samples decode both windows normally');
+});

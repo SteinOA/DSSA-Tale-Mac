@@ -889,6 +889,10 @@
         "unavailable": "OpenWhispr no pudo leer de forma segura el texto seleccionado. Revisa los permisos de accesibilidad o automatización.",
         "tooLarge": "La selección es demasiado grande. Selecciona 6.000 caracteres o menos.",
         "reasoningFailed": "La IA no pudo completar la edición. El texto original no se modificó."
+      },
+      "cleanupRejected": {
+        "title": "Original text retained",
+        "description": "AI cleanup changed words or facts. The original text was used."
       }
     },
     "clipboard": {
@@ -3857,6 +3861,7 @@
     "shortcuts": "Atajos de teclado",
     "recording": "Grabación y pegado",
     "appearance": "Apariencia e idioma",
-    "home": "Inicio – volver al inicio"
+    "home": "Inicio – volver al inicio",
+    "system": "System"
   }
 }

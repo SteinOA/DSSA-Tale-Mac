@@ -121,7 +121,8 @@
       "sizeMb": 1031,
       "expectedSizeBytes": 1081140203,
       "fileName": "ggml-nb-large-q5_0.bin",
-      "downloadUrl": "https://huggingface.co/NbAiLab/nb-whisper-large/resolve/main/ggml-model-q5_0.bin"
+      "downloadUrl": "https://huggingface.co/NbAiLab/nb-whisper-large/resolve/8c6249fdeeb4dcd05e5735a4c39640607eb6e4ac/ggml-model-q5_0.bin",
+      "sha256": "feb5951ae694a62cfeb81fb501f6cfa8cc50d96bcddb1e4e8215f7006bac23a2"
     },
     "nb-large-full": {
       "name": "NB-Whisper Large (norsk, full presisjon)",
@@ -130,7 +131,8 @@
       "sizeMb": 2951,
       "expectedSizeBytes": 3095033483,
       "fileName": "ggml-nb-large-full.bin",
-      "downloadUrl": "https://huggingface.co/NbAiLab/nb-whisper-large/resolve/main/ggml-model.bin"
+      "downloadUrl": "https://huggingface.co/NbAiLab/nb-whisper-large/resolve/8c6249fdeeb4dcd05e5735a4c39640607eb6e4ac/ggml-model.bin",
+      "sha256": "0f2f66f22e11a7c7da3c582d8e5c89cb2c0011753ba9c7c9731e320a4ba33e76"
     }
   },
   "transcriptionProviders": [

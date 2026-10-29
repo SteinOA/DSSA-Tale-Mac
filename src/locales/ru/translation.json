@@ -889,6 +889,10 @@
         "unavailable": "OpenWhispr не смог безопасно прочитать выделенный текст. Проверьте разрешения специальных возможностей или автоматизации ввода.",
         "tooLarge": "Выделение слишком большое. Выберите не более 6 000 символов.",
         "reasoningFailed": "ИИ не смог завершить изменение. Исходный текст не был изменён."
+      },
+      "cleanupRejected": {
+        "title": "Original text retained",
+        "description": "AI cleanup changed words or facts. The original text was used."
       }
     },
     "clipboard": {
@@ -3887,6 +3891,7 @@
     "shortcuts": "Сочетания клавиш",
     "recording": "Запись и вставка",
     "appearance": "Оформление и язык",
-    "home": "Главная — к начальной странице"
+    "home": "Главная — к начальной странице",
+    "system": "System"
   }
 }
