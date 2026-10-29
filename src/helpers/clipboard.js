@@ -2082,7 +2082,9 @@ class ClipboardManager {
   async pasteMacOSInProcess(originalClipboard, options = {}) {
     const native = require("./nbNativePaste");
     await new Promise((resolve) => setTimeout(resolve, options.fromStreaming ? 25 : PASTE_DELAYS.darwin));
+    const dispatchStart = Date.now();
     const dispatch = native.paste(options.expectedTargetPid || 0);
+    const dispatchMs = Date.now() - dispatchStart;
     // Keep the new clipboard available until the receiving app handles ⌘V.
     let verification = "unverified";
     const verificationDelays = [600, 400, 600, 800];
@@ -2098,6 +2100,7 @@ class ClipboardManager {
     return {
       ...(dispatch && typeof dispatch === "object" ? dispatch : {}),
       dispatched: true,
+      dispatchMs,
       verification,
       restoreComplete: originalClipboard == null || verification !== "verified" ? Promise.resolve()
         : this._restoreClipboardAfterDelay(originalClipboard, {

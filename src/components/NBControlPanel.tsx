@@ -106,7 +106,7 @@ export default function NBControlPanel() {
     if(!localStorage.getItem("nbUiLanguageInitialized")){s.setUiLanguage("nb");localStorage.setItem("nbUiLanguageInitialized","true");}
     void refreshPasteStatus();
     void api.nbGetPreferences().then(setPreferences);
-    const refreshMemory=()=>{void api.nbMemory().then(setMemory);};refreshMemory();const memoryTimer=setInterval(refreshMemory,5000);
+    const refreshMemory=()=>{void api.nbMemory().then(setMemory).catch(()=>setMemory(null));};refreshMemory();const memoryTimer=setInterval(refreshMemory,5000);
     void api.nbLocalProfile().then(setProfile);
     void api.nbGetAcceleration().then(setAcceleration);
     void refreshModels();
@@ -254,10 +254,33 @@ export default function NBControlPanel() {
       <p>{(["cleanup","notes","assistant"] as const).map((task,i)=><button key={task} disabled={busy||!text||!models.some(m=>m.id===s.cleanupModel&&m.isDownloaded)} onClick={()=>runAI(task)}>{ui(["Rydd teksten","Formater notat","Spør lokal assistent"][i])}</button>)}</p>
     </section>}
   </div>;
-  return <ControlPanel nbSettings={openNBPanel} nbProfile={profile} nbContent={advanced ? undefined : content} nbSection={advanced ? undefined : panelFocus} nbOnNavigate={()=>setAdvanced(true)}/>;
+  const system=memory?.system;
+  const percent=(value:unknown)=>typeof value === "number" && Number.isFinite(value) ? `${Math.round(value)} %` : "—";
+  const gib=(value:unknown)=>typeof value === "number" && Number.isFinite(value) ? `${(value/2**30).toFixed(1)} GB` : "—";
+  const pressure=system?.pressure === "normal" ? "Normalt" : system?.pressure === "warning" ? "Høyt" : system?.pressure === "critical" ? "Kritisk" : "Ukjent";
+  const status=<footer aria-label={ui("Systemstatus")} style={{flexShrink:0,display:"flex",flexWrap:"wrap",gap:"6px 18px",padding:"7px 16px",borderTop:"1px solid var(--color-border)",background:"var(--color-surface-1)",color:"var(--color-muted-foreground)",fontSize:12,fontVariantNumeric:"tabular-nums"}}>
+    <span title={ui("Samlet CPU-belastning siden forrige måling")}>CPU {percent(system?.cpuPercent)}</span>
+    <span title={ui("Apple GPU deler minnet med systemet. — betyr at måling ikke er tilgjengelig.")}>GPU {percent(system?.gpuPercent)}</span>
+    <span title={ui("Aktive minnesider, minne reservert av macOS og komprimert minne. CPU og GPU deler RAM.")}>{ui("RAM aktiv")} {gib(system?.ramBytes)} / {gib(system?.totalBytes)}</span>
+    <span>{ui("Bytteminne")} {gib(system?.swapBytes)}</span>
+    <span>{ui("Minnepress")}: {ui(pressure)}</span>
+  </footer>;
+  return <ControlPanel nbStatus={status} nbSettings={openNBPanel} nbProfile={profile} nbContent={advanced ? undefined : content} nbSection={advanced ? undefined : panelFocus} nbOnNavigate={()=>setAdvanced(true)}/>;
 }
 
 const NB_ENGLISH: Record<string,string> = {
+ "Systemstatus":"System status",
+ "Samlet CPU-belastning siden forrige måling":"Overall CPU load since the previous sample",
+ "Apple GPU deler minnet med systemet. — betyr at måling ikke er tilgjengelig.":"Apple GPU shares system memory. — means the metric is unavailable.",
+ "Aktive minnesider, minne reservert av macOS og komprimert minne. CPU og GPU deler RAM.":"Active pages, memory reserved by macOS and compressed memory. CPU and GPU share RAM.",
+ "RAM aktiv":"Active RAM",
+ "Minnepress":"Memory pressure",
+ "Bytteminne":"Swap",
+ "Normalt":"Normal",
+ "Høyt":"Warning",
+ "Kritisk":"Critical",
+ "Ukjent":"Unknown",
+
   "Høyttaler for appens lyder":"Speaker for app sounds",
   "Følg Mac-ens standardutgang":"Use the Mac’s default output",
   "Valgt høyttaler":"Selected speaker", "Høyttaler":"Speaker", "ikke tilkoblet":"disconnected",

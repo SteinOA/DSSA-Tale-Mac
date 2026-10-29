@@ -114,13 +114,14 @@ interface ControlPanelProps {
   nbSettings?: (section?: string) => void;
   nbProfile?: {name:string;image?:string|null}|null;
   nbContent?: React.ReactNode;
+  nbStatus?: React.ReactNode;
   nbSection?: string;
   nbOnNavigate?: () => void;
   /** Open the settings modal at this section on mount (e.g. after onboarding). */
   initialSettingsSection?: string;
 }
 
-export default function ControlPanel({ initialSettingsSection, nbSettings, nbProfile, nbContent, nbSection, nbOnNavigate }: ControlPanelProps = {}) {
+export default function ControlPanel({ initialSettingsSection, nbSettings, nbProfile, nbContent, nbStatus, nbSection, nbOnNavigate }: ControlPanelProps = {}) {
   const { t, i18n } = useTranslation();
   const history = useTranscriptions();
   const [isLoading, setIsLoading] = useState(true);
@@ -1311,6 +1312,7 @@ export default function ControlPanel({ initialSettingsSection, nbSettings, nbPro
           </div>
         )}
       </div>
+      {nbStatus}
       <BackgroundActionToastListener />
       <SpaceSyncToastListener />
     </div>

@@ -872,7 +872,7 @@ class WhisperServerManager extends EventEmitter {
     });
 
     // signal is optional; only cancellable uploads pass one.
-    const { language, initialPrompt, signal, skipDecoderThresholds } = options;
+    const { signal } = options;
     if (signal?.aborted) throw createAbortError("whisper-server transcription cancelled");
 
     // Always convert to 16kHz mono WAV - whisper.cpp requires this exact format
@@ -881,13 +881,23 @@ class WhisperServerManager extends EventEmitter {
       throw new Error("FFmpeg not found - required for audio conversion");
     }
     finalBuffer = await this._convertToWav(audioBuffer);
+    return this._transcribeNormalizedWav(finalBuffer, options);
+  }
+
+  // Internal only: callers must provide the PCM16/16kHz/mono WAV produced by
+  // FFmpeg above or by splitPcm16Wav. Public uploads always normalize once.
+  // Re-running FFmpeg on each already normalized window adds process/disk
+  // overhead but cannot improve the samples.
+  async _transcribeNormalizedWav(finalBuffer, options = {}) {
+    const { language, initialPrompt, signal, skipDecoderThresholds } = options;
+    if (signal?.aborted) throw createAbortError("whisper-server transcription cancelled");
     const isNbModel = /ggml-nb-large(?:-q5_0|-full)?\.bin$/.test(this.modelPath || "");
     const chunks = isNbModel ? require("./nbAudioChunks").splitPcm16Wav(finalBuffer) : [finalBuffer];
     if (chunks.length > 1) {
       const texts = [];
       for (const chunk of chunks) {
         if (signal?.aborted) throw createAbortError("whisper-server transcription cancelled");
-        const result = await this.transcribe(chunk, options);
+        const result = await this._transcribeNormalizedWav(chunk, options);
         texts.push(result.text || "");
       }
       return { text: texts.join(" ").replace(/<\|[^|]*\|>/g, "").replace(/\s+/g, " ").trim() };

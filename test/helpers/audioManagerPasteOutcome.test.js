@@ -49,3 +49,20 @@ test("resolved IPC outcomes distinguish confirmed paste, clipboard-only and unve
   assert.equal(await manager.safePaste("Behold ved feil"),false);
   assert.equal(errors.at(-1).preserveDictationPreview,true);
 });
+
+test("Mac paste uses bounded native activation and records timing without transcript content",async()=>{
+  const source=fs.readFileSync(path.join(__dirname,"../../src/helpers/ipcHandlers.js"),"utf8");
+  const start=source.indexOf('    ipcMain.handle("paste-text",');
+  const end=source.indexOf('    ipcMain.handle("check-accessibility-permission"',start);
+  let handler, activationPid, pasteOptions;
+  const register=new Function("ipcMain","process","applySmartSpacing","debugLogger","require",source.slice(start,end));
+  const context={windowManager:{isOnboardingDemoActive:()=>false},textEditMonitor:{lastTargetPid:42,activateTargetPid(){throw new Error("Legacy script activation must not run");}},clipboardManager:{pasteText:async(_text,options)=>{pasteOptions=options;return {posted:true,verification:"verified",dispatchMs:12};}}};
+  register.call(context,{handle:(_name,callback)=>handler=callback},{platform:"darwin"},text=>text,{debug(){}},name=>{
+    assert.equal(name,"./nbNativePaste");return {activateTarget:async pid=>{activationPid=pid;return true;}};
+  });
+  const result=await handler({sender:{}},"Lang privat testtekst ".repeat(1000),{});
+  assert.equal(activationPid,42);assert.equal(pasteOptions.expectedTargetPid,42);assert.equal(result.verification,"verified");
+  assert.equal(context._nbLastPasteOutcome.textLength,22000);
+  assert.equal(context._nbLastPasteOutcome.dispatchMs,12);
+  assert.ok(!JSON.stringify(context._nbLastPasteOutcome).includes("privat"));
+});

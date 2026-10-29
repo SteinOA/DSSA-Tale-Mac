@@ -1,4 +1,4 @@
-DSSA Tale 1.9.9 – uavhengig Mac-tilpasning av OpenWhispr og SteinOA sitt NB-oppsett.
+DSSA Tale 1.9.10 – uavhengig Mac-tilpasning av OpenWhispr og SteinOA sitt NB-oppsett.
 Denne utgaven er ikke utgitt eller godkjent av OpenWhispr eller Nasjonalbiblioteket.
 
 APP OG TALEGJENKJENNING

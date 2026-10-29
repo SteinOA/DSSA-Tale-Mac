@@ -42,11 +42,26 @@ static napi_value Status(napi_env env, napi_callback_info info) {
   napi_set_named_property(env, result, "trusted", Bool(env, AXIsProcessTrusted()));
   napi_set_named_property(env, result, "canPost", Bool(env, CGPreflightPostEventAccess()));
   @autoreleasepool {
+    NSRunningApplication *front = [[NSWorkspace sharedWorkspace] frontmostApplication];
+    napi_value frontPid; napi_create_int64(env, front ? front.processIdentifier : 0, &frontPid);
+    napi_set_named_property(env, result, "frontmostPid", frontPid);
     NSRunningApplication *editor = [[NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.apple.TextEdit"] firstObject];
     napi_value pid; napi_create_int64(env, editor ? editor.processIdentifier : 0, &pid);
     napi_set_named_property(env, result, "testTargetPid", pid);
   }
   return result;
+}
+static napi_value ActivateTarget(napi_env env, napi_callback_info info) {
+  size_t argc = 1; napi_value argv[1]; int32_t pid = 0;
+  napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+  if (!argc || napi_get_value_int32(env, argv[0], &pid) != napi_ok || pid <= 0 || pid == getpid()) return Bool(env, false);
+  @autoreleasepool {
+    NSRunningApplication *current = [[NSWorkspace sharedWorkspace] frontmostApplication];
+    if (current && current.processIdentifier == pid) return Bool(env, true);
+    NSRunningApplication *target = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
+    if (!target || target.terminated) return Bool(env, false);
+    return Bool(env, [target activateWithOptions:0]);
+  }
 }
 static napi_value Paste(napi_env env, napi_callback_info info) {
   if (!AXIsProcessTrusted() || !CGPreflightPostEventAccess())
@@ -64,9 +79,13 @@ static napi_value Paste(napi_env env, napi_callback_info info) {
       return Fail(env, "TARGET_CHANGED", "Målprogrammet ble endret. Teksten er beholdt i utklippstavlen.");
     ClearCheck();
     AXUIElementRef application = AXUIElementCreateApplication(pid);
+    // A busy Chromium accessibility tree must not hold up the actual paste.
+    // Verification is optional; keyboard delivery is the primary operation.
+    AXUIElementSetMessagingTimeout(application, 0.12f);
     CFTypeRef focused = nullptr;
     if (AXUIElementCopyAttributeValue(application, kAXFocusedUIElementAttribute, &focused) == kAXErrorSuccess) {
       pasteField = (AXUIElementRef)focused;
+      AXUIElementSetMessagingTimeout(pasteField, 0.12f);
       beforeText = [ReadText(pasteField) copy];
       CFTypeRef selected = nullptr;
       if (beforeText && AXUIElementCopyAttributeValue(pasteField, kAXSelectedTextRangeAttribute, &selected) == kAXErrorSuccess) {
@@ -116,7 +135,7 @@ static napi_value Verify(napi_env env, napi_callback_info info) {
     NSString *after = ReadText(pasteField);
     const char *state = "unverified";
     if (after && expectedText && [after isEqualToString:expectedText]) state = "verified";
-    else if (after && beforeText && [after isEqualToString:beforeText]) state = "unchanged";
+    else if (after && expectedText && beforeText && [after isEqualToString:beforeText]) state = "unchanged";
     napi_value result; napi_create_string_utf8(env, state, NAPI_AUTO_LENGTH, &result);
     if (finalCheck || strcmp(state, "verified") == 0 || strcmp(state, "unverified") == 0) ClearCheck();
     return result;
@@ -139,6 +158,7 @@ static napi_value OpenTestDocument(napi_env env, napi_callback_info info) {
 static napi_value Init(napi_env env, napi_value exports) {
   napi_property_descriptor properties[] = {
     {"status", nullptr, Status, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"activateTarget", nullptr, ActivateTarget, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"paste", nullptr, Paste, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"verify", nullptr, Verify, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"openTestDocument", nullptr, OpenTestDocument, nullptr, nullptr, nullptr, napi_default, nullptr},

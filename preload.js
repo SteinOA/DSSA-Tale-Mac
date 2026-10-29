@@ -148,7 +148,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Dictionary functions
   nbGetPreferences: () => ipcRenderer.invoke("nb-get-preferences"),
   nbPasteStatus: () => ipcRenderer.invoke("nb-paste-status"),
-  nbTestPaste: () => ipcRenderer.invoke("nb-test-paste"),
+  nbTestPaste: (repetitions = 1) => ipcRenderer.invoke("nb-test-paste", repetitions),
   nbAudioOutputs: () => ipcRenderer.invoke("nb-audio-outputs"),
   nbPlayAudioTest: (uid) => ipcRenderer.invoke("nb-play-audio", uid, "test"),
   nbPlayAudioCue: (kind, uid) => ipcRenderer.invoke("nb-play-audio", uid, kind),

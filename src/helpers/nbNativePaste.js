@@ -33,4 +33,17 @@ function openTestDocument(file) {
   if (!native?.openTestDocument) throw new Error("Testkomponenten mangler.");
   return native.openTestDocument(file);
 }
-module.exports = { status, paste, verify, openTestDocument };
+async function activateTarget(pid) {
+  const native = load();
+  if (!(pid > 0) || !native?.activateTarget) return false;
+  if (native.status().frontmostPid === pid) return true;
+  if (!native.activateTarget(pid)) return false;
+  // One short focus hand-off, never a ladder of multi-second script calls.
+  const deadline = Date.now() + 300;
+  while (Date.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, 25));
+    if (native.status().frontmostPid === pid) return true;
+  }
+  return false;
+}
+module.exports = { status, paste, verify, openTestDocument, activateTarget };
