@@ -42,6 +42,10 @@ Pakken er **arm64 for Apple Silicon**, med teknisk minimum **macOS 26.0**. Fakti
 
 Denne lette pakken bruker Metal eller CPU. Core ML-encoderens modellvekter følger ikke med. Det loves ikke bruk av Neural Engine eller tekstinnsetting innen ett sekund.
 
+## Sikre lokale versjoner
+
+[Mac-verktøy for kildekodekontrollpunkter](DSSA-VERSJONSSIKRING.md) kan sikre en lokalt bygget 1.9.23 eller nyere på en egen GitHub-gren med versjonsmerke og filkontrollsummer. Det endrer ikke appen eller innstillingene. Verktøyet må kjøres på Mac-en som har kildekoden; det betyr ikke at 1.9.23 allerede er lastet opp eller utgitt. Ferdigbygde installasjonspakker er et eget steg.
+
 ## Kilder og lisenser
 
 App/tilpasning: MIT. NB-modeller: Apache-2.0. Medfølgende FFmpeg er et eget LGPL-2.1+-bygg uten GPL/nonfree, med kildearkiv, Opus-kilder og byggevalg. Alle påkrevde opplysninger for distribuerte komponenter ligger i appens `Contents/Resources/legal/` og [resources/legal](resources/legal).
