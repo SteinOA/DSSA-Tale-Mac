@@ -82,7 +82,12 @@
     "!**/node_modules/**/CHANGELOG*",
     "!**/node_modules/**/.github/**",
     "!**/node_modules/tinfoil/**",
-    "!**/node_modules/@tinfoilsh/**"
+    "!**/node_modules/@tinfoilsh/**",
+    "!node_modules/**/*.mp3",
+    "!node_modules/**/*.wav",
+    "!node_modules/**/*.m4a",
+    "!node_modules/**/*.mp4",
+    "!node_modules/**/*.webm"
   ],
   "asarUnpack": [
     "**/node_modules/ffmpeg-static/**/*",
