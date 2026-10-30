@@ -1,0 +1,43 @@
+name: DSSA Mac source checkpoints
+on:
+  pull_request:
+    paths:
+      - scripts/DSSA-sikre-mac-versjon.cjs
+      - tools/DSSA-Mac-Versjonssikring*
+      - test/DSSA-mac-version-checkpoint.test.js
+      - .github/workflows/DSSA-source-checkpoints.yml
+      - DSSA-VERSJONSSIKRING.md
+permissions:
+  contents: read
+jobs:
+  checkpoint-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Test isolated Git snapshots and preservation
+        run: node --test test/DSSA-mac-version-checkpoint.test.js
+      - name: Check Mac launcher syntax and downloadable files
+        run: |
+          set -euo pipefail
+          bash -n tools/DSSA-Mac-Versjonssikring.command
+          python3 - <<'PY'
+          import hashlib, pathlib, zipfile
+          archive = pathlib.Path('tools/DSSA-Mac-Versjonssikring.zip')
+          expected = {
+            'DSSA-Mac-Versjonssikring.command': pathlib.Path('tools/DSSA-Mac-Versjonssikring.command'),
+            'DSSA-sikre-mac-versjon.cjs': pathlib.Path('scripts/DSSA-sikre-mac-versjon.cjs'),
+            'DSSA-VERSJONSSIKRING.md': pathlib.Path('DSSA-VERSJONSSIKRING.md'),
+          }
+          with zipfile.ZipFile(archive) as z:
+            assert z.testzip() is None
+            assert set(z.namelist()) == set(expected)
+            for name, source in expected.items():
+              assert z.read(name) == source.read_bytes(), name
+            assert z.getinfo('DSSA-Mac-Versjonssikring.command').external_attr >> 16 & 0o111
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == pathlib.Path(str(archive)+'.sha256').read_text().split()[0]
+          print('ZIP, source bytes, executable launcher and SHA-256 verified.')
+          PY
