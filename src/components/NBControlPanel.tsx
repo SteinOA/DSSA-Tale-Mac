@@ -47,7 +47,7 @@ export default function NBControlPanel() {
   const [wordAlignment,setWordAlignment]=useState(()=>localStorage.getItem("nbWordAlignment") || "native");
   const [communityDevice,setCommunityDevice]=useState("cpu");
   const [textLanguage,setTextLanguage]=useState<string | null>(null);
-  useEffect(()=>{void api.nbCommunityStatus?.().then(setCommunityStatus).catch(()=>{});},[api]);
+  useEffect(()=>{void api.nbCommunityStatus?.().then((status:any)=>{setCommunityStatus(status);setCommunityDevice(status?.device || "cpu");}).catch(()=>{});},[api]);
   const [separateSpeakers, setSeparateSpeakers] = useState(false);
   const [advanced, setAdvanced] = useState(true);
   const [panelFocus,setPanelFocus] = useState("settings");
