@@ -176,3 +176,28 @@ maks 4,48 GB RSS på en 14-sekunders enkeltstemmeprøve. Dette er en separat
 funksjonsprøve, ikke sammenlignbar med firetalerklippets kvalitetstall.
 
 Kodekontroll: 3524 tester, 3338 bestått, 0 feil, 185 hoppet over, 1 TODO. Typekontroll og rendererbygg består. Ingen av de hoppede testene regnes som kjørt maskinvarevalidering.
+
+## GUI-kontroll og ordgrenser
+
+Den installerte 1.9.24-kandidaten gjennomførte import med full NB-Whisper,
+CPU WhisperX og MPS Community-1, samtidig som visningen ble byttet til Hjem.
+Et separat DSSA-testnotat ble opprettet. Alle tidligere databaseposter var
+uendret ved sammenligning med sikkerhetskopien, ikke bare opptelling.
+
+GUI-kontrollen avdekket at tidsstempler slo på whisper.cpp sin standard-
+innpakning ved 60 tegn og kunne dele norske ord midt i ordet. Tidsbaserte
+forespørsler bruker nå stor eksplisitt max_len og split_on_word, uten å slå
+av faktiske ordtider. Kildeprøven har ikke lenger de observerte delte ordene.
+Etter denne rettingen ga presis kobling 1/101 ukjente ord på det rene klippet,
+med uendret ASR-tekst; maks RSS var 5,80 GB i denne prøven. Tidligere sammen-
+ligningstall er kontrollerte forsøk før denne ordgrensereparasjonen og skal
+ikke forveksles med en ny, manuelt scoret kvalitetsmåling.
+
+Fremdriftsvisningen nullstiller nå trinnnavn ved faseskifte og viser behandlet
+lydlengde som full ved faktisk fullføring. ASR 100 % gjør fremdeles ikke
+hele jobben ferdig. Disse regressjonene har automatiske tester.
+
+Begrensning: rå NB-Whisper viste enkelte bokmålsformer i nynorskprøven selv
+med nn valgt. Ordjustering bevarer råordene og retter ikke gjenkjenning eller
+målform. Det loves derfor ikke feilfri nynorsk fra ASR. Ingen etterfølgende
+LLM brukes til å skjule dette ved automatisk oversettelse.

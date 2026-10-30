@@ -117,7 +117,8 @@
     "RSS and MPS driver memory are different overlapping measurements; do not sum",
     "LLM cleanup is optional and cannot guarantee preservation; original remains protected",
     "Packaged UI/navigation/export integration still pending",
-    "13 public voices tested in artificial concatenation; natural 10-14 participant meeting not validated"
+    "13 public voices tested in artificial concatenation; natural 10-14 participant meeting not validated",
+    "Raw NB-Whisper ASR showed mixed written forms even with Nynorsk selected; alignment preserves raw words and does not correct language or recognition errors"
   ],
   "thirteenSpeakerTest": {
     "device": "mps",
@@ -262,5 +263,28 @@
     "todo": 1,
     "typecheck": "passed",
     "rendererBuild": "passed"
+  },
+  "wordBoundaryRegression": {
+    "success": true,
+    "words": 101,
+    "unknownWords": 1,
+    "textUnchanged": true,
+    "noKnownSplitWords": true,
+    "evidence": {
+      "engine": "whisperx",
+      "device": "cpu",
+      "timings": {
+        "loadSeconds": 0.1156120829982683,
+        "alignmentSeconds": 6.077613000001293
+      },
+      "peakRssBytes": 5798477824
+    }
+  },
+  "guiPreflight": {
+    "installedVersion": "1.9.24",
+    "navigationContinuesImport": true,
+    "separateTestNoteCreated": true,
+    "allPreexistingDatabaseRowsUnchanged": true,
+    "finalProgressLabelCorrection": "awaiting final packaged GUI retest"
   }
 }

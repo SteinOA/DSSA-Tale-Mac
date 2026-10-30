@@ -963,7 +963,11 @@ class WhisperServerManager extends EventEmitter {
         `Content-Disposition: form-data; name="response_format"\r\n\r\n` +
         `${options.timestamps ? "verbose_json" : "json"}\r\n`
     );
-    if(options.timestamps) parts.push(`--${boundary}\r\nContent-Disposition: form-data; name="no_timestamps"\r\n\r\nfalse\r\n`);
+    if(options.timestamps) {
+      // The server maps max_len=0 to a 60-character wrap. Keep real clocks
+      // without cutting Norwegian words into separate transcript fragments.
+      for(const [name,value] of [['no_timestamps','false'],['max_len','1000000'],['split_on_word','true']])parts.push(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`);
+    }
     parts.push(`--${boundary}--\r\n`);
 
     const bodyParts = parts.map((part) => (typeof part === "string" ? Buffer.from(part) : part));

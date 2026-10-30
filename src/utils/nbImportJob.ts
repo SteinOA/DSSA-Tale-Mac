@@ -47,8 +47,9 @@ export function createNbImportJob() {
             for(const key of ["completedChunks","totalChunks","completedSeconds","totalSeconds","resumedChunks"] as const){
               if(typeof progress[key] === "number" && Number.isFinite(progress[key]) && progress[key]>=0)counters[key]=progress[key];
             }
-            const stageChanged=snapshot.phase!==progress.phase || (progress.step && snapshot.stageLabel!==progress.step);
-            update({...counters,phase:progress.phase,...(stageChanged?{stageStartedAt:Date.now(),completedSeconds:counters.completedSeconds || 0}:{}),stageLabel:progress.step || snapshot.stageLabel,stageFraction:typeof progress.fraction==='number' ? progress.fraction : null});
+            const phaseChanged=snapshot.phase!==progress.phase;
+            const stageChanged=phaseChanged || (progress.step && snapshot.stageLabel!==progress.step);
+            update({...counters,phase:progress.phase,...(stageChanged?{stageStartedAt:Date.now(),completedSeconds:counters.completedSeconds || 0}:{}),stageLabel:progress.step || (phaseChanged ? "" : snapshot.stageLabel),stageFraction:typeof progress.fraction==='number' ? progress.fraction : null});
           });
           const result=await api.nbImportAudioFile(filePath,{model:options.model,language:options.language,requestId,...(options.separateSpeakers?{speakerEngine:options.speakerEngine || "sherpa-onnx",channelMode:options.channelMode || "inspect",wordAlignment:options.wordAlignment || "native"}:{})});
           if(result?.cancelled){update({text:result.text || "",phase:"cancelled",warning:result.text ? "Talerfordelingen ble avbrutt. Transkripsjonen er beholdt." : "",finishedAt:Date.now()});return true;}
@@ -66,7 +67,7 @@ export function createNbImportJob() {
           update({warning:result.diarizationWarning ? (result.warning || "Talerfordelingen er delvis. Ukjent taler er beholdt ved usikkerhet. Kontroller og korriger under Notater.") : "",diarizationSummary:result.diarizationSummary});
           update({text,phase:"saving"});
           const saved=(options.getHistoryEnabled?.() ?? options.saveHistory ?? true) ? await saveImportedConversation(api,file.name,text,result.segments,options.language) : null;
-          update({saved,phase:"complete",finishedAt:Date.now()});
+          update({saved,phase:"complete",finishedAt:Date.now(),completedSeconds:snapshot.totalSeconds,stageLabel:"",stageFraction:1});
           return true;
         }
         // Compatibility path for old harnesses; diarization retains its existing API.
