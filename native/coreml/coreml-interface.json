@@ -1,0 +1,25 @@
+{
+  "specificationVersion": 6,
+  "inputs": [
+    {
+      "name": "logmel_data",
+      "shape": [
+        1,
+        128,
+        3000
+      ],
+      "type": 65568
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "shape": [
+        1,
+        1500,
+        1280
+      ],
+      "type": 65568
+    }
+  ]
+}

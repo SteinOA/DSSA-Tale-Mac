@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createNbHotkeyStartup, type HotkeyRegistrationStatus } from "../helpers/nbHotkeyStartup";
 import { API_ENDPOINTS } from "../config/constants";
 import i18n, { normalizeUiLanguage } from "../i18n";
 import { ensureAgentNameInDictionary } from "../utils/agentName";
@@ -615,6 +616,7 @@ export interface SettingsState
     PrivacySettings,
     ThemeSettings,
     ChatAgentSettings {
+  dictationHotkeyRegistration: HotkeyRegistrationStatus;
   isSignedIn: boolean;
   audioCuesEnabled: boolean;
   pauseMediaOnDictation: boolean;
@@ -1303,6 +1305,7 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
 
   dictationKey: readString("dictationKey", ""),
   activeDictationKey: null,
+  dictationHotkeyRegistration: { status: "idle" },
   meetingKey: readString("meetingKey", ""),
   voiceAgentKey: readString("voiceAgentKey", ""),
   translationKey: readString("translationKey", ""),
@@ -3390,10 +3393,27 @@ export async function initializeSettings(): Promise<void> {
     }
   });
 
+  // Hydration is complete. Reconcile the NB Mac preference through the same
+  // atomic registration API as Settings, after main has registered its startup key.
+  const reconcileNbHotkey = createNbHotkeyStartup({
+    enabled: window.electronAPI?.getPlatform?.() === "darwin" &&
+      localStorage.getItem("nbEditionInitialized") === "true",
+    getDesired: () => useSettingsStore.getState().dictationKey,
+    getActive: async () => window.electronAPI?.getActiveDictationKey?.(),
+    update: (key) => window.electronAPI.updateHotkey(key),
+    setActive: (key) => useSettingsStore.setState({ activeDictationKey: key }),
+    setStatus: (status) => useSettingsStore.setState({ dictationHotkeyRegistration: status }),
+  });
   // Active hotkey updates from backend — display state, never persisted.
   window.electronAPI?.onDictationKeyActive?.((key: string) => {
     useSettingsStore.setState({ activeDictationKey: key });
+    const registration = useSettingsStore.getState().dictationHotkeyRegistration;
+    if (key === useSettingsStore.getState().dictationKey && registration.status === "failed") {
+      useSettingsStore.setState({ dictationHotkeyRegistration: { status: "registered", desiredKey: key } });
+    }
+    void reconcileNbHotkey();
   });
+  void reconcileNbHotkey();
 
   // Sync settings pushed from main process (e.g., hotkey changed in control panel)
   window.electronAPI?.onSettingUpdated?.((data: { key: string; value: unknown }) => {

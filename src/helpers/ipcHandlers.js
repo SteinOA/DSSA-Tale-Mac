@@ -4824,6 +4824,7 @@ class IPCHandlers {
     });
 
     ipcMain.handle("get-active-dictation-key", async () => {
+      if (process.platform === "darwin" && app.getName() === "DSSA Tale" && !this.windowManager?.hotkeyManager?.isInitialized) return null;
       const hotkeys = this.windowManager?.hotkeyManager?.getSlotHotkeys?.("dictation") ?? [];
       return hotkeys.length > 0 ? hotkeys.join(",") : null;
     });
