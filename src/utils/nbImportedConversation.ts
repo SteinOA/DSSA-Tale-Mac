@@ -1,7 +1,7 @@
 import type { TranscriptSegment } from "../stores/meetingRecordingStore";
 
-type ImportedPart = { text?: string; start?: number; end?: number; speaker?: string };
-export function importedConversation(fileName: string, text: string, parts?: ImportedPart[]) {
+type ImportedPart = { text?: string; start?: number; end?: number; speaker?: string; speakerAssignment?: string };
+export function importedConversation(fileName: string, text: string, parts?: ImportedPart[],language="no") {
   const title = fileName.split(/[\\/]/).pop()?.replace(/\.[^.]+$/, "").trim() || "Importert lydopptak";
   const speakers = new Map<string,string>();
   const segments: (TranscriptSegment & {end?: number})[] = parts
@@ -10,10 +10,11 @@ export function importedConversation(fileName: string, text: string, parts?: Imp
       if(typeof part.start === "number" && Number.isFinite(part.start) && part.start >= 0)segment.timestamp=part.start;
       if(typeof part.end === "number" && Number.isFinite(part.end) && part.end >= 0)segment.end=part.end;
       if(part.speaker){
-        if(!speakers.has(part.speaker))speakers.set(part.speaker,`Taler ${speakers.size+1}`);
+        if(!speakers.has(part.speaker))speakers.set(part.speaker,`${language==="nn"?"Talar":"Taler"} ${speakers.size+1}`);
         segment.speaker=part.speaker;segment.speakerName=speakers.get(part.speaker);
         segment.speakerIsPlaceholder=true;segment.speakerStatus="provisional";
       }
+      if(!part.speaker)segment.speakerName=language==="nn"?"Ukjend talar":"Ukjent taler";
       return segment;
     }) : text.trim() ? [{id:"import-0",text:text.trim(),source:"system"}] : [];
   // Some engines return usable plain text with an empty/blank segments array.
@@ -24,8 +25,8 @@ export function importedConversation(fileName: string, text: string, parts?: Imp
 
 // Save readable content first: even if the follow-up transcript update fails,
 // the imported words remain recoverable in one note, never an empty orphan.
-export async function saveImportedConversation(api:any, fileName:string, text:string, parts?:ImportedPart[]) {
-  const conversation=importedConversation(fileName,text,parts);
+export async function saveImportedConversation(api:any, fileName:string, text:string, parts?:ImportedPart[],language="no") {
+  const conversation=importedConversation(fileName,text,parts,language);
   if(!conversation.segments.length)return null;
   const result=await api.saveNote(conversation.title,conversation.content,"meeting",fileName,null,null,null);
   if(!result?.success || !result.note?.id)throw new Error(result?.error || "Samtalen kunne ikke lagres. Teksten er fortsatt tilgjengelig her.");

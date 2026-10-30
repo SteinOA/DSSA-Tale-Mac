@@ -47,7 +47,7 @@ async function waitForQueueSettled(store, timeoutMs = 5000) {
 function installUploadElectronAPI(window, { diarizedDurationSeconds }) {
   const calls = { saveNote: [], updateNote: [], diarize: [], deletedTempFiles: [] };
   Object.assign(window.electronAPI, {
-    transcribeAudioFile: async () => ({ success: true, text: "hello from the recording" }),
+    transcribeAudioFile: async (_file,options) => ({ success: true, text: "hello from the recording", ...(options?.timestamps?{segments:[{text:"hello from the recording",start:0,end:10}]}:{}) }),
     diarizeAudioFile: async (_filePath, options) => {
       calls.diarize.push(options);
       return {
@@ -105,7 +105,11 @@ test("a diarized file upload persists the diarization metadata", async (t) => {
   // The diarizer runs under the same cancellable requestId as the
   // transcription, so one cancel-upload-transcription aborts both.
   assert.equal(typeof calls.diarize[0].requestId, "string");
-  assert.deepEqual(calls.updateNote, [[7, { diarization_enabled: 1, expected_speaker_count: 2 }]]);
+  assert.equal(calls.updateNote.length,1);
+  assert.equal(calls.updateNote[0][0],7);
+  assert.equal(calls.updateNote[0][1].diarization_enabled,1);
+  assert.equal(calls.updateNote[0][1].expected_speaker_count,2);
+  assert.equal(JSON.parse(calls.updateNote[0][1].transcript)[0].text,'hello from the recording');
 });
 
 test("a diarized URL ingest persists the diarization metadata", async (t) => {
@@ -141,7 +145,11 @@ test("a diarized URL ingest persists the diarization metadata", async (t) => {
   assert.equal(sourceFile, "Board Meeting Recording");
   assert.equal(audioDuration, 4359.87);
 
-  assert.deepEqual(calls.updateNote, [[7, { diarization_enabled: 1, expected_speaker_count: 2 }]]);
+  assert.equal(calls.updateNote.length,1);
+  assert.equal(calls.updateNote[0][0],7);
+  assert.equal(calls.updateNote[0][1].diarization_enabled,1);
+  assert.equal(calls.updateNote[0][1].expected_speaker_count,2);
+  assert.equal(JSON.parse(calls.updateNote[0][1].transcript)[0].text,'hello from the recording');
   assert.deepEqual(calls.deletedTempFiles, ["/tmp/ow-url-download.m4a"]);
 });
 
@@ -167,7 +175,7 @@ test("an upload without diarization leaves the note columns untouched", async (t
   // global speaker setting" when recording into the note later, and a stored 0
   // would force it off.
   assert.equal(calls.diarize.length, 0);
-  assert.equal(calls.updateNote.length, 0);
+  assert.equal(calls.updateNote.some(([, update])=>Object.hasOwn(update,"diarization_enabled") || Object.hasOwn(update,"expected_speaker_count")), false);
   assert.equal(calls.saveNote.length, 1);
   assert.equal(calls.saveNote[0][4], null);
 });

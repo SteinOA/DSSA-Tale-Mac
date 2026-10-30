@@ -1,0 +1,266 @@
+{
+  "machine": {
+    "cpu": "Apple M4",
+    "ramGB": 24,
+    "macOS": "27.0.1",
+    "architecture": "arm64"
+  },
+  "model": {
+    "repo": "pyannote/speaker-diarization-community-1",
+    "revision": "3533c8cf8e369892e6b79ff1bf80f7b0286a54ee",
+    "termsApprovedInSafari": true,
+    "tokenUsed": false
+  },
+  "publicNpsc": {
+    "sha256": "ccc2587dc5c60d4a365444a585ae58247de98f1c181359a90f785d87366958b4",
+    "audioSeconds": 47.794,
+    "knownSpeakers": 4,
+    "turns": 5,
+    "language": "nn",
+    "sourceRevision": "e862cba896ef8f8c7190be21bdb485a9491679a4",
+    "sourceParquetSha256": "f3be0078b99e8942c8a160c6d6cb296239ccc89c9f6ce0d0e6b778b7b5f036b1",
+    "artificiallyConcatenatedRealSpeech": true,
+    "naturalMeeting": false
+  },
+  "benchmarks": [
+    {
+      "device": "cpu",
+      "durationSeconds": 47.794,
+      "detectedSpeakerGroups": 4,
+      "timings": {
+        "loadSeconds": 2.765629500034265,
+        "inferenceSeconds": 11.16487124998821,
+        "totalSeconds": 13.93050087505253
+      },
+      "peakRssBytes": 2730508288,
+      "mpsDriverBytesAfterInference": null
+    },
+    {
+      "device": "mps",
+      "durationSeconds": 47.794,
+      "detectedSpeakerGroups": 4,
+      "timings": {
+        "loadSeconds": 3.019758499984164,
+        "inferenceSeconds": 5.1321221250109375,
+        "totalSeconds": 8.151880750025157
+      },
+      "peakRssBytes": 648331264,
+      "mpsDriverBytesAfterInference": 1785511936
+    }
+  ],
+  "integration": [
+    {
+      "fixture": "npsc-four-nn",
+      "asrMs": 10377,
+      "totalMs": 26467,
+      "language": "nn",
+      "textUnchanged": true,
+      "asrSegments": 14,
+      "assignedSegments": 13,
+      "unknownSegments": 1,
+      "detectedSpeakerGroups": 4,
+      "diarizationTimings": {
+        "loadSeconds": 3.2721420419984497,
+        "inferenceSeconds": 12.136048665968701,
+        "totalSeconds": 15.408190791960806
+      },
+      "peakRssBytes": 2462957568,
+      "phases": [
+        "converting",
+        "transcribing",
+        "diarizing"
+      ]
+    },
+    {
+      "fixture": "npsc-short-overlap",
+      "asrMs": 8593,
+      "totalMs": 19900,
+      "language": "nn",
+      "textUnchanged": true,
+      "asrSegments": 11,
+      "assignedSegments": 8,
+      "unknownSegments": 3,
+      "detectedSpeakerGroups": 2,
+      "diarizationTimings": {
+        "loadSeconds": 2.406350291974377,
+        "inferenceSeconds": 8.267387832980603,
+        "totalSeconds": 10.673738291952759
+      },
+      "peakRssBytes": 2486272000,
+      "phases": [
+        "converting",
+        "transcribing",
+        "diarizing"
+      ]
+    }
+  ],
+  "cancellation": {
+    "cancelled": true,
+    "remainingWorker": false,
+    "stopMs": 9
+  },
+  "channelInspection": {
+    "channels": 2,
+    "correlation": 0.0063244853329449515,
+    "rms": [
+      0.06310734249920767,
+      0.0464165117940103
+    ],
+    "independence": "possibly-independent",
+    "requiresChoice": true,
+    "scope": "first-30-seconds"
+  },
+  "limitations": [
+    "No real long Mac meeting benchmark",
+    "Short/overlap fixture merged voices: two groups from four source speakers",
+    "No manually scored DER",
+    "RSS and MPS driver memory are different overlapping measurements; do not sum",
+    "LLM cleanup is optional and cannot guarantee preservation; original remains protected",
+    "Packaged UI/navigation/export integration still pending",
+    "13 public voices tested in artificial concatenation; natural 10-14 participant meeting not validated"
+  ],
+  "thirteenSpeakerTest": {
+    "device": "mps",
+    "durationSeconds": 150.788,
+    "detectedSpeakerGroups": 13,
+    "timings": {
+      "loadSeconds": 4.033932416001335,
+      "inferenceSeconds": 17.360419834032655,
+      "totalSeconds": 21.394352375005838
+    },
+    "peakRssBytes": 752549888,
+    "mpsDriverBytesAfterInference": 1672052736,
+    "knownSpeakers": 13,
+    "turns": 14,
+    "returningSpeakerMatched": true,
+    "artificiallyConcatenatedRealSpeech": true,
+    "naturalMeeting": false
+  },
+  "nativeWordTimesComparison": [
+    {
+      "fixture": "npsc-four-nn",
+      "coarse-baseline": {
+        "words": 105,
+        "unknownWords": 10,
+        "unknownPercent": 9.523809523809524,
+        "textUnchanged": true
+      },
+      "integration": {
+        "words": 105,
+        "unknownWords": 4,
+        "unknownPercent": 3.8095238095238098,
+        "textUnchanged": true
+      }
+    },
+    {
+      "fixture": "npsc-short-overlap",
+      "coarse-baseline": {
+        "words": 78,
+        "unknownWords": 20,
+        "unknownPercent": 25.64102564102564,
+        "textUnchanged": true
+      },
+      "integration": {
+        "words": 78,
+        "unknownWords": 15,
+        "unknownPercent": 19.230769230769234,
+        "textUnchanged": true
+      }
+    }
+  ],
+  "clusteringExperiments": {
+    "thresholds": [
+      0.4,
+      0.5,
+      0.6,
+      0.7
+    ],
+    "shortFixtureImproved": false,
+    "defaultChanged": false
+  },
+  "whisperX": {
+    "version": "3.8.6",
+    "device": "cpu",
+    "coverage": [
+      {
+        "fixture": "npsc-four-nn",
+        "words": 105,
+        "unknownWords": 0,
+        "unknownPercent": 0,
+        "textUnchanged": true,
+        "segments": 17
+      },
+      {
+        "fixture": "npsc-short-overlap",
+        "words": 78,
+        "unknownWords": 11,
+        "unknownPercent": 14.102564102564102,
+        "textUnchanged": true,
+        "segments": 15
+      }
+    ],
+    "apiMeasurements": [
+      {
+        "fixture": "npsc-four-nn",
+        "device": "cpu",
+        "loadSeconds": 0.1136390829924494,
+        "alignmentSeconds": 13.182226750010159,
+        "textUnchanged": true,
+        "alignedWords": 105,
+        "peakRssBytes": 4509220864
+      },
+      {
+        "fixture": "npsc-short-overlap",
+        "device": "cpu",
+        "loadSeconds": 0.1136390829924494,
+        "alignmentSeconds": 5.566430750011932,
+        "textUnchanged": true,
+        "alignedWords": 78,
+        "peakRssBytes": 4509220864
+      }
+    ],
+    "productionBridgeNynorsk": {
+      "success": true,
+      "bridgeMs": 15104,
+      "words": 105,
+      "unknownWords": 0,
+      "evidence": {
+        "engine": "whisperx",
+        "device": "cpu",
+        "timings": {
+          "loadSeconds": 0.1584607909899205,
+          "alignmentSeconds": 8.455108458991162
+        },
+        "peakRssBytes": 4600414208
+      }
+    },
+    "productionBridgeBokmaal": {
+      "success": true,
+      "language": "no",
+      "textUnchanged": true,
+      "alignment": {
+        "engine": "whisperx",
+        "device": "cpu",
+        "timings": {
+          "loadSeconds": 0.36023879202548414,
+          "alignmentSeconds": 6.582875832973514
+        },
+        "peakRssBytes": 4478926848
+      },
+      "segments": 4
+    },
+    "modelRevisions": {
+      "nn": "37107327f6af742c008042d8cfdba4276de18f82",
+      "no": "58a6eb5d7927c378f5d2785bc865756c9ae273ae"
+    }
+  },
+  "automatedTests": {
+    "total": 3524,
+    "passed": 3338,
+    "failed": 0,
+    "skipped": 185,
+    "todo": 1,
+    "typecheck": "passed",
+    "rendererBuild": "passed"
+  }
+}

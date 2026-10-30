@@ -140,3 +140,9 @@ test("transcribeLocalWhisper plumbs skipDecoderThresholds to the server request 
   await manager.transcribeLocalWhisper(Buffer.from("audio"), { model: "base" });
   assert.equal(captured[1].skipDecoderThresholds, false);
 });
+
+test('only an explicitly timed import requests real verbose timestamps; dictation keeps JSON',async t=>{
+ const {server,port,getBody}=await startCapturingServer();t.after(()=>server.close());
+ const manager=createManager(port);await manager._transcribeNormalizedWav(Buffer.from('audio'),{language:'nn',timestamps:true});
+ assert.equal(fieldValue(getBody(),'response_format'),'verbose_json');assert.equal(fieldValue(getBody(),'no_timestamps'),'false');assert.equal(fieldValue(getBody(),'language'),'nn');
+});

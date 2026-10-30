@@ -164,6 +164,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
   nbOpenVoiceMemos: () => ipcRenderer.invoke("nb-open-voice-memos"),
   nbStorageFolder: () => ipcRenderer.invoke("nb-storage-folder"),
   nbSetImportRetention: (options) => ipcRenderer.invoke("nb-set-import-retention",options),
+  nbAlignmentConfigure: (language) => ipcRenderer.invoke("nb-alignment-configure",language),
+  nbCommunitySetDevice: (device) => ipcRenderer.invoke("nb-community-set-device",device),
+  nbCommunityStatus: () => ipcRenderer.invoke("nb-community-status"),
+  nbCommunityConfigure: (device) => ipcRenderer.invoke("nb-community-configure",device),
+  nbCommunityDownload: (token,terms) => ipcRenderer.invoke("nb-community-download",token,terms),
+  nbCommunityCancelSetup: () => ipcRenderer.invoke("nb-community-cancel-setup"),
   nbImportAudioFile: (filePath,options) => ipcRenderer.invoke("nb-import-audio-file",filePath,options),
   nbCancelAudioImport: (requestId) => ipcRenderer.invoke("nb-cancel-audio-import",requestId),
   onNbAudioImportProgress: registerListener("nb-audio-import-progress"),
@@ -475,8 +481,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   cancelDiarizationDownload: () => ipcRenderer.invoke("cancel-diarization-download"),
   diarizeAudioFile: (filePath, options) =>
     ipcRenderer.invoke("diarize-audio-file", filePath, options),
-  mergeSpeakerText: (segments, text, duration) =>
-    ipcRenderer.invoke("merge-speaker-text", { segments, text, duration }),
+  mergeSpeakerText: (segments, text, duration, transcriptSegments, language) =>
+    ipcRenderer.invoke("merge-speaker-text", { segments, text, duration, transcriptSegments, language }),
   onDiarizationDownloadProgress: registerListener(
     "diarization-download-progress",
     (callback) => (_event, data) => callback(data)

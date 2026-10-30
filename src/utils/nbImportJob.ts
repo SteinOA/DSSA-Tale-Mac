@@ -4,6 +4,7 @@ export type ImportJobSnapshot = {
   id: number; phase: ImportPhase; fileName: string; startedAt: number; finishedAt: number | null;
   text: string; error: string; saved: Awaited<ReturnType<typeof saveImportedConversation>>;
   requestId: string; cancelRequested: boolean; completedChunks: number; totalChunks: number; completedSeconds: number; totalSeconds: number; resumedChunks: number;
+  language?: string; warning?: string; stageLabel?: string; stageFraction?: number | null; stageStartedAt?: number; channelInspection?: any; diarizationSummary?: any;
   sourceAudio: { bytes?: ArrayBuffer; path?: string; name: string } | null;
 };
 export function importIsRunning(state: ImportJobSnapshot) {
@@ -28,32 +29,43 @@ export function createNbImportJob() {
       try { await api.nbCancelAudioImport(snapshot.requestId); }
       catch(error) {update({cancelRequested:false,error:String(error)});}
     },
-    async start(file: Pick<File, "name" | "arrayBuffer">, options: { model: string; language: string; separateSpeakers: boolean; saveHistory?: boolean; getHistoryEnabled?: () => boolean }, api: any) {
+    async start(file: Pick<File, "name" | "arrayBuffer">, options: { model: string; language: string; separateSpeakers: boolean; speakerEngine?: "community-1" | "sherpa-onnx"; channelMode?: string; wordAlignment?: string; saveHistory?: boolean; getHistoryEnabled?: () => boolean }, api: any) {
       if (importIsRunning(snapshot)) return false;
-      update({ id: snapshot.id + 1, phase: "reading", fileName: file.name, startedAt: Date.now(), finishedAt: null, text: "", error: "", saved: null, sourceAudio: null, requestId:"",cancelRequested:false,completedChunks:0,totalChunks:0,completedSeconds:0,totalSeconds:0,resumedChunks:0 });
+      update({ language:options.language, warning:"",stageLabel:"",stageFraction:null,stageStartedAt:Date.now(),channelInspection:null,diarizationSummary:null,id: snapshot.id + 1, phase: "reading", fileName: file.name, startedAt: Date.now(), finishedAt: null, text: "", error: "", saved: null, sourceAudio: null, requestId:"",cancelRequested:false,completedChunks:0,totalChunks:0,completedSeconds:0,totalSeconds:0,resumedChunks:0 });
       let unsubscribe: (()=>void) | undefined;
       try {
         // Production path never materializes the whole imported file in renderer memory.
-        if (!options.separateSpeakers && api.nbImportAudioFile) {
+        if (api.nbImportAudioFile) {
           const filePath = api.getPathForFile(file);
           const requestId = `nb-import-${Date.now()}-${snapshot.id}`;
           update({requestId,sourceAudio:{path:filePath,name:file.name},phase:"converting"});
           unsubscribe=api.onNbAudioImportProgress?.((event:any,payload?:any)=>{
             const progress=payload ?? event;
             if(progress?.requestId !== requestId || snapshot.requestId !== requestId || !importIsRunning(snapshot))return;
-            if(!["converting","transcribing","saving"].includes(progress.phase))return;
+            if(!["converting","transcribing","diarizing","saving"].includes(progress.phase))return;
             const counters:Partial<ImportJobSnapshot>={};
             for(const key of ["completedChunks","totalChunks","completedSeconds","totalSeconds","resumedChunks"] as const){
               if(typeof progress[key] === "number" && Number.isFinite(progress[key]) && progress[key]>=0)counters[key]=progress[key];
             }
-            update({...counters,phase:progress.phase});
+            const stageChanged=snapshot.phase!==progress.phase || (progress.step && snapshot.stageLabel!==progress.step);
+            update({...counters,phase:progress.phase,...(stageChanged?{stageStartedAt:Date.now(),completedSeconds:counters.completedSeconds || 0}:{}),stageLabel:progress.step || snapshot.stageLabel,stageFraction:typeof progress.fraction==='number' ? progress.fraction : null});
           });
-          const result=await api.nbImportAudioFile(filePath,{model:options.model,language:options.language,requestId});
-          if(result?.cancelled){update({phase:"cancelled",finishedAt:Date.now()});return true;}
-          if(!result?.success)throw new Error(result?.error || "Behandlingen av lydfilen mislyktes.");
-          const text=typeof result.text === "string" ? result.text : "";
+          const result=await api.nbImportAudioFile(filePath,{model:options.model,language:options.language,requestId,...(options.separateSpeakers?{speakerEngine:options.speakerEngine || "sherpa-onnx",channelMode:options.channelMode || "inspect",wordAlignment:options.wordAlignment || "native"}:{})});
+          if(result?.cancelled){update({text:result.text || "",phase:"cancelled",warning:result.text ? "Talerfordelingen ble avbrutt. Transkripsjonen er beholdt." : "",finishedAt:Date.now()});return true;}
+          if(!result?.success){update({channelInspection:result?.channelInspection});throw new Error(result?.error || "Behandlingen av lydfilen mislyktes.");}
+          let text=typeof result.text === "string" ? result.text : "";
+          if(options.separateSpeakers && result.segments?.length){
+            const names=new Map<string,string>();
+            text=result.segments.map((p:any)=>{
+              if(p.speaker && !names.has(p.speaker))names.set(p.speaker,`${options.language==="nn"?"Talar":"Taler"} ${names.size+1}`);
+              const label=p.speaker ? names.get(p.speaker) : options.language==="nn"?"Ukjend talar":"Ukjent taler";
+              const stamp=Number.isFinite(p.start)?`[${Math.floor(p.start/60)}:${String(Math.floor(p.start%60)).padStart(2,'0')}] `:"";
+              return stamp+label+": "+p.text;
+            }).join("\n\n");
+          }
+          update({warning:result.diarizationWarning ? (result.warning || "Talerfordelingen er delvis. Ukjent taler er beholdt ved usikkerhet. Kontroller og korriger under Notater.") : "",diarizationSummary:result.diarizationSummary});
           update({text,phase:"saving"});
-          const saved=(options.getHistoryEnabled?.() ?? options.saveHistory ?? true) ? await saveImportedConversation(api,file.name,text,result.segments) : null;
+          const saved=(options.getHistoryEnabled?.() ?? options.saveHistory ?? true) ? await saveImportedConversation(api,file.name,text,result.segments,options.language) : null;
           update({saved,phase:"complete",finishedAt:Date.now()});
           return true;
         }
@@ -82,7 +94,7 @@ export function createNbImportJob() {
           text = result.text || "";
         }
         update({ text, phase: "saving" });
-        const saved = (options.getHistoryEnabled?.() ?? options.saveHistory ?? true) ? await saveImportedConversation(api, file.name, text, parts) : null;
+        const saved = (options.getHistoryEnabled?.() ?? options.saveHistory ?? true) ? await saveImportedConversation(api, file.name, text, parts,options.language) : null;
         update({ saved, phase: "complete", finishedAt: Date.now() });
       } catch (error) {
         update({ phase: "error", error: error instanceof Error ? error.message : String(error), finishedAt: Date.now() });

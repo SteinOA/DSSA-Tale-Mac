@@ -955,14 +955,15 @@ class WhisperServerManager extends EventEmitter {
           `Content-Disposition: form-data; name="prompt"\r\n\r\n` +
           `${initialPrompt}\r\n`
       );
-      debugLogger.info("Using custom dictionary prompt", { prompt: initialPrompt });
+      debugLogger.info("Using custom dictionary prompt", { characterCount: initialPrompt.length });
     }
 
     parts.push(
       `--${boundary}\r\n` +
         `Content-Disposition: form-data; name="response_format"\r\n\r\n` +
-        `json\r\n`
+        `${options.timestamps ? "verbose_json" : "json"}\r\n`
     );
+    if(options.timestamps) parts.push(`--${boundary}\r\nContent-Disposition: form-data; name="no_timestamps"\r\n\r\nfalse\r\n`);
     parts.push(`--${boundary}--\r\n`);
 
     const bodyParts = parts.map((part) => (typeof part === "string" ? Buffer.from(part) : part));
@@ -1032,7 +1033,7 @@ class WhisperServerManager extends EventEmitter {
               statusCode: res.statusCode,
               elapsed: Date.now() - startTime,
               responseLength: data.length,
-              responsePreview: data.slice(0, 500),
+              // Transcript content must never be written to diagnostics.
             });
 
             if (res.statusCode !== 200) {

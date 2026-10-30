@@ -21,9 +21,10 @@ test('exact in-flight precompute lookup outside queue avoids deadlock and duplic
  const final=m.transcribeViaServer(wav(28),'nb-large-full','no',null,{nbNormalized:true,nbCacheLookup:()=>precompute});gate.resolve();await blocker;assert.equal((await final).text,'bokmål');assert.equal(counts().decodes,2);
 });
 test('active cancellation keeps physical engine locked; pending cancellation never starts',async()=>{
- const gate=deferred(),{m,calls,counts}=fixture(gate),controller=new AbortController(),waiting=new AbortController();
+ const gate=deferred(),stopGate=deferred(),{m,calls,counts}=fixture(gate),controller=new AbortController(),waiting=new AbortController();
+ m.serverManager.stop=async()=>{calls.push(['stop-owned-import']);await stopGate.promise;};
  const active=m.transcribeNormalizedWhisperWindow(wav(1),{language:'no',signal:controller.signal});const rejected=assert.rejects(active,{name:'AbortError'});await new Promise(setImmediate);controller.abort();const cancelled=m.transcribeNormalizedWhisperWindow(wav(1),{signal:waiting.signal});waiting.abort();await assert.rejects(cancelled,{name:'AbortError'});
- const next=m.transcribeNormalizedWhisperWindow(wav(1),{language:'nn'});await new Promise(setImmediate);assert.equal(counts().starts,1);assert.equal(calls.find(c=>c[0]==='decode')[2].signal,undefined);gate.resolve();await rejected;assert.equal((await next).text,'nynorsk');assert.equal(counts().starts,2);
+ const next=m.transcribeNormalizedWhisperWindow(wav(1),{language:'nn'});await new Promise(setImmediate);assert.equal(counts().starts,1);assert.equal(calls.find(c=>c[0]==='decode')[2].signal,undefined);gate.resolve();await new Promise(setImmediate);assert.equal(counts().starts,1,'wait for physical process termination, not just HTTP completion');assert.ok(calls.some(c=>c[0]==='stop-owned-import'));stopGate.resolve();await rejected;assert.equal((await next).text,'nynorsk');assert.equal(counts().starts,2);
 });
 test('explicit startup and stop wait until active decode completes',async()=>{
  const gate=deferred(),{m,calls}=fixture(gate);const active=m.transcribeNormalizedWhisperWindow(wav(1),{});await new Promise(setImmediate);const start=m.startServer('nb-large');const stop=m.stopServer();await new Promise(setImmediate);assert.equal(calls.length,2);gate.resolve();await Promise.all([active,start,stop]);assert.ok(calls.some(c=>c[0]==='stop'));

@@ -40,3 +40,9 @@ test('true digital silence avoids prompt hallucination and internal markers neve
  const h=await setup(t,1);const silent=await importAudioFile(h.file,options,{...h,tempRoot:h.root,convert:async(_s,d)=>fs.writeFile(d,wrapPcmWav(Buffer.alloc(32000))),decode:async()=>assert.fail('silent window must not decode a dictionary prompt')});assert.equal(silent.text,'');
  const result=await importAudioFile(h.file,options,{...h,tempRoot:h.root,decode:async()=>({text:'Eg <|nocaptions|> kjem i morgon.'})});assert.equal(result.text,'Eg kjem i morgon.');
 });
+
+test('timed Nynorsk imports keep measured ASR offsets across disjoint windows and checkpoint resumes',async t=>{
+ const h=await setup(t,58),saved=[];let calls=0;
+ const result=await importAudioFile(h.file,{...options,timestamps:true},{...h,tempRoot:h.root,checkpointStore:{open:async()=>({readPrefix:async()=>[{text:'Eg kjem.',segments:[{text:'Eg kjem.',start:1,end:2}]}],save:async(i,r)=>{saved.push(r);},complete:async()=>{}})},decode:async(_wav,o)=>{assert.equal(o.timestamps,true);calls++;return {text:'Me snakkar.',segments:[{text:'Me snakkar.',start:0.2,end:1.5,words:[{word:'Me',start:0.2,end:0.5},{word:' snakkar.',start:0.6,end:1.5}]}]};}});
+ assert.equal(calls,2);assert.deepEqual(result.segments.map(s=>s.start),[1,28.2,56.2]);assert.equal(result.text,'Eg kjem. Me snakkar. Me snakkar.');assert.equal(saved[0].segments[0].start,0.2);assert.equal(result.segments[1].words[0].start,28.2);assert.equal(result.segments[1].words[1].end,29.5);
+});

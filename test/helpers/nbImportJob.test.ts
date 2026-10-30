@@ -53,3 +53,12 @@ test('history disabled also prevents automatic notes on legacy import',async()=>
  await job.start(file,{...options,saveHistory:false},{transcribeLocalWhisper:async()=>({success:true,text:'Tekst utan historikk.'}),saveNote:async()=>{saves++;}});
  assert.equal(saves,0);assert.equal(job.getSnapshot().text,'Tekst utan historikk.');
 });
+
+test('a timed speaker import survives navigation, keeps ASR 100 separate and reports partial assignment',async()=>{
+ const job=createNbImportJob();let notify:any,finish:any;let removed=false;
+ const api:any={getPathForFile:()=>'/public/nynorsk.wav',onNbAudioImportProgress:(cb:any)=>{notify=cb;return()=>removed=true;},nbImportAudioFile:(_p:any,o:any)=>{assert.equal(o.speakerEngine,'community-1');notify({requestId:o.requestId,phase:'transcribing',completedChunks:2,totalChunks:2,completedSeconds:48,totalSeconds:48});notify({requestId:o.requestId,phase:'diarizing',step:'loading',completedSeconds:0,totalSeconds:48});return new Promise(r=>finish=r);}};
+ const done=job.start({name:'DSSA test nynorsk.wav',arrayBuffer:async()=>{throw Error('No full renderer buffer');}},{model:'nb-large',language:'nn',separateSpeakers:true,speakerEngine:'community-1',saveHistory:false},api);
+ assert.equal(job.getSnapshot().phase,'diarizing');assert.equal(job.getSnapshot().completedSeconds,0);let renders=0;const leave=job.subscribe(()=>renders++);leave();
+ finish({success:true,text:'Eg kjem. Me ventar.',segments:[{text:'Eg kjem.',start:0,end:1,speaker:'speaker_0'},{text:'Me ventar.',start:2,end:3}],diarizationWarning:true});await done;
+ assert.equal(job.getSnapshot().phase,'complete');assert.match(job.getSnapshot().text,/Ukjend talar/);assert.ok(job.getSnapshot().warning);assert.equal(job.getSnapshot().language,'nn');assert.equal(renders,0);assert.equal(removed,true);
+});
