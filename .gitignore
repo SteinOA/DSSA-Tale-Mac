@@ -320,3 +320,10 @@ src/assets/Assets.car
 /dist-nb/
 /resources/nb-models/
 /work/
+
+# Optional Python runtime and caches stay local
+__pycache__/
+*.pyc
+.venv/
+
+/resources/nb-build-provenance.json

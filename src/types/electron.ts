@@ -1398,7 +1398,7 @@ declare global {
       nbCloudFolderOpen: (provider: NbCloudProvider) => Promise<{success: boolean; errorCode?: string}>;
       nbCloudFolderRemove: (provider: NbCloudProvider) => Promise<NbCloudFolder>;
       nbSetImportRetention: (options:{enabled:boolean;retentionDays:number;synced?:boolean}) => Promise<unknown>;
-      nbImportAudioFile: (path:string,options:{model:string;language:string;requestId:string}) => Promise<{success:boolean;text?:string;cancelled?:boolean;error?:string;segments?:unknown[]}>;
+      nbImportAudioFile: (path:string,options:{model:string;language:string;requestId:string;speakerEngine?:"community-1"|"sherpa-onnx";channelMode?:string;wordAlignment?:string}) => Promise<{success:boolean;text?:string;cancelled?:boolean;error?:string;segments?:unknown[]}>;
       nbCancelAudioImport: (requestId:string) => Promise<unknown>;
       onNbAudioImportProgress: (callback:(event:unknown,payload:{requestId:string;phase:"converting"|"transcribing"|"saving";completedChunks:number;totalChunks:number;completedSeconds:number;totalSeconds:number;resumedChunks:number})=>void) => ()=>void;
       nbSaveAudioFromPath: (path:string,name:string) => Promise<{success?:boolean;canceled?:boolean}>;
@@ -2656,8 +2656,10 @@ declare global {
       mergeSpeakerText?: (
         segments: Array<{ start: number; end: number; speaker: string }>,
         text: string,
-        duration: number
-      ) => Promise<{ success: boolean; text?: string; error?: string }>;
+        duration: number,
+        transcriptSegments?: Array<{text:string;start:number;end:number;speaker?:string}>,
+        language?: string
+      ) => Promise<{ success: boolean; text?: string; error?: string; segments?: Array<{text:string;start:number;end:number;speaker?:string}> }>;
       diarizeAudioFile?: (
         filePath: string,
         options?: { numSpeakers?: number; threshold?: number; requestId?: string }

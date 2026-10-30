@@ -1613,7 +1613,7 @@ class IPCHandlers {
     });
     require("./nbFileImportIpc").registerNbFileImportHandlers({
       ipcMain,app,dialog:require("electron").dialog,windowManager:this.windowManager,
-      whisperManager:this.whisperManager,resolveAllowedAudioPath,getLanguage:()=>i18nMain.language,
+      whisperManager:this.whisperManager,resolveAllowedAudioPath,uploadCancelRegistry:this._uploadCancelRegistry,getLanguage:()=>i18nMain.language,
       getVad:()=>this._resolveWhisperVadOptions("noteRecording"),
       getDictionaryPrompt:()=>this.databaseManager.getDictionary().filter(word=>typeof word === "string").slice(0,100).join(", ").slice(0,16000),
     });
@@ -3713,7 +3713,7 @@ class IPCHandlers {
       }
     });
 
-    ipcMain.handle("merge-speaker-text", async (event, { segments, text, duration }) => {
+    ipcMain.handle("merge-speaker-text", async (event, { segments, text, duration, transcriptSegments, language }) => {
       try {
         if (
           !Array.isArray(segments) ||
@@ -3731,8 +3731,11 @@ class IPCHandlers {
           start: typeof s.start === "number" && isFinite(s.start) ? s.start : 0,
           end: typeof s.end === "number" && isFinite(s.end) ? s.end : 0,
         }));
-        const merged = mergeSpeakersWithText(sanitizedSegments, text, duration);
-        return { success: true, text: formatSpeakerTranscript(merged) };
+        if(!Array.isArray(transcriptSegments)||!transcriptSegments.length)return {success:false,error:'Real ASR timestamps required; transcript retained'};
+        const merged=require('./speakerMergeTimed').mergeTimedSpeakers(sanitizedSegments,transcriptSegments,duration);
+        const names=new Map();
+        const formatted=merged.map(p=>{if(p.speaker&&!names.has(p.speaker))names.set(p.speaker,`${language==='nn'?'Talar':'Taler'} ${names.size+1}`);return `${p.speaker?names.get(p.speaker):language==='nn'?'Ukjend talar':'Ukjent taler'}: ${p.text}`;}).join('\n\n');
+        return { success:true,text:formatted,segments:merged,diarizationWarning:merged.some(p=>!p.speaker) };
       } catch (error) {
         debugLogger.error("Speaker merge error", { error: error.message });
         return { success: false, error: error.message };
@@ -4824,6 +4827,7 @@ class IPCHandlers {
     });
 
     ipcMain.handle("get-active-dictation-key", async () => {
+      if (process.platform === "darwin" && app.getName() === "DSSA Tale" && !this.windowManager?.hotkeyManager?.isInitialized) return null;
       const hotkeys = this.windowManager?.hotkeyManager?.getSlotHotkeys?.("dictation") ?? [];
       return hotkeys.length > 0 ? hotkeys.join(",") : null;
     });

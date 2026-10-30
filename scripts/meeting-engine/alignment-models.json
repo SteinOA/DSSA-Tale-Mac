@@ -1,0 +1,26 @@
+{
+  "nn": {
+    "repo": "NbAiLab/nb-wav2vec2-1b-nynorsk",
+    "revision": "37107327f6af742c008042d8cfdba4276de18f82",
+    "sha256": {
+      "config.json": "ee41a09d449fc8875b6179db551e96f01732e76337bc291352e1b54d10ad5d0c",
+      "model.safetensors": "55b79d680168317058eaa54710838e49501cba54bfc9403b6c9b83fa8c6c67cd",
+      "preprocessor_config.json": "8f9f560daa144e525174a9ce159ac4d168e010006d6c3e46cad02cae72a6c5ad",
+      "special_tokens_map.json": "f5ec6860161cef6dfcba2ae449a2565a08367acc1df8c6339b4f2d55f8793087",
+      "tokenizer_config.json": "d9be53051db7cc8f8d4e939cf92cd24bb736dec503caa695ce869bc1b0dda0c9",
+      "vocab.json": "a7293e2f1c25d015aac1e491daaa13d1f03798df48afb2d9d72c290ea8d9a342"
+    }
+  },
+  "no": {
+    "repo": "NbAiLab/nb-wav2vec2-1b-bokmaal-v2",
+    "revision": "58a6eb5d7927c378f5d2785bc865756c9ae273ae",
+    "sha256": {
+      "config.json": "5c1056914dfb0540fe7756f97d436987b28dd6f078defa9f406516ce87cd3b00",
+      "model.safetensors": "6ab493ecc739df905d0decdc09ce1d9ee4453987bb1bdbcf2e8b06642b3c47b6",
+      "preprocessor_config.json": "8f9f560daa144e525174a9ce159ac4d168e010006d6c3e46cad02cae72a6c5ad",
+      "special_tokens_map.json": "f5ec6860161cef6dfcba2ae449a2565a08367acc1df8c6339b4f2d55f8793087",
+      "tokenizer_config.json": "f7188aa61db5681fbbb1445440c1976ebd5c02d314a532f2f5fcc0a7c56c64d6",
+      "vocab.json": "2845960b07c17f6dae3acd31d4080499bf32e648fb9e1dd3efb9c48f781c9540"
+    }
+  }
+}

@@ -513,6 +513,11 @@ class WhisperManager {
     return this._getRequestQueue().run(async () => {
       const modelPath = this.getModelPath(model);
       await this._verifyNbModel(model, options.signal);
+      let stopping;
+      const stopOwnedDecode=()=>{stopping ||= this.serverManager.stop();stopping.catch(()=>{});};
+      if(options.nbStopOnAbort)options.signal?.addEventListener('abort',stopOwnedDecode,{once:true});
+      try {
+      if(options.signal?.aborted)throw createAbortError('Whisper import cancelled');
       await this.serverManager.start(modelPath, {
         ...this.resolveGpuStartOptions(),
         vadEnabled: options.vadEnabled === true,
@@ -524,9 +529,16 @@ class WhisperManager {
       // Keep the engine lock until HTTP completion even on cancellation. Native
       // whisper.cpp keeps computing after a disconnected client; early unlock
       // would permit a model switch to kill another request's active decode.
-      return this.serverManager._transcribeNormalizedWav(wav, {
-        language, initialPrompt, skipDecoderThresholds: options.skipDecoderThresholds,
+      return await this.serverManager._transcribeNormalizedWav(wav, {
+        language, initialPrompt, skipDecoderThresholds: options.skipDecoderThresholds, timestamps: options.timestamps === true,
       });
+      } catch(error) {
+        if(options.signal?.aborted)throw createAbortError('Whisper import cancelled');
+        throw error;
+      } finally {
+        if(options.nbStopOnAbort)options.signal?.removeEventListener('abort',stopOwnedDecode);
+        if(stopping)await stopping;
+      }
     }, { priority: options.priority, signal: options.signal });
   }
 
@@ -539,7 +551,7 @@ class WhisperManager {
     const model = options.model || "nb-large-full";
     if (!["nb-large", "nb-large-full"].includes(model)) throw new Error("NB Large model required");
     return this._decodeQueuedWindow(wav, model, options.language || null, options.initialPrompt || null,
-      { ...options, priority: options.priority || "background", nbCacheLookup: undefined });
+      { ...options, nbStopOnAbort:true, priority: options.priority || "background", nbCacheLookup: undefined });
   }
 
   async transcribeViaLan(audioBlob, url, options = {}) {

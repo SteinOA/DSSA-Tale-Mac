@@ -1,0 +1,13 @@
+diff --git a/src/coreml/whisper-encoder.mm b/src/coreml/whisper-encoder.mm
+index 81a5a6a..3f3c324 100644
+--- a/src/coreml/whisper-encoder.mm
++++ b/src/coreml/whisper-encoder.mm
+@@ -26,7 +26,7 @@
+     MLModelConfiguration *config = [[MLModelConfiguration alloc] init];
+     // config.computeUnits = MLComputeUnitsCPUAndGPU;
+     //config.computeUnits = MLComputeUnitsCPUAndNeuralEngine;
+-    config.computeUnits = MLComputeUnitsAll;
++    config.computeUnits = MLComputeUnitsCPUAndNeuralEngine;
+ 
+     const void * data = CFBridgingRetain([[whisper_encoder_impl alloc] initWithContentsOfURL:url_model configuration:config error:nil]);
+ 
