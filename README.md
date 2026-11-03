@@ -2,7 +2,15 @@
 
 Norsk tale til tekst på din egen Mac, med NB-Whisper Large fra Nasjonalbiblioteket. Uavhengig tilpasning av [OpenWhispr v1.9.2](https://github.com/OpenWhispr/openwhispr/tree/v1.9.2). Ikke et offisielt produkt fra OpenWhispr, Nasjonalbiblioteket, Apple, Google eller Microsoft.
 
-**1.9.20 er en testversjon.** Den er ad hoc-signert, men mangler Apple Developer ID og notarisering. Automatisk innliming, fysisk dikteringssnarvei og komplette møter er ikke sluttgodkjent i denne testappen. Se [teststatus og begrensninger](TESTSTATUS-1.9.20.md).
+**1.9.36 er en offentlig testversjon (Pre-release), uten medfølgende LLM-modeller.** Den er ad hoc-signert, men mangler Apple Developer ID og notarisering. Apple kan derfor blokkere første åpning. En signert utgave er målet, uten bekreftet dato.
+
+**[Last ned DSSA Tale Test 1.9.36 for Apple Silicon (DMG)](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.36-test/DSSA-Tale-Test-1.9.36-Apple-Silicon.dmg)** — ingen GitHub-konto nødvendig. [Les utgivelsen og installasjonstrinnene her](https://github.com/SteinOA/DSSA-Tale-Mac/releases/tag/v1.9.36-test).
+
+[Detaljert installasjon 1.9.36](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.36-test/INSTALLASJON-1.9.36.md) · [Teststatus 1.9.36](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.36-test/TESTSTATUS-1.9.36.md) · [Kontrollsum](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.36-test/DSSA-Tale-Test-1.9.36-Apple-Silicon.dmg.sha256)
+
+Last ned én NB-Whisper Large-talmodell fra **Assistent** i appen. Vanlig diktering trenger ingen ekstra LLM. Tekstopprydding er av ved ny installasjon; valgfrie tekstmodeller kan lastes ned senere. Nytt i 1.9.36: **Avinstaller modell** på installerte NB-Whisper-kort.
+
+1.9.36 er installert og startet på M4/macOS 27.0.1. Automatisk innliming av en fast norsk testtekst er bekreftet i Tekstredigering etter installasjon. Ny fysisk mikrofon-/hurtigtastprøve med målt responstid, en annen Mac og komplette møter er ikke sluttverifisert i denne utgaven. Se teststatusen ovenfor.
 
 ## Last ned og installer
 
@@ -17,7 +25,7 @@ Hvis Apple blokkerer åpning: bare dersom du stoler på kilden, bruk **Systeminn
 
 Testappen har eget navn, app-ID og innstillingsmappe. Den erstatter ikke den vanlige DSSA Tale-appen. Avslutt den andre dikteringsappen før testing. Oppdatering av samme testapp ved å erstatte den i Programmer bevarer profil, nedlastede modeller og notater. Ikke slett brukermappen.
 
-[Detaljert installasjon](INSTALLASJON.md) · [Bruk og rettigheter](BRUK-OG-RETTIGHETER.md) · [Teststatus](TESTSTATUS-1.9.20.md)
+[Detaljert installasjon 1.9.36](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.36-test/INSTALLASJON-1.9.36.md) · [Bruk og rettigheter](BRUK-OG-RETTIGHETER.md) · [Teststatus 1.9.36](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.36-test/TESTSTATUS-1.9.36.md)
 
 ## Modellene
 
@@ -47,3 +55,6 @@ Denne lette pakken bruker Metal eller CPU. Core ML-encoderens modellvekter følg
 App/tilpasning: MIT. NB-modeller: Apache-2.0. Medfølgende FFmpeg er et eget LGPL-2.1+-bygg uten GPL/nonfree, med kildearkiv, Opus-kilder og byggevalg. Alle påkrevde opplysninger for distribuerte komponenter ligger i appens `Contents/Resources/legal/` og [resources/legal](resources/legal).
 
 [Windows-oppsettet](https://github.com/SteinOA/openwhispr-nb-whisper) er separat. Denne utgivelsen endrer ikke Windows-versjonen.
+
+
+Utgivelsen distribuerer DMG og dokumentasjon. Den nye private kildekoden for 1.9.36 er ikke pushet. GitHubs automatiske «Source code»-arkiver skal ikke brukes til installasjon eller forveksles med kildecommitten oppgitt i utgivelsen.
