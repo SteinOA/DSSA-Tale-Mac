@@ -1,0 +1,27 @@
+DSSA Tale Mac – verktøy for kildekodekontrollpunkter
+Kjøring i Linux-utviklingsmiljø; alle testremoter er midlertidige lokale Git-repoer.
+Ingen faktisk 1.9.23-kode, Mac-installasjon, modell eller brukernøkkel er lastet opp.
+✔ runtime files, weights, recordings, installers and credentials are not source candidates (1.375712ms)
+✔ secret scan blocks realistic credentials without printing them (0.784095ms)
+✔ old code and wrong app cannot be labelled 1.9.23 (80.793665ms)
+✔ preview creates no commit, changes or remote references (147.960333ms)
+✔ push captures actual dirty source with hashes, preserves Mac index/HEAD and omits private history (383.218037ms)
+✔ source changing while snapshot is prepared never gets pushed (177.703618ms)
+✔ secret or symlink blocks upload before any remote reference changes (65.172028ms)
+✔ successive backups keep previous branch and version tags immutable (342.250289ms)
+✔ source folders without their own Git history can be secured (213.25966ms)
+✔ Git environment overrides cannot redirect snapshot writes into the Mac project (219.53688ms)
+✔ server rejection of the tag leaves neither a new branch nor a partial tag (243.44038ms)
+✔ a previous generated manifest cannot create a false checksum for the new manifest (233.597599ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2234.917862
+
+JS-syntaks, bash-syntaks, ZIP/CRC, filbytes, kjørbar Mac-fil og SHA-256 bestått.
+Faktisk Mac-mappevalg, lydvarsel og GitHub-opplasting fra Mac er ikke prøvd her.
+ZIP SHA-256: 5449a9555ce6561a3a52e1d3ffaf757dfaabaa000968f4112395bf285c2bb4c4
