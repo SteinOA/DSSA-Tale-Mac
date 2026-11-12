@@ -1,70 +1,89 @@
 # DSSA Tale for Mac
 
-Norsk tale til tekst på din egen Mac, med NB-Whisper Large fra Nasjonalbiblioteket. Uavhengig tilpasning av [OpenWhispr v1.9.2](https://github.com/OpenWhispr/openwhispr/tree/v1.9.2). Ikke et offisielt produkt fra OpenWhispr, Nasjonalbiblioteket, Apple, Google eller Microsoft.
+Basert på [OpenWhispr 1.9.2](https://github.com/OpenWhispr/openwhispr/tree/v1.9.2) og [Nasjonalbibliotekets NB-Whisper](https://huggingface.co/NbAiLab/nb-whisper-large). Uavhengig tilpasning; ikke et offisielt eller sertifisert produkt fra OpenWhispr, Nasjonalbiblioteket eller Apple.
 
-**1.9.44 er en offentlig testversjon (Pre-release), uten medfølgende modellvekter.** Den er ad hoc-signert, men mangler Apple Developer ID og notarisering. Apple kan derfor blokkere første åpning. En signert utgave er målet, uten bekreftet dato.
+**[Last ned DSSA Tale 1.9.45 for Apple Silicon – DMG](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.45-beta.1/DSSA-Tale-1.9.45-Apple-Silicon.dmg)** · [Betaomtale og installasjon](https://github.com/SteinOA/DSSA-Tale-Mac/releases/tag/v1.9.45-beta.1) · [Kommentarer og feilrapporter](https://github.com/SteinOA/DSSA-Tale-Mac/issues/10)
 
-**[Last ned DSSA Tale Test 1.9.44 for Apple Silicon (DMG)](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.44-test/DSSA-Tale-Test-1.9.44-Apple-Silicon.dmg)** — ingen GitHub-konto nødvendig. [Les utgivelsen og installasjonstrinnene her](https://github.com/SteinOA/DSSA-Tale-Mac/releases/tag/v1.9.44-test).
+Offentlig **beta / Pre-release**. Nedlasting krever ingen GitHub-konto. Appen heter **DSSA Tale**, uten «Test». Den er ad-hoc-signert, men har ikke Apple Developer ID eller notarisation. Apple kan blokkere første åpning; les installasjonstrinnene. Ikke en ferdig Apple-godkjent stabil utgave.
 
-[Detaljert installasjon 1.9.44](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.44-test/INSTALLER-LES-MEG.txt) · [Teststatus 1.9.44](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.44-test/TESTSTATUS-1.9.44.txt) · [Kontrollsum](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.44-test/DSSA-Tale-Test-1.9.44-Apple-Silicon.dmg.sha256)
+## Hva gjør appen?
 
-Når appen er installert og åpnet: klikk **Assistent i venstremenyen → Tale til tekst – start her → NB-Whisper-modeller → Last ned**. Du trenger bare én Large-modell. Samme nedlasting finnes også på velkomstsiden. Vanlig diktering trenger ingen ekstra LLM. Tekstopprydding er av ved ny installasjon; valgfrie tekstmodeller kan lastes ned senere. Nytt i 1.9.44: **veiledet førstegangsoppsett i tre trinn: Talemodell → Mikrofon → Innliming og test**. Oppsettet viser faktisk status og forklarer hva som mangler. Restartknappen avslutter helt og åpner den eksakte Mac-pakken gjennom vanlig Mac-oppstart, tilbake til samme trinn. Dette retter den gjenskapte restartfeilen i 1.9.42. Bare lydfiler kan åpnes uten mikrofon-/innlimingstillatelse. **Hjelp → Gå gjennom oppsettet** åpner veiledningen igjen uten å slette modeller eller notater. Flervalg og automatisk mappeimport med undermapper er beholdt. Hver brukbar lydfil lagres som et eget dokument under Notater før neste fil starter. Ingen fast antallsgrense. La appen være åpen; kølisten gjenopprettes ikke automatisk etter avslutning.
+**100 % lokal talegjenkjenning og transkribering.** Lyd og tekst lastes ikke opp til en KI-tjeneste for behandlingen. Modellene lastes ned ved oppsett, deretter arbeider NB-Whisper på Mac-en. Ingen nødvendig konto, API-nøkkel, abonnement eller betaling per bruk for vanlig diktering. Valgfri lokal tekstopprydding og talermerking kjøres også lokalt når modellene er satt opp. Modellnedlasting, lenker og valgfrie kalender-/skytjenester kan bruke nett. En synkroniseringstjeneste kan laste opp filer du selv lagrer i dens mappe.
 
-**Tidligere mappeprøve i 1.9.38**, på M4/24 GB/macOS 27.2: **31 lydfiler med 23 t 26 min 05 sek lyd ga 31 separate dokumenter**, på målt **2 t 29 min 02 sek** fra første normaliserte arbeidskopi til siste lagrede notat. Køen fullførte uten køfeil. Full språklig korrekthet er ikke manuelt kontrollert. Mikrofon/hurtigtast og innliming er ikke retestet i denne køprøven. Dette er tidligere resultater, ikke en ny tilsvarende 1.9.44-prøve. [Se den tidligere teststatusen](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.38-test/TESTSTATUS-1.9.38.md).
+- Dikter der markøren står i vanlige tekstfelt, eksempelvis Teams, Word, Outlook og andre programmer som tillater innliming. Brukeren har bekreftet fungerende automatisk innliming i andre programmer på sin Mac; ikke alle programmer eller beskyttede felt er testet.
+- Samle diktater i en automatisk notatblokk, søk i notater og opprett møte- og arbeidsnotater.
+- Importer flere lydfiler eller en mappe, eventuelt med undermapper. Køen fortsetter automatisk og lagrer hver brukbar utskrift som et eget lokalt notat før neste fil. Ingen fast antallsgrense. La appen være åpen; kølisten gjenopprettes ikke automatisk etter avslutning.
+- Transkriber svært lange opptak uten fast timegrense i filimporten. Maskinen, diskplass, filtilstand og behandlingsvalg setter praktiske grenser.
+- Ta opp møter med **Start møteopptak** og **Stopp møteopptak** i et notat. Velg tekst underveis eller etter opptaket. Behandlet lyd, status og resttidsanslag vises når det finnes målegrunnlag.
+- Eksporter til Word, PDF eller tekst, med valgfrie tidsstempler og talermerking der dataene finnes. Køen lagrer lokale notater, ikke automatisk eksterne Word-/PDF-filer.
+- Velg mikrofon, høyttaler for appens lyder, hurtigtast, opptaksmåte, lys/mørk visning og tekststørrelse. Vis eller skjul CPU-/minnelinjen. Bruk ordliste og tekstsnutter.
 
-Hjelp-knappen åpner en innebygd bruksanvisning på valgt menyspråk, uten nett. **Nytt i 1.9.44:** synlig påminnelse i trinn 2 om å kontrollere hurtigtasten. Valgt kombinasjon vises, og endring gjennom Innstillinger → Hurtigtaster forklares. Eksisterende tast endres ikke.
+### Teams: tekstfelt, møtelyd og valgfri autostart
 
-Typekontroll, produksjonsbygg, DMG- og signaturkontroll består for 1.9.44. **103 regresjonstester og faktiske oppstarts-, modellnedlastings- og innlimingsprøver gjelder 1.9.43-grunnlaget**, før tekstendringen. Ingen ny fysisk tale-/hurtigtastprøve eller visuell kontroll av påminnelsen i 1.9.44. Les teststatusen. Oppstartsrettelsen fra 1.9.43 er beholdt.
+Diktering i et Teams-tekstfelt er vanlig innliming. Møteopptak er en annen funksjon: riktig mikrofon og **Systemlyd** med nødvendige macOS-tillatelser må levere begge lydretninger. En allerede konfigurert virtuell inngang kan brukes. Appen endrer ikke global lydruting. Ingen innebygd Teams-bot eller automatisk møtedeltaker er lovet. Lokalt opptak varsler ikke nødvendigvis andre automatisk; informer deltakerne og avklar opptaket.
+
+Under **Innstillinger → Opptak og innliming** finnes **Start automatisk når Teams bruker mikrofonen (utprøving)**. Dette er en valgfri beta, av ved ny installasjon. Registrert mikrofonbruk fra Microsoft Teams-appen kan starte møtenotat/opptak med valgt behandling. Å åpne Teams alene utløser ikke dette; Teams i nettleseren omfattes ikke av prosesskontrollen. Fem målrettede trigger-/prosesskontrolltester består. Faktisk automatisk opptak i et reelt Teams-møte og begge lydretninger er ikke sluttverifisert for denne betaen.
+
+### Filer og dokumentert hastighet
+
+Mappe-/flervalget tar WAV, MP3, M4A, M4B, MP4, MOV, WebM, MKV, OGG/OGA, Opus, FLAC og AIF/AIFF. Lydkodeken må også støttes. WMA og rå AAC-filer støttes ikke av dette FFmpeg-bygget; AAC-lyd i M4A/MP4 støttes. Originalen endres ikke. Dette er ikke støtte for absolutt alle filtyper.
+
+**Tidligere Mac-prøve (1.9.38): 31 filer med 23 t 26 min 05 s lyd → 31 lagrede notater på omtrent 2 t 29 min 02 s**, tilsvarende omtrent **9,4 ganger sanntid**. Apple M4, 24 GB, macOS 27.2, NB-Whisper Large full presisjon, uten talermerking og ekstra LLM. Målt fra første normaliserte arbeidsfil til siste lagrede notat, ikke nøyaktig fra Start-klikket eller bare dekoding. Dette er ikke en ny tilsvarende langprøve av 1.9.45, en enkeltfiltest på 23 timer eller et kvalitetsløfte for hvert ord. Tid varierer med maskin, modell, lyd og etterbehandling. Brukeren omtaler også erfaringen som rundt 20 timer lyd. [Tidligere teststatus](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.38-test/TESTSTATUS-1.9.38.md).
+
+## Modeller og språk
+
+| Modell | Nedlasting | Bruk |
+|---|---|---|
+| NB-Whisper Large full presisjon | ca. 3,10 GB | Standardvalget |
+| NB-Whisper Large q5_0 | ca. 1,08 GB | Kvantisert Large med vanligvis lavere minnebruk |
+
+Begge er fra Nasjonalbiblioteket, bygget på Whisper og videre trent for norsk. Begge inneholder støtte for bokmål/nynorsk. Modellene kontrolleres mot fast revisjon, størrelse og SHA-256 før bruk. Filstørrelse er ikke hele RAM-behovet; på Apple Silicon deler CPU/GPU minnet.
+
+**Modellvektene følger ikke DMG-en.** Last ned én i første oppsett eller **Assistent → Tale til tekst – start her → NB-Whisper-modeller → Last ned**. Ingen Terminal, Homebrew eller system-Python trengs til vanlig NB-Whisper-diktering.
+
+- Menyer, førstegangsoppsett og lokal hjelp: **bokmål, nynorsk og engelsk**.
+- Vanlige målformvalg for diktering og filtranskribering: **bokmål og nynorsk**. Valget beholdes til du endrer det. Bokmål-/nynorskvalget følger også menyene.
+- Engelske menyer er et separat grensesnittvalg. De oversetter ikke norsk tale til engelsk. Eget engelsk tale-/filtranskripsjonsvalg er ikke tilbudt og verifisert i denne forenklede Mac-visningen.
+- **Ekstra LLM er ikke nødvendig. Tekstopprydding er av ved ny installasjon.** Valgfrie Qwen-/Gemma-modeller kan brukes til etterarbeid. Kandidatene er ikke en målt rangering av norsk kvalitet. Nye forslag er begrenset til 2B–4B Q4; dette er ikke en målt eller håndhevet 10 GB RAM-grense.
+- Valgfritt lokalt stemmeskille grupperer stemmer; navn og usikker merking må kontrolleres. Community-1 ved lydimport krever separat modell/kjøremiljø, [godkjente modellvilkår](https://huggingface.co/pyannote/speaker-diarization-community-1), Hugging Face-konto og eventuell [lesetilgangsnøkkel](https://huggingface.co/settings/tokens), lagret i macOS Keychain. Dette trengs ikke for NB-Whisper. Community-1 loves ikke automatisk i direkte møter.
 
 ## Last ned og installer
 
-Bruk DMG-filen under [GitHub-utgivelser](https://github.com/SteinOA/DSSA-Tale-Mac/releases). Et offentlig repo krever ikke GitHub-medlemskap for nedlasting. Velg **DSSA Tale Test**; ikke kildekodearkivene.
+1. Velg DMG-lenken øverst, ikke GitHubs «Source code».
+2. Avslutt en eldre app. Åpne DMG-en, dra **DSSA Tale** til **Programmer**, vent på kopiering og åpne appen derfra.
+3. Hvis Apple blokkerer betaen: bare hvis du stoler på kilden, velg **Systeminnstillinger → Personvern og sikkerhet → Åpne likevel** etter et blokkert startforsøk og godkjenn lokalt når dette tilbys. Ikke slå av Gatekeeper.
+4. Følg **Talemodell → Mikrofon → Innliming og test**. Last ned én NB-Whisper Large. Gi mikrofontilgang og velg inngangen med lyd. Nye profiler følger Mac-ens standard mikrofon/utgang og bruker **hold ⌘ + ⇧ + mellomrom inne for å snakke, slipp for å stoppe**. Kontroller den viste hurtigtasten; lagrede valg beholdes.
+5. Innlimingstrinnets pop-up viser konkrete klikk. På test-Mac-en heter siden **Personvern og sikkerhet → Enhetskontroll og datatilgang**; eldre macOS bruker Tilgjengelighet. Bruk appens knapp. Legg til **DSSA Tale fra Programmer** og slå på bryteren.
+6. En påslått gammel DSSA-oppføring er ikke nok. Hvis appen ikke registrerer tilgangen: fjern bare den foreldede DSSA-oppføringen, legg til den aktuelle appfilen fra Programmer igjen, slå på og bruk **Start DSSA Tale på nytt**. Modellen beholdes.
+7. Kjør **Test automatisk innliming**, kontroller hele testsetningen i dokumentet og fullfør oppsettet. Klikk deretter i ditt eget tekstfelt og dikter med valgt hurtigtast.
 
-1. Åpne DMG-filen og dra **DSSA Tale Test** til **Applications / Programmer**. Vent til kopieringen er ferdig.
-2. Åpne appen fra **Programmer**. Løs ut installasjonsdisken etterpå.
-3. Velg og last ned en NB-Whisper Large-modell i appen. Modeller følger **ikke** med installasjonsfilen. Internett trengs ved nedlasting; tale behandles lokalt etterpå.
-4. Følg oppsettet i appen. I **Mikrofon** gir du selv tilgang. Ny installasjon følger **Mac-ens standardmikrofon og standardutgang**. I **Innliming og test** forklares **Personvern og sikkerhet → Enhetskontroll og datatilgang / Tilgjengelighet**, appen fra Programmer og test i et eget dokument. Bare lydfiler kan brukes uten disse tillatelsene.
+Mac-passord/Touch ID brukes bare i systemvinduet, aldri i chat. **Hjelp → Gå gjennom oppsettet** åpner veiledningen igjen uten å slette notater/modeller. Bare lydfiler kan brukes uten mikrofon-/innlimingstillatelse.
 
-Standard ved ny installasjon: **hold ⌘ + ⇧ + mellomrom inne mens du snakker, slipp for å stoppe**. Vent på behandling og tekst. Du kan endre opptaksmåten i Hurtigtaster.
+Vanlig oppdatering av samme ordinære app bevarer dens profil. Eldre **DSSA Tale Test** har egen profil; den nye ordinære appen flytter ikke automatisk data fra testprofilen. Bevar gamle profiler. Ikke slett brukerdata for å oppdatere.
 
-Du kan velge **Åpne appen – fullfør oppsettet senere** uten modell og tillatelser. Hjem viser **Fortsett oppsettet**; diktering er ikke klar før modellen og tillatelsene er på plass.
+[Utførlig installasjon](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.45-beta.1/INSTALLASJON-1.9.45.txt) · [Opphav/teststatus](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.45-beta.1/OPPHAV-OG-TESTSTATUS-1.9.45.txt) · [SHA-256](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.45-beta.1/DSSA-Tale-1.9.45-Apple-Silicon.dmg.sha256)
 
-Når innlimingsbryteren er på i macOS, men appen fortsatt ikke registrerer tilgangen, bruk **Start DSSA Tale på nytt** i oppsettet. Full omstart kan kreves selv om macOS ikke viste en egen restartbeskjed. Test deretter automatisk innliming i testdokumentet.
+## Maskiner, teststatus og begrensninger
 
-Hvis Apple blokkerer åpning: bare dersom du stoler på kilden, bruk **Systeminnstillinger → Personvern og sikkerhet → Åpne likevel** etter et blokkert forsøk. Ikke slå av Gatekeeper. Signert/notarisert utgave har ingen bekreftet dato.
+**Kun Apple Silicon/arm64.** Oppgitt minimum macOS 26.0; macOS 26 er ikke separat funksjonstestet. Faktisk brukt på **Mac mini M4, 24 GB, macOS 27.2.1**. Andre M-maskiner er ikke fysisk verifisert. Ingen Intel-bygg. Metal/CPU finnes; Core ML-encodervekter følger ikke denne pakken, og Neural Engine-bruk eller ett sekund til ferdig tekst loves ikke.
 
-Testappen har eget navn, app-ID og innstillingsmappe. Den erstatter ikke den vanlige DSSA Tale-appen. Avslutt den andre dikteringsappen før testing. Oppdatering av samme testapp ved å erstatte den i Programmer bevarer profil, nedlastede modeller og notater. Ikke slett brukermappen.
+1.9.45: typekontroll, rendererbygg, DMG-integritet, ad-hoc-signatur, versjon/navn/kildecommit og SHA-256 kontrollert. 28 relevante filimport-/oppsett-/omstartstester og fem Teams-triggertester består. Pop-up, innstillingslenke, omstart og bevart modell er prøvd i pakken. **Automatisk innliming i andre programmer er brukerbekreftet**. Den separate nye automatiske mottakertesten ble avbrutt under samtidig bruk og telles ikke som bestått maskintest.
 
-[Detaljert installasjon 1.9.44](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.44-test/INSTALLER-LES-MEG.txt) · [Bruk og rettigheter](BRUK-OG-RETTIGHETER.md) · [Teststatus 1.9.44](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.44-test/TESTSTATUS-1.9.44.txt)
+Ingen uavhengig nyinstallasjonsprøve på en annen ren Mac. Ikke uttømmende prøvd med alle programmer, formater, målformer, talere eller lange møter. Kontroller navn, tall, taleridentitet og KI-bearbeidet tekst. Ingen automatisk upstream-oppdatering og ingen betalingsplan. [Windows-oppsettet](https://github.com/SteinOA/openwhispr-nb-whisper) er separat og er ikke endret.
 
-## Modellene
+## Kilder og rettigheter
 
-- **NB-Whisper Large, full presisjon**: standardvalget, omtrent 3,10 GB nedlasting.
-- **NB-Whisper Large, kvantisert q5_0**: omtrent 1,08 GB. Begge er Large-modeller; q5_0 er en mindre representasjon av vektene.
-- Begge lastes ned fra en fast modellrevisjon og kontrolleres med eksakt størrelse og SHA-256 før de blir klare. Ingen manuell modellkonfigurering eller utviklingsverktøy trengs.
-- Valgfrie lokale Qwen- og Gemma-modeller kan lastes ned til tekstopprydding, notatformatering og assistent. De erstatter ikke talemodellen. Automatisk opprydding er av ved ny installasjon. Større modell garanterer ikke bedre norsk. Nye forslag er begrenset til 2B–4B Q4; dette er ikke en målt eller håndhevet 10 GB RAM-grense.
+- [OpenWhispr 1.9.2](https://github.com/OpenWhispr/openwhispr/tree/v1.9.2): MIT. DSSA-tilpasninger: MIT.
+- [Nasjonalbiblioteket AI Lab / NB-Whisper Large](https://huggingface.co/NbAiLab/nb-whisper-large): Apache-2.0.
+- [whisper.cpp](https://github.com/OpenWhispr/whisper.cpp/releases/tag/0.0.8) og [llama.cpp](https://github.com/ggml-org/llama.cpp/tree/b9763): MIT.
+- Electron/Chromium og JavaScript-avhengigheter: egne medfølgende lisenser.
+- [FFmpeg 6.0](https://ffmpeg.org/legal.html): separat LGPL-2.1+-bygg uten GPL/nonfree. FFmpeg-, Opus- og Eigen-kilder/byggevalg er med i appens **Contents/Resources/legal**, sammen med fulltekstlisenser og bidragsytere.
+- [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), ONNX Runtime, Silero, pyannote og øvrige underkomponenter har egne vedlagte vilkår. [Community-1](https://huggingface.co/pyannote/speaker-diarization-community-1): CC-BY-4.0; [pyannote.audio](https://github.com/pyannote/pyannote-audio): MIT. Modeller/runtime lastes ned separat.
 
-Grensesnitt: bokmål, nynorsk og engelsk. Transkripsjon: bokmål og nynorsk. Når du velger bokmål eller nynorsk i språkvalget, følger både transkripsjon, menyer og lokal hjelp dette valget. Engelske menyer oversetter ikke norsk diktering. Eksisterende lagrede valg migreres ikke ved oppstart. Dokumenteksport har separate valg for tidsstempler og talernavn. Ingen oversettelse til bokmål skal tvinges på nynorsk, men modellene kan gjøre språk- og faktiske feil.
+Kildecommit for binærfilen: **e3a950938060df5e567bcd43f161568cb073e478**. Privat Mac-kilde er ikke pushet. Distribusjonsrepoets tagg og GitHubs «Source code»-arkiver er ikke installasjonsfilen eller den private binærkilden. Kontrollsum:
 
-## Lokal behandling og tilkoblinger
+`73e58f27d8d0f1beda2bfa03ebd6c1813124b8566ac825800c301845aa483a09`
 
-Ingen nødvendig konto, API-nøkkel, betaling eller lydopplasting for talegjenkjenning. Ingen automatisk upstream-oppdatering.
+## Kommenter betaen
 
-Mikrofon- og høyttalervalg gjelder appen. Appen endrer ikke Macens globale lydruting. Notater og transkripsjoner lagres lokalt når historikk er slått på. Word, PDF og ren tekst kan eksporteres med vanlige lagredialoger.
-
-Google Disk, OneDrive/SharePoint og iCloud Drive bruker mapper du selv velger. Eksport til en synkronisert mappe kan lastes opp av leverandørens klient; dette er ikke en bekreftelse på sikkerhetskopi. Kalender leses valgfritt gjennom Kalender på Mac-en. Leverandørknappene viser oppsettsveiledning, ikke en innebygd direkte konto- eller Teams-botkobling. Møtelenken i avtalen avgjør tjenesten.
-
-## Maskiner og støtte
-
-Pakken er **arm64 for Apple Silicon**, med teknisk minimum **macOS 26.0**. Faktisk prøvd på **Mac mini M4, 24 GB, macOS 27.2.1**. Andre maskiner og macOS 26 er ikke fysisk verifisert. **Ingen Intel-støtte.**
-
-Denne lette pakken bruker Metal eller CPU. Core ML-encoderens modellvekter følger ikke med. Det loves ikke bruk av Neural Engine eller tekstinnsetting innen ett sekund.
-
-## Kilder og lisenser
-
-App/tilpasning: MIT. NB-modeller: Apache-2.0. Medfølgende FFmpeg er et eget LGPL-2.1+-bygg uten GPL/nonfree, med kildearkiv, Opus-kilder og byggevalg. Alle påkrevde opplysninger for distribuerte komponenter ligger i appens `Contents/Resources/legal/` og [resources/legal](resources/legal).
-
-[Windows-oppsettet](https://github.com/SteinOA/openwhispr-nb-whisper) er separat. Denne utgivelsen endrer ikke Windows-versjonen.
-
-
-Utgivelsen distribuerer DMG og dokumentasjon. Den nye private kildekoden for 1.9.44 er ikke pushet. GitHubs automatiske «Source code»-arkiver skal ikke brukes til installasjon eller forveksles med kildecommitten oppgitt i utgivelsen.
+[Legg igjen tilbakemelding her](https://github.com/SteinOA/DSSA-Tale-Mac/issues/10), eller [opprett en egen feilrapport](https://github.com/SteinOA/DSSA-Tale-Mac/issues/new/choose). Oppgi app-/macOS-versjon, Mac-modell, modellvalg og hva du forsøkte. Ikke publiser private opptak, transkripsjoner, passord eller nøkler. GitHub-konto trengs for kommentarer og saker, men ikke for nedlasting.
