@@ -2,17 +2,19 @@
 
 Norsk tale til tekst på din egen Mac, med NB-Whisper Large fra Nasjonalbiblioteket. Uavhengig tilpasning av [OpenWhispr v1.9.2](https://github.com/OpenWhispr/openwhispr/tree/v1.9.2). Ikke et offisielt produkt fra OpenWhispr, Nasjonalbiblioteket, Apple, Google eller Microsoft.
 
-**1.9.42 er en offentlig testversjon (Pre-release), uten medfølgende modellvekter.** Den er ad hoc-signert, men mangler Apple Developer ID og notarisering. Apple kan derfor blokkere første åpning. En signert utgave er målet, uten bekreftet dato.
+**1.9.43 er en offentlig testversjon (Pre-release), uten medfølgende modellvekter.** Den er ad hoc-signert, men mangler Apple Developer ID og notarisering. Apple kan derfor blokkere første åpning. En signert utgave er målet, uten bekreftet dato.
 
-**[Last ned DSSA Tale Test 1.9.42 for Apple Silicon (DMG)](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.42-test/DSSA-Tale-Test-1.9.42-Apple-Silicon.dmg)** — ingen GitHub-konto nødvendig. [Les utgivelsen og installasjonstrinnene her](https://github.com/SteinOA/DSSA-Tale-Mac/releases/tag/v1.9.42-test).
+**[Last ned DSSA Tale Test 1.9.43 for Apple Silicon (DMG)](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.43-test/DSSA-Tale-Test-1.9.43-Apple-Silicon.dmg)** — ingen GitHub-konto nødvendig. [Les utgivelsen og installasjonstrinnene her](https://github.com/SteinOA/DSSA-Tale-Mac/releases/tag/v1.9.43-test).
 
-[Detaljert installasjon 1.9.42](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.42-test/INSTALLER-LES-MEG.txt) · [Teststatus 1.9.42](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.42-test/TESTSTATUS-1.9.42.txt) · [Kontrollsum](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.42-test/DSSA-Tale-Test-1.9.42-Apple-Silicon.dmg.sha256)
+[Detaljert installasjon 1.9.43](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.43-test/INSTALLER-LES-MEG.txt) · [Teststatus 1.9.43](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.43-test/TESTSTATUS-1.9.43.txt) · [Kontrollsum](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.43-test/DSSA-Tale-Test-1.9.43-Apple-Silicon.dmg.sha256)
 
-Når appen er installert og åpnet: klikk **Assistent i venstremenyen → Tale til tekst – start her → NB-Whisper-modeller → Last ned**. Du trenger bare én Large-modell. Samme nedlasting finnes også på velkomstsiden. Vanlig diktering trenger ingen ekstra LLM. Tekstopprydding er av ved ny installasjon; valgfrie tekstmodeller kan lastes ned senere. Nytt i 1.9.42: **veiledet førstegangsoppsett i tre trinn: Talemodell → Mikrofon → Innliming og test**. Oppsettet viser faktisk status og forklarer hva som mangler. En restartknapp beholder trinnet. Bare lydfiler kan åpnes uten mikrofon-/innlimingstillatelse. **Hjelp → Gå gjennom oppsettet** åpner veiledningen igjen uten å slette modeller eller notater. Flervalg og automatisk mappeimport med undermapper er beholdt. Hver brukbar lydfil lagres som et eget dokument under Notater før neste fil starter. Ingen fast antallsgrense. La appen være åpen; kølisten gjenopprettes ikke automatisk etter avslutning.
+Når appen er installert og åpnet: klikk **Assistent i venstremenyen → Tale til tekst – start her → NB-Whisper-modeller → Last ned**. Du trenger bare én Large-modell. Samme nedlasting finnes også på velkomstsiden. Vanlig diktering trenger ingen ekstra LLM. Tekstopprydding er av ved ny installasjon; valgfrie tekstmodeller kan lastes ned senere. Nytt i 1.9.43: **veiledet førstegangsoppsett i tre trinn: Talemodell → Mikrofon → Innliming og test**. Oppsettet viser faktisk status og forklarer hva som mangler. Restartknappen avslutter helt og åpner den eksakte Mac-pakken gjennom vanlig Mac-oppstart, tilbake til samme trinn. Dette retter den gjenskapte restartfeilen i 1.9.42. Bare lydfiler kan åpnes uten mikrofon-/innlimingstillatelse. **Hjelp → Gå gjennom oppsettet** åpner veiledningen igjen uten å slette modeller eller notater. Flervalg og automatisk mappeimport med undermapper er beholdt. Hver brukbar lydfil lagres som et eget dokument under Notater før neste fil starter. Ingen fast antallsgrense. La appen være åpen; kølisten gjenopprettes ikke automatisk etter avslutning.
 
-**Tidligere mappeprøve i 1.9.38**, på M4/24 GB/macOS 27.2: **31 lydfiler med 23 t 26 min 05 sek lyd ga 31 separate dokumenter**, på målt **2 t 29 min 02 sek** fra første normaliserte arbeidskopi til siste lagrede notat. Køen fullførte uten køfeil. Full språklig korrekthet er ikke manuelt kontrollert. Mikrofon/hurtigtast og innliming er ikke retestet i denne køprøven. Dette er tidligere resultater, ikke en ny tilsvarende 1.9.42-prøve. [Se den tidligere teststatusen](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.38-test/TESTSTATUS-1.9.38.md).
+**Tidligere mappeprøve i 1.9.38**, på M4/24 GB/macOS 27.2: **31 lydfiler med 23 t 26 min 05 sek lyd ga 31 separate dokumenter**, på målt **2 t 29 min 02 sek** fra første normaliserte arbeidskopi til siste lagrede notat. Køen fullførte uten køfeil. Full språklig korrekthet er ikke manuelt kontrollert. Mikrofon/hurtigtast og innliming er ikke retestet i denne køprøven. Dette er tidligere resultater, ikke en ny tilsvarende 1.9.43-prøve. [Se den tidligere teststatusen](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.38-test/TESTSTATUS-1.9.38.md).
 
-Hjelp-knappen åpner en **innebygd, søkbar bruksanvisning** på valgt menyspråk, uten nett. **99 målrettede tester**, typekontroll og rendererbygg består. En separat pakket kontrollapp med tom profil viste begge lydvalg som Mac-standard, hold-inne-modus og manglende modeller/tillatelser. **Åpne appen – fullfør oppsettet senere** og **Fortsett oppsettet** på Hjem er prøvd. Native vindusramme er endret i kode; faktisk manuell flytting/størrelsesendring er ikke sikkert verifisert. Fysisk mikrofon, hurtigtast og automatisk innsetting fra 1.9.42 er fortsatt ikke dokumentert. Dette er heller ikke en ny Teams-/Community-1-test. Les teststatusen.
+Hjelp-knappen åpner en **innebygd, søkbar bruksanvisning** på valgt menyspråk, uten nett. **103 målrettede tester**, typekontroll og rendererbygg består. Restartfeilen ble gjenskapt i 1.9.42 og rettet i 1.9.43: to restarter i separat pakket kontrollapp kom automatisk tilbake til riktig trinn, også med nynorsk. Den installerte 1.9.43 er prøvd fra tom profil gjennom modellnedlasting, mikrofontillatelse og innlimingstillatelse. Restartknappen returnerte til trinn 3 og registrerte Mac-godkjenningen. Norsk kontrolltekst ble faktisk satt inn automatisk i Tekstredigering. Vanlig avslutning/ny åpning gikk til Hjem og beholdt mikrofonvalget.
+
+**En ny fysisk taleprøve med hurtigtast, ordfeilmåling og ende-til-ende-latens er ikke dokumentert i 1.9.43.** En stille mikrofonprøve og et syntetisk tastetrykk regnes ikke som dette. Ingen ny Teams-/lang mappeprøve. Les teststatusen.
 
 ## Last ned og installer
 
@@ -27,11 +29,13 @@ Standard ved ny installasjon: **hold ⌘ + ⇧ + mellomrom inne mens du snakker,
 
 Du kan velge **Åpne appen – fullfør oppsettet senere** uten modell og tillatelser. Hjem viser **Fortsett oppsettet**; diktering er ikke klar før modellen og tillatelsene er på plass.
 
+Når innlimingsbryteren er på i macOS, men appen fortsatt ikke registrerer tilgangen, bruk **Start DSSA Tale på nytt** i oppsettet. Full omstart kan kreves selv om macOS ikke viste en egen restartbeskjed. Test deretter automatisk innliming i testdokumentet.
+
 Hvis Apple blokkerer åpning: bare dersom du stoler på kilden, bruk **Systeminnstillinger → Personvern og sikkerhet → Åpne likevel** etter et blokkert forsøk. Ikke slå av Gatekeeper. Signert/notarisert utgave har ingen bekreftet dato.
 
 Testappen har eget navn, app-ID og innstillingsmappe. Den erstatter ikke den vanlige DSSA Tale-appen. Avslutt den andre dikteringsappen før testing. Oppdatering av samme testapp ved å erstatte den i Programmer bevarer profil, nedlastede modeller og notater. Ikke slett brukermappen.
 
-[Detaljert installasjon 1.9.42](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.42-test/INSTALLER-LES-MEG.txt) · [Bruk og rettigheter](BRUK-OG-RETTIGHETER.md) · [Teststatus 1.9.42](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.42-test/TESTSTATUS-1.9.42.txt)
+[Detaljert installasjon 1.9.43](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.43-test/INSTALLER-LES-MEG.txt) · [Bruk og rettigheter](BRUK-OG-RETTIGHETER.md) · [Teststatus 1.9.43](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.43-test/TESTSTATUS-1.9.43.txt)
 
 ## Modellene
 
@@ -63,4 +67,4 @@ App/tilpasning: MIT. NB-modeller: Apache-2.0. Medfølgende FFmpeg er et eget LGP
 [Windows-oppsettet](https://github.com/SteinOA/openwhispr-nb-whisper) er separat. Denne utgivelsen endrer ikke Windows-versjonen.
 
 
-Utgivelsen distribuerer DMG og dokumentasjon. Den nye private kildekoden for 1.9.42 er ikke pushet. GitHubs automatiske «Source code»-arkiver skal ikke brukes til installasjon eller forveksles med kildecommitten oppgitt i utgivelsen.
+Utgivelsen distribuerer DMG og dokumentasjon. Den nye private kildekoden for 1.9.43 er ikke pushet. GitHubs automatiske «Source code»-arkiver skal ikke brukes til installasjon eller forveksles med kildecommitten oppgitt i utgivelsen.
