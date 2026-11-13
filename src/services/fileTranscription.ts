@@ -24,6 +24,7 @@ export interface DiarizationSettings {
   enabled: boolean;
   // Local sherpa-onnx models present; BYOK-native diarization doesn't need them.
   localModelsReady: boolean;
+  engine?: "community-1" | "sherpa-onnx";
   numSpeakers: number | null;
 }
 
@@ -101,6 +102,7 @@ export async function transcribeFile(
       provider: cfg.localTranscriptionProvider as "whisper" | "nvidia",
       model: cfg.localTranscriptionProvider === "nvidia" ? cfg.parakeetModel : cfg.whisperModel,
       requestId: opts.requestId,
+      timestamps:opts.timestamps,
     });
   }
 
@@ -171,6 +173,10 @@ export async function transcribeFileWithSpeakers(
   durationSeconds?: number | null,
   opts: { requestId?: string; timestamps?: boolean } = {}
 ): Promise<FileTranscriptionResult> {
+  if(cfg.useLocalWhisper && diarization.enabled && diarization.engine==='community-1'){
+    const result=await window.electronAPI.nbImportAudioFile(filePath,{model:cfg.whisperModel,language:cfg.language,requestId:opts.requestId || `nb-community-${Date.now()}`,speakerEngine:'community-1'});
+    return {...result,durationSeconds:(result as any).totalSeconds || durationSeconds || null} as FileTranscriptionResult;
+  }
   const byokDiarize = shouldUseByokDiarize(cfg, diarization.enabled);
   const diarizePromise =
     diarization.enabled && diarization.localModelsReady && !byokDiarize
@@ -183,7 +189,7 @@ export async function transcribeFileWithSpeakers(
       : Promise.resolve(null);
 
   const [transcribed, diar] = await Promise.all([
-    transcribeFile(filePath, cfg, byokDiarize, opts),
+    transcribeFile(filePath, cfg, byokDiarize, {...opts,timestamps:opts.timestamps || diarization.enabled}),
     diarizePromise,
   ]);
 
@@ -192,16 +198,18 @@ export async function transcribeFileWithSpeakers(
   const measuredDuration = durationSeconds || (diar?.success && diar.durationSeconds) || null;
   const result = { ...transcribed, durationSeconds: measuredDuration };
 
-  if (!result.success || !result.text || result.diarized) return result;
-  if (!diar?.success || !diar.segments?.length) return result;
+  if (!result.success || !result.text || result.diarized || !diarization.enabled) return result;
+  if (!diar?.success || !diar.segments?.length || !result.segments?.length) return {...result,warning:"Talerfordelingen mangler eller tidsstemplene er utilstrekkelige. Transkripsjonen er beholdt."};
 
   try {
     const merged = await window.electronAPI.mergeSpeakerText?.(
       diar.segments,
       result.text,
-      durationSeconds || 0
+      measuredDuration || 0,
+      result.segments,
+      cfg.language
     );
-    if (merged?.success && merged.text) return { ...result, text: merged.text };
+    if (merged?.success && merged.text) return { ...result, text: merged.text,segments:merged.segments || result.segments };
   } catch {
     // Merge failure falls back to the plain transcript.
   }

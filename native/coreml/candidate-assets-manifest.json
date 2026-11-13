@@ -1,0 +1,40 @@
+{
+  "architecture": "arm64",
+  "cpuTarget": "Apple M4 native (+dotprod+i8mm+nosve+sme)",
+  "macOSMinimum": "26.0",
+  "testedOS": "27.0.1",
+  "computeUnits": "CPU_AND_NE",
+  "decoder": "Metal",
+  "coremlFallback": true,
+  "files": [
+    {
+      "path": "bin/whisper-server-coreml-darwin-arm64",
+      "bytes": 3659616,
+      "sha256": "9670709d9c96cf67c7d0d8f3c52c006034520d568122b92af44c011c37881cf9"
+    },
+    {
+      "path": "nb-models/ggml-nb-large-encoder.mlmodelc",
+      "symlink": "ggml-nb-large-full-encoder.mlmodelc"
+    },
+    {
+      "path": "nb-models/ggml-nb-large-full-encoder.mlmodelc/analytics/coremldata.bin",
+      "bytes": 243,
+      "sha256": "720992c63424a8ddbbfd1092c96ba8b2c82c29c8ab490036bd9bad419a227691"
+    },
+    {
+      "path": "nb-models/ggml-nb-large-full-encoder.mlmodelc/coremldata.bin",
+      "bytes": 321,
+      "sha256": "05e57362f60a5bd8ef89c1d6ea194bf5069d98818c5ce686877ea50c17c35c4f"
+    },
+    {
+      "path": "nb-models/ggml-nb-large-full-encoder.mlmodelc/model.mil",
+      "bytes": 358410,
+      "sha256": "b7a74fb96018f9b70197463632ece7210d026a52ee3fff983b95eb3c407bfd07"
+    },
+    {
+      "path": "nb-models/ggml-nb-large-full-encoder.mlmodelc/weights/weight.bin",
+      "bytes": 1273971776,
+      "sha256": "ae4f71a41592a35a277b10962f225aa9e2f3486686964e6cdb85640b85fbbac9"
+    }
+  ]
+}

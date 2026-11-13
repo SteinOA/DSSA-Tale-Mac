@@ -955,14 +955,19 @@ class WhisperServerManager extends EventEmitter {
           `Content-Disposition: form-data; name="prompt"\r\n\r\n` +
           `${initialPrompt}\r\n`
       );
-      debugLogger.info("Using custom dictionary prompt", { prompt: initialPrompt });
+      debugLogger.info("Using custom dictionary prompt", { characterCount: initialPrompt.length });
     }
 
     parts.push(
       `--${boundary}\r\n` +
         `Content-Disposition: form-data; name="response_format"\r\n\r\n` +
-        `json\r\n`
+        `${options.timestamps ? "verbose_json" : "json"}\r\n`
     );
+    if(options.timestamps) {
+      // The server maps max_len=0 to a 60-character wrap. Keep real clocks
+      // without cutting Norwegian words into separate transcript fragments.
+      for(const [name,value] of [['no_timestamps','false'],['max_len','1000000'],['split_on_word','true']])parts.push(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`);
+    }
     parts.push(`--${boundary}--\r\n`);
 
     const bodyParts = parts.map((part) => (typeof part === "string" ? Buffer.from(part) : part));
@@ -1032,7 +1037,7 @@ class WhisperServerManager extends EventEmitter {
               statusCode: res.statusCode,
               elapsed: Date.now() - startTime,
               responseLength: data.length,
-              responsePreview: data.slice(0, 500),
+              // Transcript content must never be written to diagnostics.
             });
 
             if (res.statusCode !== 200) {

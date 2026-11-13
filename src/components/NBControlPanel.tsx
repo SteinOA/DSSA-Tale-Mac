@@ -1,3 +1,4 @@
+import { AudioLines, Keyboard, Mic, Palette, Settings2, Sparkles, ArrowRight } from "lucide-react";
 import NBWhisperDownloads from "./NBWhisperDownloads";
 import NBModelGuide from "./NBModelGuide";
 import { NBCloudBrand } from "./NBCloudBrand";
@@ -38,6 +39,15 @@ export default function NBControlPanel() {
   const [profile,setProfile] = useState<any>(null);
   const [accent,setAccent] = useState(()=>localStorage.getItem("nbAccent") || "#2563eb");
   const [acceleration,setAcceleration] = useState("auto");
+  const [speakerEngine,setSpeakerEngine]=useState(()=>localStorage.getItem("nbSpeakerEngine") || "community-1");
+  const [communityStatus,setCommunityStatus]=useState<any>(null);
+  const [communityToken,setCommunityToken]=useState("");
+  const [communityTerms,setCommunityTerms]=useState(false);
+  const [channelMode,setChannelMode]=useState("inspect");
+  const [wordAlignment,setWordAlignment]=useState(()=>localStorage.getItem("nbWordAlignment") || "native");
+  const [communityDevice,setCommunityDevice]=useState("cpu");
+  const [textLanguage,setTextLanguage]=useState<string | null>(null);
+  useEffect(()=>{void api.nbCommunityStatus?.().then((status:any)=>{setCommunityStatus(status);setCommunityDevice(status?.device || "cpu");}).catch(()=>{});},[api]);
   const [separateSpeakers, setSeparateSpeakers] = useState(false);
   const [advanced, setAdvanced] = useState(true);
   const [panelFocus,setPanelFocus] = useState("settings");
@@ -93,7 +103,7 @@ export default function NBControlPanel() {
     setBusy(true);setMessage("Arbeider med lokal språkmodell …");
     try {
       const instruction = task === "cleanup" ? "Rett tegnsetting og åpenbare skrivefeil. Bevar mening og alle fakta. Returner bare den rettede teksten." : task === "notes" ? "Formater teksten som et ryddig notat med overskrifter og punktliste. Ikke finn på fakta eller beslutninger." : "Svar på brukerens spørsmål. Du kan bare svare med tekst og har ikke tilgang til andre apper. Vær tydelig om usikkerhet.";
-      const result=await api.processLocalReasoning(text,s.cleanupModel,null,{nbTask:task,language:s.preferredLanguage,temperature:0.2,systemPrompt:instruction+" Skriv på "+(s.preferredLanguage==="nn"?"nynorsk.":"bokmål.")});
+      const result=await api.processLocalReasoning(text,s.cleanupModel,null,{nbTask:task,language:textLanguage || s.preferredLanguage,temperature:0.2,systemPrompt:instruction+" Skriv på "+((textLanguage || s.preferredLanguage)==="nn"?"nynorsk.":"bokmål.")});
       if(result.integrity?.accepted === false){
         setMessage("Originalteksten er beholdt fordi modellen endret ord eller fakta.");
         return;
@@ -104,7 +114,7 @@ export default function NBControlPanel() {
     }catch(e){setMessage(String(e));}finally{setBusy(false);}
   };
   const saveText = async (format="docx") => {
-    try{const result=await api.nbSaveDocument(text,format,{includeTimestamps,includeSpeakers,language:s.preferredLanguage});if(result.success)setMessage("Dokumentet er lagret på valgt sted.");}catch(error){setMessage(String(error));}
+    try{const result=await api.nbSaveDocument(text,format,{includeTimestamps,includeSpeakers,language:textLanguage || s.preferredLanguage});if(result.success)setMessage("Dokumentet er lagret på valgt sted.");}catch(error){setMessage(String(error));}
   };
   useEffect(()=>{document.documentElement.style.setProperty("--nb-accent",accent);localStorage.setItem("nbAccent",accent);},[accent]);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -161,7 +171,7 @@ export default function NBControlPanel() {
     setSourceAudio(null);
     setMessage("");
   }, [importJob.id, importing]);
-  const importPhaseText: Record<string, string> = { converting: "Klargjør lydfilen …", cancelled: "Avbrutt. Velg samme lydfil for å fortsette.", reading: "Leser lydfilen …", transcribing: "Transkriberer lokalt …", diarizing: "Analyserer talere og transkriberer lokalt …", saving: "Lagrer samtalen …", complete: "Lydfilen er ferdig behandlet.", error: "Behandlingen av lydfilen mislyktes." };
+  const importPhaseText: Record<string, string> = { converting: "Klargjør lydfilen …", cancelled: "Avbrutt. Velg samme lydfil for å fortsette.", reading: "Leser lydfilen …", transcribing: "Transkriberer lokalt …", diarizing: "Transkripsjon ferdig. Fordeler talere lokalt …", saving: "Lagrer samtalen …", complete: "Lydfilen er ferdig behandlet.", error: "Behandlingen av lydfilen mislyktes." };
   const [importClock,setImportClock] = useState(Date.now());
   useEffect(() => {
     if (!importing) return;
@@ -170,7 +180,8 @@ export default function NBControlPanel() {
   }, [importing]);
   const importElapsed = Math.max(0,Math.floor(((importJob.finishedAt ?? importClock) - importJob.startedAt) / 1000));
   useEffect(() => {
-    if (importJob.id && ["complete", "error"].includes(importJob.phase)) {
+    if (importJob.id && ["complete", "error", "cancelled"].includes(importJob.phase)) {
+      setTextLanguage(importJob.language || null);
       setText(importJob.text);
       setSourceAudio(importJob.sourceAudio);
       setMessage(importJob.phase === "error" ? importJob.error : !importJob.saved ? (importJob.text.trim() ? "Teksten er klar. Historikk er slått av; samtalen er ikke lagret." : "Ingen tale ble funnet.") : importJob.saved.complete
@@ -207,7 +218,7 @@ export default function NBControlPanel() {
     } catch(error) {setMessage(String(error));setBusy(false);}
   };
   const pageTitles: Record<string,string> = {settings:"Innstillinger",files:"Lydfiler",assistant:"Assistent",speech:"Tale og mikrofon",shortcuts:"Hurtigtaster",recording:"Opptak og innliming",appearance:"Utseende og språk",system:"System"};
-  const content = <div className="nb-control-panel" style={{padding:"12px 20px 24px",maxWidth:720,margin:"auto",fontFamily:"system-ui",fontSize:13,lineHeight:1.45}}>
+  const content = <div className="nb-control-panel" data-page={panelFocus} style={{padding:"24px",maxWidth:980,margin:"20px auto",fontFamily:"system-ui",fontSize:16,lineHeight:1.55}}>
     <style>{`.nb-control-panel button{border:1px solid color-mix(in srgb,var(--nb-accent) 45%,transparent);border-radius:6px;padding:5px 9px;margin:3px 4px 3px 0}.nb-control-panel button:hover:not(:disabled){background:color-mix(in srgb,var(--nb-accent) 14%,transparent)}.nb-control-panel button:disabled{opacity:.5}.nb-control-panel select,.nb-control-panel input,.nb-control-panel textarea{border:1px solid #8885;border-radius:5px;padding:4px;margin:3px;max-width:100%}.nb-control-panel input[type=checkbox]{accent-color:var(--nb-accent)}.nb-control-panel h1{color:var(--nb-accent);margin-bottom:12px}.nb-control-panel h2{font-weight:650;font-size:14px;margin:8px 0}.nb-control-panel section{margin-top:8px}.nb-control-panel section>label{display:inline-block;margin:4px 0}.nb-control-panel textarea{resize:none;overflow-y:auto}.nb-control-panel p{margin:7px 0}.nb-control-panel select option{background:Canvas;color:CanvasText}`}</style>
     <h1 style={{fontSize:22,fontWeight:700}}>{ui(pageTitles[panelFocus])}</h1>
     {(meetingRecording || meetingTranscribing) && <aside role="status" style={{padding:12,border:"1px solid var(--nb-accent)",borderRadius:8}}>{ui(meetingRecording ? "Møteopptak pågår" : "Møtet transkriberes …")}{" "}{meetingRecording && <button onClick={()=>void stopMeetingRecording()}>{ui("Stopp møteopptaket")}</button>}</aside>}
@@ -215,15 +226,19 @@ export default function NBControlPanel() {
     {message && <p role="status">{ui(message)}</p>}
     {panelFocus === "settings" && <section>
       <p>{ui("Velg en innstillingsside i menyen eller nedenfor.")}</p>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:12,marginTop:16}}>{(["speech","shortcuts","recording","appearance","system"]).map(id=><button key={id} data-emphasis="primary" style={{padding:20,textAlign:"left"}} onClick={()=>openNBPanel(id)}>{ui(pageTitles[id])}</button>)}</div>
+      <div className="nb-settings-grid">{([
+        {id:"assistant",icon:Sparkles,description:"Talemodell, målform og valgfri tekstopprydding."},
+        {id:"speech",icon:Mic,description:"Velg mikrofon og høyttaler, og kontroller tillatelser."},
+        {id:"shortcuts",icon:Keyboard,description:"Velg tastene som starter og stopper opptak."},
+        {id:"recording",icon:AudioLines,description:"Lengde på opptak, lydsignaler og automatisk innliming."},
+        {id:"appearance",icon:Palette,description:"Lyst eller mørkt tema, aksentfarge og menyspråk."},
+        {id:"system",icon:Settings2,description:"Versjon, oppdateringsvalg og lokal feilsøkingslogg."}
+      ]).map(({id,icon:Icon,description})=><article className="nb-settings-tile" key={id}><div className="nb-settings-tile-title"><Icon aria-hidden="true" size={23}/><h2>{ui(pageTitles[id])}</h2></div><p>{ui(description)}</p><button aria-label={ui("Åpne")+" "+ui(pageTitles[id])} onClick={()=>openNBPanel(id)}>{ui("Åpne")}<ArrowRight aria-hidden="true" size={16}/></button></article>)}</div>
       <p>{ui("Alt behandles lokalt. Valgene lagres automatisk.")}</p>
     </section>}
     {panelFocus === "speech" && <section>
-      <label>{ui("Målform") + " "}<select aria-label={ui("Målform")} value={s.preferredLanguage} onChange={(e)=>s.setPreferredLanguage(e.target.value)}><option value="no">{ui("Bokmål")}</option><option value="nn">{ui("Nynorsk")}</option></select></label><br/>
-      <label>{ui("Modell") + " "}<select aria-label={ui("Modell")} value={s.whisperModel} onChange={(e)=>{s.setWhisperModel(e.target.value);s.setMeetingWhisperModel(e.target.value);s.setUploadWhisperModel(e.target.value);}}><option value="nb-large">{ui("NB-Whisper Large – kvantisert q5_0 (mindre minne)")}</option><option value="nb-large-full">{ui("NB-Whisper Large – full presisjon (standard)")}</option></select></label><br/>
-      <label>{ui("Akselerasjon for talegjenkjenning") + " "}<select value={acceleration} disabled={busy} onChange={async e=>{const value=e.target.value;try{await api.nbSetAcceleration(value);setAcceleration(value);setMessage("Akselerasjonen endres når appen startes på nytt.");}catch(error){setMessage(String(error));}}}><option value="auto">{ui("Automatisk – Apple Silicon")}</option><option value="metal">Metal – Apple Silicon</option><option value="cpu">{ui("CPU – uten grafikkakselerasjon")}</option></select></label><br/>
-      <p style={{fontSize:12,opacity:.7}}>{ui("Første oppstart med CoreML kan ta 12–25 sekunder. Metal brukes hvis CoreML ikke er tilgjengelig.")}</p>
-      <p role="status" style={{fontSize:12}}>{ui("Aktiv talemotor")}: {memory?.engine?.active === "coreml" ? ui("CoreML-enkoder + Metal") : memory?.engine?.active === "metal" ? "Metal" : memory?.engine?.active === "cpu" ? "CPU" : "—"} · {ui(memory?.engine?.starting ? "Klargjøring …" : memory?.engine?.ready ? "Klar" : "Ikke startet")}</p>
+      <p>{ui("Talemodell")}: NB-Whisper Large — {s.whisperModel==="nb-large-full"?ui("full presisjon"):ui("kvantisert q5_0")}</p>
+      <button onClick={()=>openNBPanel("assistant")}>{ui("Velg modeller og les forklaringen")}</button>
       <label>{ui("Mikrofon") + " "}<select aria-label={ui("Mikrofon")} value={s.microphoneSelectionMode === "specific" ? s.selectedMicDeviceId : "system"} onChange={(e)=>{const d=devices.find((d)=>d.deviceId===e.target.value);if(d){s.setSelectedMicDevice(d.deviceId,d.label);s.setMicrophoneSelectionMode("specific");}else{s.setMicrophoneSelectionMode("system");}}}><option value="system">{ui("Følg Mac-ens standardmikrofon")}</option>{s.microphoneSelectionMode === "specific" && !devices.some(d=>d.deviceId===s.selectedMicDeviceId) && <option value={s.selectedMicDeviceId}>{s.selectedMicDeviceLabel || ui("Valgt mikrofon")} – {ui("ikke tilkoblet")}</option>}{devices.filter(d=>d.deviceId!=="default").map(d=><option key={d.deviceId} value={d.deviceId}>{d.label || "Mikrofon"}</option>)}</select></label>
       <p><label>{ui("Høyttaler for appens lyder")} <select aria-label={ui("Høyttaler for appens lyder")} value={output.deviceId} onChange={e=>{const device=outputs.find(d=>d.deviceId===e.target.value);const next={deviceId:e.target.value,label:device?.label || ""};saveAudioOutput(next.deviceId,next.label);setOutput(next);setMessage("");}}>
         <option value="">{ui("Følg Mac-ens standardutgang")}</option>
@@ -234,7 +249,6 @@ export default function NBControlPanel() {
       <button disabled={busy} onClick={async()=>{setBusy(true);try{await testAudioOutput();setMessage("Testlyden er spilt på valgt utgang. Hørte du tonen?");}catch(error){setMessage(ui("Kunne ikke spille på valgt utgang. Koble til høyttaleren, oppdater listen eller velg standardutgang.")+" "+(error instanceof Error ? error.message : String(error)));}finally{setBusy(false);}}}>{ui("Test høyttaler")}</button>{" "}
       <button onClick={()=>void refreshDevices()}>{ui("Oppdater lydenheter")}</button>
       <p><small>{ui("Høyttalervalget gjelder appens testlyd og dikteringslyder. Det endrer ikke Mac-ens lydruting. Valget beholdes etter omstart.")}</small></p>
-      <NBWhisperDownloads language={s.uiLanguage} selected={s.whisperModel}/>
       <p><small>{ui("BlackHole er en virtuell lydinngang. Den hører bare lyd som sendes til den.")}</small></p>
       <button disabled={busy} onClick={testMic}>{ui("Test valgt mikrofon i 5 sekunder")}</button>
       <p><button onClick={()=>api.openMicrophoneSettings()}>{ui("Mikrofontillatelse")}</button><button onClick={()=>api.openAccessibilitySettings()}>{ui("Tilgjengelighet og innliming")}</button></p>
@@ -249,6 +263,10 @@ export default function NBControlPanel() {
     {panelFocus === "shortcuts" && <section>
       <p>{ui("Diktering – klikk på feltet og trykk ønsket tastekombinasjon.")}</p>
       <HotkeyListInput value={s.dictationKey} required onChange={(v)=>register(v)}/>
+      <p role="status">{ui("Aktiv hurtigtast")}: <strong>{s.activeDictationKey || ui("Ikke bekreftet")}</strong></p>
+      {s.dictationHotkeyRegistration.status === "registering" && <p role="status">{ui("Aktiverer lagret hurtigtast …")}</p>}
+      {s.dictationHotkeyRegistration.status === "waiting" && <p role="status">{ui("Venter på at hurtigtasten skal bli klar …")}</p>}
+      {s.dictationHotkeyRegistration.status === "failed" && s.activeDictationKey!==s.dictationKey && <p role="alert">{ui("Den lagrede hurtigtasten kunne ikke aktiveres. Bruk den aktive tasten ovenfor, eller velg en annen kombinasjon. Den lagrede innstillingen er beholdt.")}</p>}
       <label>{ui("Opptaksmåte") + " "}<select value={s.activationMode} onChange={(e)=>s.setActivationMode(e.target.value as "tap"|"push")}><option value="tap">{ui("Trykk for å starte og stoppe")}</option><option value="push">{ui("Hold inne for å snakke")}</option></select></label>
       <p>{ui("Møtesnarvei – åpner møteopptak i den komplette arbeidsflaten.")}</p>
       <HotkeyListInput value={s.meetingKey} onChange={(v)=>register(v,true)} onClear={()=>register("",true)}/>
@@ -282,32 +300,63 @@ export default function NBControlPanel() {
       <button disabled={systemBusy} onClick={async()=>{try{const result=await api.openLogsFolder();if(!result?.success)setMessage(ui("Kunne ikke åpne loggmappen."));}catch{setMessage(ui("Kunne ikke åpne loggmappen."));}}}>{ui("Åpne loggmappe")}</button>
       {debugState?.logPath && <p style={{fontSize:12,overflowWrap:"anywhere"}}>{ui("Loggfil")}: {debugState.logPath}</p>}
     </section>}
-    {panelFocus === "assistant" && <section id="nb-ai">
-      <h2>{ui("Lokal språkmodell og tekstopprydding")}</h2>
-      <p>{ui("Last ned én gang. Deretter behandles teksten lokalt.")}</p>
-      <label>{ui("Lokal språkmodell")}<br/><select aria-label={ui("Lokal språkmodell")} disabled={busy||!!downloadStatus} value={selectedModel ? s.cleanupModel : ""} onChange={e=>{s.setCleanupModel(e.target.value);s.setCleanupProvider("qwen");s.setNoteFormattingMode("local");s.setNoteFormattingProvider("qwen");s.setNoteFormattingModel(e.target.value);s.setChatAgentMode("local");s.setChatAgentProvider("qwen");s.setChatAgentModel(e.target.value);s.setUseCleanupModel(false);}}><option value="">{ui("Velg språkmodell")}</option>{models.map(m=><option key={m.id} value={m.id}>{m.name} ({m.size}){m.isDownloaded?" – "+ui("klar"):""}</option>)}</select></label>
+    {panelFocus === "assistant" && <section className="nb-model-card">
+      <h2>{ui("1. Talemodell – lyd til tekst")}</h2>
+      <p>{ui("NB-Whisper gjør lyd til tekst. Full presisjon (3,10 GB) og q5_0 (1,08 GB) er begge Large-modeller. q5_0 bruker vanligvis mindre minne.")}</p>
+      <p>{ui("Velg bokmål eller nynorsk. Nynorsk trenger ingen hjelpemodell. Språkvalget beholdes til du endrer det selv.")}</p>
+      <label>{ui("Målform") + " "}<select aria-label={ui("Målform")} value={s.preferredLanguage} onChange={(e)=>s.setPreferredLanguage(e.target.value)}><option value="no">{ui("Bokmål")}</option><option value="nn">{ui("Nynorsk")}</option></select></label><br/>
+      <label>{ui("Modell") + " "}<select aria-label={ui("Modell")} value={s.whisperModel} onChange={(e)=>{s.setWhisperModel(e.target.value);s.setMeetingWhisperModel(e.target.value);s.setUploadWhisperModel(e.target.value);}}><option value="nb-large">{ui("NB-Whisper Large – kvantisert q5_0 (mindre minne)")}</option><option value="nb-large-full">{ui("NB-Whisper Large – full presisjon (standard)")}</option></select></label><br/>
+      <label>{ui("Akselerasjon for talegjenkjenning") + " "}<select value={acceleration} disabled={busy} onChange={async e=>{const value=e.target.value;try{await api.nbSetAcceleration(value);setAcceleration(value);setMessage("Akselerasjonen endres når appen startes på nytt.");}catch(error){setMessage(String(error));}}}><option value="auto">{ui("Automatisk – Apple Silicon")}</option><option value="metal">Metal – Apple Silicon</option><option value="cpu">{ui("CPU – uten grafikkakselerasjon")}</option></select></label><br/>
+      <p>{ui("Automatisk bruker Metal på Apple Silicon. CPU kan være tregere.")}</p>
+      <p role="status" style={{fontSize:14}}>{ui("Aktiv talemotor")}: {memory?.engine?.active === "coreml" ? ui("CoreML-enkoder + Metal") : memory?.engine?.active === "metal" ? "Metal" : memory?.engine?.active === "cpu" ? "CPU" : "—"} · {ui(memory?.engine?.starting ? "Klargjøring …" : memory?.engine?.ready ? "Klar" : "Ikke startet")}</p>
+      <NBWhisperDownloads compact language={s.uiLanguage} selected={s.whisperModel}/>
+    </section>}
+    {panelFocus === "assistant" && <section id="nb-ai" className="nb-model-card">
+      <h2>{ui("2. Tekstopprydding – valgfritt")}</h2>
+      <p className="nb-cleanup-start"><strong>{ui("Prøv uten hjelpemodell først.")}</strong>{" "}{ui("Da får du teksten direkte fra NB-Whisper, uten ekstra behandlingstid eller omskriving. Slå bare på opprydding hvis du ønsker hjelp etterpå.")}</p>
+      <p>{ui("En valgfri Qwen-modell rydder eller formaterer teksten etterpå. Den erstatter ikke NB-Whisper og kan gjøre feil.")}</p>
+      <label>{ui("Lokal språkmodell")}<br/><select aria-label={ui("Lokal språkmodell")} disabled={busy||!!downloadStatus} value={selectedModel ? s.cleanupModel : ""} onChange={e=>{s.setCleanupModel(e.target.value);s.setCleanupProvider("qwen");s.setNoteFormattingMode("local");s.setNoteFormattingProvider("qwen");s.setNoteFormattingModel(e.target.value);s.setChatAgentMode("local");s.setChatAgentProvider("qwen");s.setChatAgentModel(e.target.value);s.setUseCleanupModel(false);}}><option value="">{ui("Uten hjelpemodell – prøv dette først")}</option>{models.map(m=><option key={m.id} value={m.id}>{m.name} ({m.size}){m.isDownloaded?" – "+ui("klar"):""}</option>)}</select></label>
       <button disabled={busy||!!downloadStatus||!selectedModel||selectedModel.isDownloaded} onClick={downloadSelectedModel}>{ui(selectedModel?.isDownloaded ? "Modellen er klar" : "Last ned valgt modell")}</button><br/>
       {downloadStatus && <div role="status"><label>{ui("Laster ned språkmodellen …")} {Math.floor(downloadStatus.progress || 0)} %<progress style={{width:"100%"}} max={100} value={downloadStatus.progress || 0}/></label><small>{((downloadStatus.downloadedSize||0)/1e9).toFixed(2)} / {((downloadStatus.totalSize||0)/1e9).toFixed(2)} GB</small></div>}
 
       <label><input type="checkbox" disabled={!models.some(m=>m.id===s.cleanupModel&&m.isDownloaded)} checked={s.useCleanupModel} onChange={e=>s.setUseCleanupModel(e.target.checked)}/>{" " + ui("Rydd diktering automatisk (av som standard)")}</label>
-      <NBModelGuide model={selectedModel}/>
+      {selectedModel && <NBModelGuide model={selectedModel}/>}
     </section>
     }
     {panelFocus === "files" && <section id="nb-files">
       <h2>{ui("Prøv en lydfil")}</h2>
       <p role="status"><strong>{s.uiLanguage === "en" ? "Speech model:" : s.uiLanguage === "nn" ? "Talemodell:" : "Talemodell:"}</strong>{" NB-Whisper Large — "}{s.whisperModel === "nb-large-full" ? ui("full presisjon") : s.whisperModel === "nb-large" ? ui("kvantisert q5_0") : ui("ukjent modellvalg")}</p>
-      <p>{s.uiLanguage === "en" ? "This model turns the audio file into text locally. Choose between full precision and the smaller q5_0 file in Speech and microphone. Both are Large models." : s.uiLanguage === "nn" ? "Denne modellen gjer lydfila om til tekst lokalt. Vel mellom full presisjon og den mindre q5_0-fila under Tale og mikrofon. Begge er Large-modellar." : "Denne modellen gjør lydfilen om til tekst lokalt. Velg mellom full presisjon og den mindre q5_0-filen under Tale og mikrofon. Begge er Large-modeller."}</p>
+      <p>{s.uiLanguage === "en" ? "This model turns the audio file into text locally. Choose between full precision and the smaller q5_0 file in Assistant. Both are Large models." : s.uiLanguage === "nn" ? "Denne modellen gjer lydfila om til tekst lokalt. Vel mellom full presisjon og den mindre q5_0-fila under Assistent. Begge er Large-modellar." : "Denne modellen gjør lydfilen om til tekst lokalt. Velg mellom full presisjon og den mindre q5_0-filen under Assistent. Begge er Large-modeller."}</p>
       <div aria-label={ui("Mine lydmapper")} style={{display:"flex",gap:8,flexWrap:"wrap"}}>{([["google","Google Disk"],["onedrive","OneDrive / SharePoint"],["icloud","iCloud Drive"]] as const).map(([id,label])=><button key={id} data-provider={id} data-emphasis="primary" onClick={async()=>{try{const result=await api.nbCloudFolderOpen(id);if(!result.success)setMessage(ui("Velg eller kontroller fast mappe under Integrasjoner først."));}catch{setMessage(ui("Kunne ikke åpne mappen. Kontroller mappevalget under Integrasjoner."));}}}><NBCloudBrand provider={id}/>{label}</button>)}</div>
       <p><small>{ui("Åpner den valgte mappen i Finder. Velg deretter lydfilen nedenfor eller dra den til appens filvalg.")}</small></p>
 
       <button onClick={()=>api.nbOpenVoiceMemos()}>{ui("Åpne Apple Taleopptak")}</button><button onClick={async()=>{const result=await api.nbStorageFolder();if(result.path)setPreferences({...preferences,documentFolder:result.path});}}>{ui("Velg dokumentmappe")}</button>
       <p>{ui("Velg en lokal WAV-, MP3-, M4A- eller WebM-fil. Filen behandles på Mac-en.")}</p>
       <label><input type="checkbox" checked={separateSpeakers} onChange={e=>setSeparateSpeakers(e.target.checked)}/>{" " + ui("Skill talere med lokal talermodell")}</label>
+      {separateSpeakers && <section aria-label="Motor for stemmeutskillelse">
+        <label>Motor for stemmeutskillelse <select value={speakerEngine} onChange={e=>{setSpeakerEngine(e.target.value);localStorage.setItem("nbSpeakerEngine",e.target.value);}}><option value="community-1">Community-1 (pyannote, valgfri)</option><option value="sherpa-onnx">Eksisterende sherpa-onnx</option></select></label>
+        <p>Automatisk antall talere, maksimalt 15 med Community-1. Dette er stemmegrupper, ikke bekreftede personer. En språkmodell erstatter ikke talermodellen.</p>
+        <label>Originalens lydkanaler <select value={channelMode} onChange={e=>setChannelMode(e.target.value)}><option value="inspect">Undersøk først (anbefalt)</option><option value="mix">Jeg velger nedmiksing til mono</option>{Array.from({length:Math.min(32,importJob.channelInspection?.channels || 2)},(_,i)=><option key={i} value={`channel:${i}`}>Bruk bare kanal {i+1}</option>)}</select></label>
+        <label>Ordtider <select value={wordAlignment} onChange={e=>{setWordAlignment(e.target.value);localStorage.setItem("nbWordAlignment",e.target.value);}}><option value="native">Standard – raskere, med NB-Whisper-ordtider</option><option value="whisperx" disabled={!communityStatus?.alignmentReadyLanguages?.includes(s.preferredLanguage==='nn'?'nn':'no')}>Presis – WhisperX, ekstra lokal modell</option></select></label>
+        <p>Presis ordjustering bruker mer tid og minne. Egen modell kreves for bokmål og nynorsk. Den endrer ikke teksten og er ikke en talermodell.</p>
+        <button disabled={busy||importing} onClick={async()=>{setBusy(true);try{const r=await api.nbAlignmentConfigure(s.preferredLanguage);if(r.success)setCommunityStatus(r);else if(!r.cancelled)setMessage(r.error);}finally{setBusy(false);}}}>Velg separat WhisperX-miljø og ordmodell</button>
+        <p>Originalen beholdes. Ved flere kanaler må du velge kanal eller nedmiksing. Uavhengige mikrofoner kan gi bedre grunnlag hver for seg; automatisk sammenkobling mellom kanaler er ikke implementert.</p>
+        {speakerEngine==='community-1' && <div>
+          <p>{communityStatus?.modelReady ? `Community-1 er konfigurert (${communityStatus.device}). Kjøring på denne Mac-en må kontrolleres med lyd.` : 'Community-1 trenger et separat Python-miljø og en separat modellnedlasting.'}</p>
+          <label>Prosessor <select value={communityDevice} onChange={async e=>{const device=e.target.value;setCommunityDevice(device);if(communityStatus?.configured){setBusy(true);try{const r=await api.nbCommunitySetDevice(device);if(r.success)setCommunityStatus(r);else setMessage(r.error);}finally{setBusy(false);}}}}><option value="cpu">CPU</option><option value="mps">MPS – utprøving, krever faktisk lydtest</option></select></label>
+          <button disabled={busy||importing} onClick={async()=>{setBusy(true);try{const r=await api.nbCommunityConfigure(communityDevice);if(r.success)setCommunityStatus(r);else if(!r.cancelled)setMessage(r.error);}finally{setBusy(false);}}}>Velg Community-1 Python-miljø</button>
+          <p><a href="https://huggingface.co/pyannote/speaker-diarization-community-1" target="_blank" rel="noreferrer">Godkjenn modelltilgang og CC-BY-4.0 hos Hugging Face</a></p>
+          <label><input type="checkbox" checked={communityTerms} onChange={e=>setCommunityTerms(e.target.checked)}/>Jeg har selv godkjent vilkårene hos Hugging Face</label>
+          <p><label>Hugging Face-lesetilgangsnøkkel (lagres i macOS Keychain) <input type="password" autoComplete="off" value={communityToken} onChange={e=>setCommunityToken(e.target.value)}/></label></p>
+          <button disabled={busy||importing||!communityTerms||!communityStatus?.configured} onClick={async()=>{setBusy(true);const token=communityToken;setCommunityToken('');try{const r=await api.nbCommunityDownload(token,communityTerms);setCommunityStatus(await api.nbCommunityStatus());setMessage(r.success?'Modellen er lastet ned og kontrollert. Inference skjer lokalt.':r.error);}finally{setBusy(false);}}}>Hent modellen separat</button>
+          {busy && <button onClick={()=>void api.nbCommunityCancelSetup()}>Avbryt modellnedlasting</button>}
+        </div>}
+      </section>}
       <input aria-label={ui("Velg lokal lydfil")} type="file" accept="audio/*,video/*,.webm,.mp4,.mov,.mkv" disabled={busy || importing} onChange={e=>{
         const file=e.target.files?.[0];
         if (!file || busy || importing) return;
         e.target.value = "";
-        void nbImportJob.start(file, { model:s.whisperModel, language:s.preferredLanguage, separateSpeakers, getHistoryEnabled:()=>{const policy=usePolicyStore.getState();return isPolicyActionAllowed(policy) && effectiveLocalHistoryEnabled(policy,useSettingsStore.getState().dataRetentionEnabled);} }, api);
+        void nbImportJob.start(file, { model:s.whisperModel, language:s.preferredLanguage, separateSpeakers,speakerEngine:speakerEngine as "community-1" | "sherpa-onnx",channelMode,wordAlignment, getHistoryEnabled:()=>{const policy=usePolicyStore.getState();return isPolicyActionAllowed(policy) && effectiveLocalHistoryEnabled(policy,useSettingsStore.getState().dataRetentionEnabled);} }, api);
       }}/>
       {importing && <p>{ui("Du kan bytte visning mens lydfilen behandles. La appen være åpen.")}</p>}
     </section>}
@@ -325,10 +374,15 @@ export default function NBControlPanel() {
   const percent=(value:unknown)=>typeof value === "number" && Number.isFinite(value) ? `${Math.round(value)} %` : "—";
   const gib=(value:unknown)=>typeof value === "number" && Number.isFinite(value) ? `${(value/2**30).toFixed(1)} GB` : "—";
   const pressure=system?.pressure === "normal" ? "Normalt" : system?.pressure === "warning" ? "Høyt" : system?.pressure === "critical" ? "Kritisk" : "Ukjent";
-  const status=<footer aria-label={ui("Systemstatus")} style={{flexShrink:0,display:"flex",flexWrap:"wrap",gap:"6px 18px",padding:"7px 16px",borderTop:"1px solid var(--color-border)",background:"var(--color-surface-1)",color:"var(--color-muted-foreground)",fontSize:12,fontVariantNumeric:"tabular-nums"}}>
+  const status=<footer aria-label={ui("Systemstatus")} style={{flexShrink:0,display:"flex",flexWrap:"wrap",gap:"6px 18px",padding:"7px 16px",borderTop:"1px solid var(--color-border)",background:"var(--color-surface-1)",color:"var(--color-muted-foreground)",fontSize:13,fontVariantNumeric:"tabular-nums"}}>
     {importJob.id > 0 && <span role="status" style={{flexBasis:"100%"}}>
       <button onClick={()=>{openNBPanel("files");if(!importing){setText(importJob.text);setSourceAudio(importJob.sourceAudio);setMessage(importJob.error || ui(importPhaseText[importJob.phase]));}}}>{ui("Lydfil")}: {importJob.fileName}</button>{" "}
-      {ui(importPhaseText[importJob.phase] || "")} · {importElapsed} s
+      {ui(importPhaseText[importJob.phase] || "")} · Tid brukt: {importElapsed} s
+      {importJob.totalSeconds>0 && <span> · Opptak: {Math.round(importJob.totalSeconds)} s · Behandlet lyd i dette trinnet: {Math.round(importJob.completedSeconds)} s</span>}
+      {importing && <span> · {({segmentation:"Finner talepartier",embeddings:"Sammenligner stemmer",discrete_diarization:"Fordeler talere",loading:"Laster talermodell",channels:"Undersøker lydkanaler",word_alignment:"Kobler ord til lyden"} as Record<string,string>)[importJob.stageLabel || ""] || ui(importPhaseText[importJob.phase] || "")} · Anslått resttid for trinnet: {(()=>{const fraction=importJob.phase==='transcribing' && importJob.totalSeconds ? importJob.completedSeconds/importJob.totalSeconds : importJob.stageFraction;return fraction && fraction>0 && fraction<1 ? Math.ceil((importClock-(importJob.stageStartedAt || importJob.startedAt))/1000*(1-fraction)/fraction)+' s (anslag)' : 'beregnes';})()}</span>}
+      {importJob.channelInspection && <p role="status">Kanaler: {importJob.channelInspection.channels || "ukjent"}. Undersøkt de første 30 sekundene; uavhengighet kan ikke bekreftes automatisk.</p>}
+      {importJob.warning && <p role="status">{importJob.warning}</p>}
+      {importJob.diarizationSummary && <p>{importJob.diarizationSummary.assigned}/{importJob.diarizationSummary.total} tekstsegmenter merket · {importJob.diarizationSummary.detectedGroups} stemmegrupper. Gi navn og korriger merkingen under Notater.</p>}
       {importing && (importJob.phase === "transcribing" && importJob.totalChunks>0 ? <span> {Math.min(100,Math.floor(importJob.completedChunks/importJob.totalChunks*100))} % · {importJob.completedChunks}/{importJob.totalChunks} {ui("deler")} <progress aria-label={ui("Lydfilen behandles")} max={importJob.totalChunks} value={importJob.completedChunks} style={{width:90,marginLeft:8}}/></span> : <progress aria-label={ui("Lydfilen behandles")} style={{width:90,marginLeft:8}}/>)}
       {importJob.resumedChunks>0 && <span> · {ui("Gjenopptatt:")} {importJob.resumedChunks} {ui("deler")}</span>}
       {importing && importJob.requestId && importJob.phase!=="saving" && <button disabled={importJob.cancelRequested} onClick={()=>void nbImportJob.cancel(api)}>{ui(importJob.cancelRequested ? "Avbryter …" : "Avbryt og behold fremdrift")}</button>}
@@ -343,6 +397,44 @@ export default function NBControlPanel() {
 }
 
 const NB_ENGLISH: Record<string,string> = {
+"Transkripsjon ferdig. Fordeler talere lokalt …":"Transcription complete. Assigning speakers locally …",
+"Talemodell, målform og valgfri tekstopprydding.":"Speech model, written language and optional text cleanup.",
+"Velg mikrofon og høyttaler, og kontroller tillatelser.":"Choose microphone and speaker, and check permissions.",
+"Velg tastene som starter og stopper opptak.":"Choose the keys that start and stop recording.",
+"Lengde på opptak, lydsignaler og automatisk innliming.":"Recording length, sound cues and automatic pasting.",
+"Lyst eller mørkt tema, aksentfarge og menyspråk.":"Light or dark theme, accent colour and interface language.",
+"Versjon, oppdateringsvalg og lokal feilsøkingslogg.":"Version, update choices and local diagnostic logs.",
+"Åpne":"Open",
+
+"NB-Whisper gjør lyd til tekst. Full presisjon (3,10 GB) og q5_0 (1,08 GB) er begge Large-modeller. q5_0 bruker vanligvis mindre minne.":"NB-Whisper turns audio into text. Full precision (3.10 GB) and q5_0 (1.08 GB) are both Large models. q5_0 generally uses less memory.",
+"Velg bokmål eller nynorsk. Nynorsk trenger ingen hjelpemodell. Språkvalget beholdes til du endrer det selv.":"Choose Bokmål or Nynorsk. Nynorsk needs no helper model. Your language choice stays until you change it.",
+"Automatisk bruker Metal på Apple Silicon. CPU kan være tregere.":"Automatic uses Metal on Apple Silicon. CPU may be slower.",
+"En valgfri Qwen-modell rydder eller formaterer teksten etterpå. Den erstatter ikke NB-Whisper og kan gjøre feil.":"An optional Qwen model cleans up or formats the text afterwards. It does not replace NB-Whisper and can make mistakes.",
+
+"Aktiv hurtigtast":"Active shortcut",
+"Ikke bekreftet":"Not confirmed",
+"Aktiverer lagret hurtigtast …":"Activating saved shortcut …",
+"Venter på at hurtigtasten skal bli klar …":"Waiting for the shortcut to become ready …",
+"Den lagrede hurtigtasten kunne ikke aktiveres. Bruk den aktive tasten ovenfor, eller velg en annen kombinasjon. Den lagrede innstillingen er beholdt.":"The saved shortcut could not be activated. Use the active shortcut above or choose another combination. Your saved preference has been preserved.",
+
+"Begge valgene er NB-Whisper Large. Full presisjon er en større fil på omtrent 3,10 GB. q5_0 er den kvantiserte utgaven på omtrent 1,08 GB og bruker vanligvis mindre minne. Prøv begge hvis du vil sammenligne fart og gjenkjenning.":"Both choices are NB-Whisper Large. Full precision is a larger file of about 3.10 GB. q5_0 is the quantized version of about 1.08 GB and usually uses less memory. Try both to compare speed and recognition.",
+"Velg nynorsk for tekst på nynorsk, eller bokmål for tekst på bokmål. Du trenger ikke en ekstra hjelpemodell for nynorsk. Valget beholdes til du endrer det selv. Talegjenkjenningen kan likevel gjøre feil.":"Choose Nynorsk for Nynorsk text, or Bokmål for Bokmål text. Nynorsk does not require an extra helper model. Your choice stays until you change it. Speech recognition can still make mistakes.",
+
+"Uten hjelpemodell – prøv dette først":"Without a helper model – try this first",
+"Prøv uten hjelpemodell først.":"Try without a helper model first.",
+"Da får du teksten direkte fra NB-Whisper, uten ekstra behandlingstid eller omskriving. Slå bare på opprydding hvis du ønsker hjelp etterpå.":"You get the text directly from NB-Whisper without extra processing time or rewriting. Enable cleanup only if you want help afterwards.",
+
+"Modeller":"Models",
+"Talemodell":"Speech model",
+"Velg modeller og les forklaringen":"Choose models and read the explanation",
+"1. Talemodell – lyd til tekst":"1. Speech model – audio to text",
+"NB-Whisper lytter til opptaket og skriver ordene dine. Velg bokmål eller nynorsk. Denne modellen trengs for diktering, lydimport og transkripsjon av møter.":"NB-Whisper listens to the recording and writes your words. Choose Bokmål or Nynorsk. This model is required for dictation, audio import and meeting transcription.",
+"2. Tekstopprydding – valgfritt":"2. Text cleanup – optional",
+"En Qwen-språkmodell arbeider med teksten etter NB-Whisper. Den kan rydde tegnsetting, formatere notater og hjelpe med referatutkast. Den hører ikke lyd og er ikke nødvendig for vanlig diktering. La opprydding være av hvis du vil beholde den rå transkripsjonen.":"A Qwen language model works with the text after NB-Whisper. It can clean punctuation, format notes and help draft summaries. It does not hear audio and is not required for ordinary dictation. Leave cleanup off to preserve the raw transcription.",
+"Assistenten bruker den valgfrie språkmodellen til å arbeide med tekst. Talemodellen NB-Whisper brukes først når lyd skal bli tekst.":"The assistant uses the optional language model to work with text. NB-Whisper is used first when converting audio into text.",
+"Ingen valgt":"None selected",
+"Metal bruker grafikkdelen i Apple-brikken. CPU bruker prosessoren og kan være tregere. Denne pakken inneholder ikke Core ML-encoder.":"Metal uses the graphics part of the Apple chip. CPU uses the processor and may be slower. This package does not include a Core ML encoder.",
+
  "full presisjon":"full precision",
  "kvantisert q5_0":"quantized q5_0",
  "ukjent modellvalg":"unknown model selection",
