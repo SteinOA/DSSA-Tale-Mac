@@ -1,0 +1,27 @@
+Primærkilder kontrollert 27. oktober 2026
+
+https://github.com/OpenWhispr/openwhispr/tree/v1.9.2
+https://github.com/SteinOA/openwhispr-nb-whisper
+https://huggingface.co/NbAiLab/nb-whisper-large/tree/8c6249fdeeb4dcd05e5735a4c39640607eb6e4ac
+https://github.com/OpenWhispr/whisper.cpp/releases/tag/0.0.8
+https://github.com/ggml-org/llama.cpp/tree/b9763
+https://github.com/k2-fsa/sherpa-onnx/tree/v1.13.4
+https://github.com/microsoft/onnxruntime/tree/v1.27.0
+https://huggingface.co/pyannote/segmentation-3.0/blob/main/LICENSE
+https://modelscope.cn/api/v1/models/iic/speech_campplus_sv_en_voxceleb_16k
+  Modellmetadata returnerer License: Apache License 2.0.
+https://github.com/modelscope/3D-Speaker
+https://github.com/snakers4/silero-vad
+https://github.com/csukuangfj/kaldi-native-fbank/tree/v1.22.3
+https://github.com/k2-fsa/kaldi-decoder/tree/v0.3.0
+https://github.com/pkufool/simple-sentencepiece/tree/v0.7
+https://github.com/mborgerding/kissfft/tree/febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+https://gitlab.com/libeigen/eigen/-/tree/5.0.1
+https://ffmpeg.org/releases/ffmpeg-6.0.tar.xz
+https://downloads.xiph.org/releases/opus/opus-1.5.2.tar.gz
+https://github.com/OpenWhispr/openwhispr/releases/tag/meeting-aec-helper-v1.0.0
+https://chromium.googlesource.com/chromiumos/third_party/webrtc-apm/+/08f235eba0c247f8929045adb090d0b0445cf8ea/
+https://webrtc.googlesource.com/src/+/refs/heads/main/LICENSE
+https://github.com/abseil/abseil-cpp/tree/9ac7062b1860d895fb5a8cbf58c3e9ef8f674b5f
+
+Modellkilder for valgfrie språkmodeller: optional-LLM-license-metadata.json.

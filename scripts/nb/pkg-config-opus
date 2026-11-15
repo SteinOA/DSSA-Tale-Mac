@@ -1,0 +1,12 @@
+#!/bin/sh
+case "$*" in
+  --version) echo 1.8.0; exit 0;;
+  *opus*)
+    case "$*" in
+      *--cflags*) echo "-I$(dirname "$0")/opus-local/include/opus" ;;
+      *--libs*) echo "-L$(dirname "$0")/opus-local/lib -lopus -lm" ;;
+      *--modversion*) echo 1.5.2 ;;
+    esac
+    exit 0;;
+  *) exit 1;;
+esac

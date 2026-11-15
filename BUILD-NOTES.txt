@@ -1,0 +1,26 @@
+DSSA Tale Test 1.9.20 – Mac-kandidat
+
+Kilde: OpenWhispr v1.9.2 + SteinOA NB-oppsett + egne DSSA Mac-endringer.
+Egen arbeidsgren. Windows-repoet er separat.
+Node24 / Electron41.10.5, arm64. Ikke npm ci blindt over den kuraterte FFmpeg-binæren.
+Ressursbinærer må bygges/hentes fra de låste kildene i resources/legal/SOURCES.txt og
+byggeoppskriftene før pakking. Store modellvekter følger ikke med og skal ikke
+kopieres inn i pakken. Kontroller pakkens innhold, ikke bare kildekonfigurasjon.
+
+Validering:
+  npm test
+  npm run typecheck
+  npm run build:renderer
+  node node_modules/electron-builder/cli.js --config electron-builder.nb-test.cjs --config.directories.output=/private/tmp/dssa-tale-test-candidate --mac dmg --arm64 --publish never
+  codesign --verify --deep --strict <app>
+  hdiutil verify <dmg>
+
+Bygg utenfor iCloud/Documents-mappen. afterPack fjerner FinderInfo/ResourceFork
+som hindrer signering. Kun ad hoc-signering; ikke Developer ID eller notarisering.
+Testprofilet er separat fra den vanlige appen. Ta aldri med profil, nøkkelring,
+transcriptions.db, personlig lyd, tokens eller nedlastingscache i repo/utgivelse.
+
+Denne lette utgaven bruker portable Metal/CPU. Den eksperimentelle M4-spesifikke
+Core ML-serveren velges ikke uten separat encoder, og encodervektene følger ikke med.
+Core ML-byggegrunnlaget er historisk/for reproduksjon, ikke et løfte om ANE-bruk.
+Fysisk maskin/OS verifisert: M4,24GB,macOS27.0.1. MinOS26.0 er teknisk krav.

@@ -1,0 +1,7 @@
+{
+  "archive": {"url":"https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2","size":6958444,"sha256":"24615ee884c897d9d2ba09bb4d30da6bb1b15e685065962db5b02e76e4996488","assetId":197666131},
+  "segmentation": {"fileName":"sherpa-onnx-pyannote-segmentation-3-0/model.onnx","size":5992913,"sha256":"220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079"},
+  "license": {"fileName":"sherpa-onnx-pyannote-segmentation-3-0/LICENSE","size":1061,"sha256":"14d7016ad68e7394d6e6b78d96cc2ae431c905287b89674cfdf021e79e62b8ba"},
+  "embedding": {"url":"https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx","fileName":"3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx","size":29596978,"sha256":"357a834f702b80161e5b981182c038e18553c1f2ca752ed6cec2052365d4129b","assetId":198893105},
+  "vad": {"url":"https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx","fileName":"silero_vad.onnx","size":643854,"sha256":"9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6","assetId":271935959}
+}
