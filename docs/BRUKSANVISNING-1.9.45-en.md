@@ -6,9 +6,28 @@ For Mac version 1.9.45. Screenshots show the Bokmål interface and this Mac’s 
 
 [Last ned appen og les teststatus](https://github.com/SteinOA/DSSA-Tale-Mac/releases/tag/v1.9.45-beta.1)
 
+Buttons and fields described in this guide are in the DSSA Tale app. This page does not change settings.
+
+[Community-1 – modellvilkår](https://huggingface.co/pyannote/speaker-diarization-community-1) · [Hugging Face – tilgangsnøkler](https://huggingface.co/settings/tokens) · [E-post til DSSA](mailto:stein@haldendemensforening.no) · [Feilrapporter på GitHub](https://github.com/SteinOA/DSSA-Tale-Mac/issues)
+
 ## Innhold
 
-- [Getting started](#guide)
+- [Getting started](#getting-started)
+- [Installation and updates](#installation-and-updates)
+- [Dictation and notebook](#dictation-and-notebook)
+- [Speech model and language](#speech-model-and-language)
+- [Optional text processing](#optional-text-processing)
+- [Notes and document export](#notes-and-document-export)
+- [Meetings and speaker labels](#meetings-and-speaker-labels)
+- [Audio files, folders and queue](#audio-files-folders-and-queue)
+- [Dictionary and snippets](#dictionary-and-snippets)
+- [Calendar, cloud folders and email](#calendar-cloud-folders-and-email)
+- [Shortcuts and settings](#shortcuts-and-settings)
+- [Memory, CPU and privacy](#memory-cpu-and-privacy)
+- [Contact DSSA Tale](#contact-dssa-tale)
+- [Troubleshooting and bug reports](#troubleshooting-and-bug-reports)
+- [Credits and licences](#credits-and-licences)
+
 
 ## Getting started
 
@@ -40,7 +59,6 @@ NB-Whisper turns audio into written text, normally including punctuation. No ext
 
 *Innstillinger – oversikt over sidene*
 
-- [Installation and updates](#install)
 
 ## Installation and updates
 
@@ -60,7 +78,6 @@ This test edition is not Developer ID signed or Apple notarized. If Apple cannot
 
 Quit DSSA Tale with ⌘Q before replacing the same app in Applications from a newer DMG. Do not delete the user folder or downloaded models. Updating the same app normally preserves notes, models and settings; export important notes first. Automatic OpenWhispr updates are disabled. A test update may require renewed text insertion permission.
 
-- [Dictation and notebook](#dictation)
 
 ## Dictation and notebook
 
@@ -84,7 +101,6 @@ Settings → Speech and microphone lets you choose the system input or a specifi
 
 *Tale og mikrofon – BlackHole er denne maskinens spesielle lydoppsett*
 
-- [Speech model and language](#models)
 
 ## Speech model and language
 
@@ -108,7 +124,6 @@ Automatic and Metal use Apple Silicon graphics; CPU can be slower. Acceleration 
 
 *NB-Whisper-modeller, målform og akselerasjon*
 
-- [Optional text processing](#cleanup)
 
 ## Optional text processing
 
@@ -132,7 +147,6 @@ Suggested Q4 downloads are approximately 1.40 GB for Qwen3.5 2B, 2.50 GB for Qwe
 
 *Valgfrie tekstmodeller – ingen ekstra LLM er nødvendig for diktering*
 
-- [Notes and document export](#notes)
 
 ## Notes and document export
 
@@ -156,7 +170,6 @@ Trash controls apply to the nearby item or area. Read confirmations before delet
 
 *Notater – førstegangsvisning med Kom i gang og valgfri systemlyd*
 
-- [Meetings and speaker labels](#meetings)
 
 ## Meetings and speaker labels
 
@@ -232,7 +245,6 @@ Inspect first examines original channels. Select a channel or mono downmix if re
 
 *Møteveiledningen i den installerte appen*
 
-- [Audio files, folders and queue](#files)
 
 ## Audio files, folders and queue
 
@@ -256,7 +268,6 @@ Automatic queue saving requires local history permission. Saving failures pause 
 
 *Lydfiler – flervalg, mapper, undermapper og eksport*
 
-- [Dictionary and snippets](#dictionary)
 
 ## Dictionary and snippets
 
@@ -276,7 +287,6 @@ Snippets stores text you use often. Create a short trigger phrase and its replac
 
 *Tekstsnutter – korte fraser blir til lagret tekst*
 
-- [Calendar, cloud folders and email](#integrations)
 
 ## Calendar, cloud folders and email
 
@@ -304,7 +314,6 @@ The Email tab explains dictation in Mail, Outlook and other text fields. Put the
 
 *E-post – diktering i tekstfelt, ikke innbokslesing*
 
-- [Shortcuts and settings](#settings)
 
 ## Shortcuts and settings
 
@@ -336,7 +345,6 @@ System shows the version and manual update status. Detailed debug logging record
 
 *System – versjon og lokal feilsøkingslogging*
 
-- [Memory, CPU and privacy](#memory)
 
 ## Memory, CPU and privacy
 
@@ -356,7 +364,6 @@ Mac GPU covers the entire Mac, not only DSSA Tale. Swap is disk used as addition
 
 Speech recognition and optional local text processing run on the Mac; audio and transcripts are not uploaded for processing. Internet is needed to download speech models, optional text models and speaker runtimes/models. Help links and optional account/calendar services can use the network when selected. Files you save in iCloud, Drive, OneDrive or Teams folders may be synchronized by those providers. Local notes and history stay on this Mac.
 
-- [Contact DSSA Tale](#support)
 
 ## Contact DSSA Tale
 
@@ -368,7 +375,6 @@ The email button opens a draft to stein@haldendemensforening.no in your mail app
 
 This is a test edition. The long import test demonstrates saving, not flawless recognition. Not every Mac, meeting app, large speaker group or helper model's Bokmål/Nynorsk quality has been fully validated. Developer ID signing and Apple notarization are still missing. Release test-status documents describe exact measurements and limitations.
 
-- [Troubleshooting and bug reports](#bugs)
 
 ## Troubleshooting and bug reports
 
@@ -388,7 +394,6 @@ Try with cleanup off and check Metal in Assistant. Initial model loading can tak
 
 The button opens DSSA Tale Mac's GitHub project, not Windows or upstream OpenWhispr issues. GitHub issue reports are public. Include version, steps and anonymized errors; do not upload private recordings or documents. Use Contact email if unsure what can be shared.
 
-- [Credits and licences](#rights)
 
 ## Credits and licences
 
