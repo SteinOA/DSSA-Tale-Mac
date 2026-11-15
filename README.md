@@ -10,6 +10,8 @@ DSSA Tale kan brukes som en lokal testløsning for å ta opp Teams-samtaler møt
 
 ## Last ned
 
+**Ny bruksanvisning med 17 skjermbilder (15. november 2026):** [Bokmål](docs/BRUKSANVISNING-1.9.45-nb.md) · [Nynorsk](docs/BRUKSANVISNING-1.9.45-nn.md) · [English](docs/BRUKSANVISNING-1.9.45-en.md) · [Last ned for bruk uten nett (ZIP)](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.45-beta.1/DSSA-Tale-1.9.45-bruksanvisning-med-bilder.zip).
+
 **[Last ned DSSA Tale 1.9.45 for Apple Silicon](https://github.com/SteinOA/DSSA-Tale-Mac/releases/download/v1.9.45-beta.1/DSSA-Tale-1.9.45-Apple-Silicon.dmg)**
 
 [Les om utgivelsen og installasjonen](https://github.com/SteinOA/DSSA-Tale-Mac/releases/tag/v1.9.45-beta.1). Dette er en offentlig testutgave. Installasjon og ny installasjon er gjennomført hundrevis av ganger i utviklings- og testarbeidet, og appen fungerer i det kontrollerte Mac-oppsettet. Apple har ikke kontrollert og godkjent appen for vanlig automatisk installasjon, så macOS kan fortsatt spørre om ekstra godkjenning første gang du åpner den.
