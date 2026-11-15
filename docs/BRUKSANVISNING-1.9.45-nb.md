@@ -20,9 +20,28 @@ Dette arbeidet dokumenterer skjermene og valgene. Det er ikke en ny full funksjo
 
 [Last ned appen og les teststatus](https://github.com/SteinOA/DSSA-Tale-Mac/releases/tag/v1.9.45-beta.1)
 
+Knappene og feltene som omtales i teksten, finnes i DSSA Tale-appen. Denne nettsiden endrer ingen innstillinger.
+
+[Community-1 – modellvilkår](https://huggingface.co/pyannote/speaker-diarization-community-1) · [Hugging Face – tilgangsnøkler](https://huggingface.co/settings/tokens) · [E-post til DSSA](mailto:stein@haldendemensforening.no) · [Feilrapporter på GitHub](https://github.com/SteinOA/DSSA-Tale-Mac/issues)
+
 ## Innhold
 
-- [Kom i gang](#guide)
+- [Kom i gang](#kom-i-gang)
+- [Installering og oppdatering](#installering-og-oppdatering)
+- [Diktering og notatblokk](#diktering-og-notatblokk)
+- [Talemodell og språk](#talemodell-og-språk)
+- [Valgfritt tekstetterarbeid](#valgfritt-tekstetterarbeid)
+- [Notater og dokumenteksport](#notater-og-dokumenteksport)
+- [Møter og talermerking](#møter-og-talermerking)
+- [Lydfiler, mapper og kø](#lydfiler-mapper-og-kø)
+- [Ordliste og tekstsnutter](#ordliste-og-tekstsnutter)
+- [Kalender, skylagring og e-post](#kalender-skylagring-og-e-post)
+- [Hurtigtaster og innstillinger](#hurtigtaster-og-innstillinger)
+- [Minne, CPU og personvern](#minne-cpu-og-personvern)
+- [Kontakt DSSA Tale](#kontakt-dssa-tale)
+- [Feilsøking og feilrapport](#feilsøking-og-feilrapport)
+- [Opphav og rettigheter](#opphav-og-rettigheter)
+
 
 ## Kom i gang
 
@@ -54,7 +73,6 @@ NB-Whisper er talemodellen som gjør lyd til skrevet tekst, normalt med tegnsett
 
 *Innstillinger – oversikt over sidene*
 
-- [Installering og oppdatering](#install)
 
 ## Installering og oppdatering
 
@@ -74,7 +92,6 @@ Testutgaven er ikke Developer ID-signert eller Apple-notarisert. Hvis Apple ikke
 
 Avslutt DSSA Tale med ⌘Q før du erstatter den samme appen i Programmer med en nyere DMG-utgave. Ikke slett brukermappen eller nedlastede modeller. Notater, modeller og valg beholdes normalt ved oppdatering av samme app. Eksporter viktige notater først. Automatiske OpenWhispr-oppdateringer er slått av. Ny testutgave kan kreve at innlimingstillatelsen fornyes.
 
-- [Diktering og notatblokk](#dictation)
 
 ## Diktering og notatblokk
 
@@ -98,7 +115,6 @@ Innstillinger → Tale og mikrofon: velg standardinngangen eller en bestemt mikr
 
 *Tale og mikrofon – BlackHole er denne maskinens spesielle lydoppsett*
 
-- [Talemodell og språk](#models)
 
 ## Talemodell og språk
 
@@ -122,7 +138,6 @@ Automatisk og Metal bruker Apple Silicon-grafikken; CPU er et alternativ som kan
 
 *NB-Whisper-modeller, målform og akselerasjon*
 
-- [Valgfritt tekstetterarbeid](#cleanup)
 
 ## Valgfritt tekstetterarbeid
 
@@ -146,7 +161,6 @@ De foreslåtte Q4-filene er omtrent 1,40 GB for Qwen3.5 2B, 2,50 GB for Qwen3 4B
 
 *Valgfrie tekstmodeller – ingen ekstra LLM er nødvendig for diktering*
 
-- [Notater og dokumenteksport](#notes)
 
 ## Notater og dokumenteksport
 
@@ -170,7 +184,6 @@ Søppelkasseknapper gjelder elementet eller området de står ved. Les bekreftel
 
 *Notater – førstegangsvisning med Kom i gang og valgfri systemlyd*
 
-- [Møter og talermerking](#meetings)
 
 ## Møter og talermerking
 
@@ -246,7 +259,6 @@ Undersøk først ser på originalens kanaler. Velg én kanal eller nedmiksing ti
 
 *Møteveiledningen i den installerte appen*
 
-- [Lydfiler, mapper og kø](#files)
 
 ## Lydfiler, mapper og kø
 
@@ -270,7 +282,6 @@ Automatisk kølagring krever tillatt lokal historikk. Ved lagringsfeil pauses k�
 
 *Lydfiler – flervalg, mapper, undermapper og eksport*
 
-- [Ordliste og tekstsnutter](#dictionary)
 
 ## Ordliste og tekstsnutter
 
@@ -290,7 +301,6 @@ Fanen Tekstsnutter er for faste tekster du bruker ofte. Opprett en kort utløsen
 
 *Tekstsnutter – korte fraser blir til lagret tekst*
 
-- [Kalender, skylagring og e-post](#integrations)
 
 ## Kalender, skylagring og e-post
 
@@ -318,7 +328,6 @@ E-post-fanen forklarer diktering i Mail, Outlook og andre tekstfelt. Sett markø
 
 *E-post – diktering i tekstfelt, ikke innbokslesing*
 
-- [Hurtigtaster og innstillinger](#settings)
 
 ## Hurtigtaster og innstillinger
 
@@ -350,7 +359,6 @@ System viser appversjonen og at oppdatering er manuell. Detaljert feilsøkingslo
 
 *System – versjon og lokal feilsøkingslogging*
 
-- [Minne, CPU og personvern](#memory)
 
 ## Minne, CPU og personvern
 
@@ -370,7 +378,6 @@ Mac GPU gjelder hele Mac-en, ikke bare DSSA Tale. Bytteminne er systemets bruk a
 
 Talegjenkjenning og eventuell lokal tekstopprydding kjører på Mac-en. Lyd og transkripsjoner lastes ikke opp for behandling. Nett trengs for å hente talemodell, valgfrie tekstmodeller og eventuelt kjøremiljø/talermodell. Hjelpelenker og konto-/kalendertjenester kan bruke nett når du velger dem. Lagrer du selv i iCloud, Google Disk, OneDrive eller Teams-mapper, kan leverandøren synkronisere filene. Lokal historikk og notater ligger på denne Mac-en.
 
-- [Kontakt DSSA Tale](#support)
 
 ## Kontakt DSSA Tale
 
@@ -382,7 +389,6 @@ Bruk e-postknappen nedenfor for å åpne en kladd til stein@haldendemensforening
 
 Dette er en testutgave. Den lange filkøprøven dokumenterer lagring, ikke feilfri språkgjenkjenning. Alle Mac-modeller, møteapper, mange samtidige talere og hjelpemodellenes bokmåls-/nynorskkvalitet er ikke fullstendig kontrollert. Apples Developer ID-signering og notarisation mangler fortsatt. Se teststatus ved nedlastingen for presise målinger og begrensninger.
 
-- [Feilsøking og feilrapport](#bugs)
 
 ## Feilsøking og feilrapport
 
@@ -402,7 +408,6 @@ Prøv uten automatisk tekstopprydding og kontroller Metal under Assistent. Førs
 
 Knappen nedenfor åpner DSSA Tale Mac sitt GitHub-prosjekt, ikke Windows-prosjektet eller OpenWhisprs feilside. En GitHub-feilrapport er offentlig. Oppgi versjon, trinn og anonymisert feilmelding; ikke last opp private lydfiler eller dokumenter. Bruk e-post under Kontakt hvis du er usikker på hva du kan dele.
 
-- [Opphav og rettigheter](#rights)
 
 ## Opphav og rettigheter
 
